@@ -3,6 +3,8 @@
 \usepackage{register}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
+\usepackage[pdf]{pstricks}
+\usepackage{pst-circ}
 \begin{document}
 
 \title{}
@@ -97,5 +99,82 @@ blah
 \regfield{tx\_frame\_offset}{16}{0}{0}%
 \reglabel{Reset}\regnewline%
 \end{register}
-blah
+
+\begin{pspicture}[showgrid](0,0)(10,10)
+\SpecialCoor
+\rput(0,4)
+{
+    \rput[tr](9.9,3.3){inbuf}
+    \pnode(0,0.2){inbufCtrl}
+    \pnode(0,2){inbufData}
+    \pnode(3.7,2){inbufDataMux}
+    \rput(0.2,1.4)
+    {
+        \rput[tr](2.9,1.4){average\_mem}
+        \rput(1.5,0.4){\psframebox[fillstyle=solid]{mem}}
+        \psframe(0,0)(3,1.5)
+    }
+    \rput(4,2)
+    {
+        \rput[tr](5.7,0.8){receiver}
+        \multido{\i=2+-1,\n=0.1+-0.1}{3}
+        {
+            \rput(\n,\n)
+            {
+                {
+                    \psset{fillstyle=solid}
+                    \rput[l](0.3,0){\rnode{descramble\i}{\psframebox{descramble}}}
+                    \rput(3.5,0){\rnode{GTX\i}{\psframebox{GTX}}}
+                    \rput(5,0){\rnode{align\i}{\psframebox{align}}}
+                }
+                \pnode(!\n\space neg -0.2 add 0){inbufDataMUX\i}
+                \ncline[linecolor=blue]{GTX\i}{descramble\i}
+                \ncline[linecolor=blue]{descramble\i}{inbufDataMUX\i}
+                \psset{linecolor=red}
+                \ncline{align\i}{GTX\i}
+                \ncangle[angleA=-90, armB=0]{align\i}{inbufCtrl}
+                \ncangle[angleA=-90, armB=0]{GTX\i}{inbufCtrl}
+                \ncangle[angleA=-90, armB=0]{descramble\i}{inbufCtrl}
+            }
+        }
+        \psframe(0,-0.6)(5.8,0.9)
+    }
+    {
+        \psset{fillstyle=solid}
+        \rput[l](2.1,0.7){\rnode{wallclk}{\psframebox{wallclk}}}
+        \rput[r](1.6,0.7){\rnode{trigger}{\psframebox{trigger}}}
+        \pnode(1.9,1.4){averageMemCtrl}
+        \pnode(0.2,2){averageMemDataOut}
+        \pnode(3.2,2){averageMemDataIn}
+    }
+    \ncline[linecolor=blue]{inbufDataMux}{averageMemDataIn}
+    {
+        \psset{linecolor=red}
+        \ncangle[angleA=-90, angleB=180, armB=0, offset=2pt]{averageMemCtrl}{wallclk}
+        \ncangle[angleA=-90, armB=0, offset=-2pt]{averageMemCtrl}{trigger}
+        \ncangle[angleA=-90, armB=0]{averageMemCtrl}{inbufCtrl}
+        \ncangle[angleA=-90, armB=0]{trigger}{inbufCtrl}
+        \ncangle[angleA=-90, armB=0]{wallclk}{inbufCtrl}
+        \ncangle[angleA=-90, armB=0]{inbufDataMux}{inbufCtrl}
+    }
+    \rput(3.6,1.65){\pspolygon[fillcolor=white,fillstyle=solid](0,0.15)(0.2,0)(0.2,0.7)(0,0.55)}
+    \ncline[linecolor=green]{averageMemDataOut}{inbufData}
+    \psframe(0,0)(10,3.4)
+}
+%core
+% h
+% overlap_add
+%  fftncmul
+%   cmul
+%  ifftnadd
+%  fft
+%  scratch
+%outbuf
+% mem
+% mem
+% mux
+% cmul
+% transmitter
+%  balance
+\end{pspicture}
 \end{document}
