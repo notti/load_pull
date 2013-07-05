@@ -1,3 +1,4 @@
+%
 \documentclass[11pt]{article}
 \usepackage{register}
 \usepackage[utf8]{inputenc}
@@ -83,7 +84,9 @@ blah
 \end{register}
 \begin{register}{htbp}{reg(5)}{0x14}%
 \label{reg5}%
-\regfield{Reserved}{7}{25}{0}%
+\regfield{tx\_shift}{1}{31}{0}%
+\regfield{tx\_ovfl}{1}{30}{0}%
+\regfield{Reserved}{5}{25}{0}%
 \regfield{mem\_req}{1}{24}{0}%
 \regfield{tx\_rst}{1}{23}{0}%
 \regfield{Reserved}{3}{20}{0}%
