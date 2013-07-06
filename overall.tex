@@ -104,19 +104,20 @@ blah
 \SpecialCoor
 \rput(0,8.4)
 {
-    \psframe(0,0)(11.3,4.1)
-    \rput[tr](11.1,4){inbuf}
+    \psframe(0,0)(10.2,5.3)
+    \rput[tr](10,5.2){inbuf}
     \pnode(0,0.2){inbufCtrl}
-    \pnode(0,2.3){inbufData}
-    \pnode(4.9,2){inbufDataMux}
+    \pnode(0,4.15){inbufDataIn}
+    \pnode(0,2.85){inbufDataOut}
+    \pnode(3.9,2){inbufDataMux}
     \pnode(1.9,1.4){averageMemCtrl}
-    \rput(0.9,1.4)
+    \rput(0,1.4)
     {
-        \rput[tr](3.4,2.1){average\_mem}
-        \psframe(-0.7,0)(3.5,2.2)
+        \rput[tr](3.4,3.3){average\_mem}
+        \psframe(0.2,0)(3.5,3.4)
         \rput(0.6,0.4)
         {
-            \rput(0,0.5){\rnode{inMem}{\psframebox[fillstyle=solid]{mem}}}
+            \rput(1.7,1.7){\rnode{inMem}{\psframebox[fillstyle=solid]{mem}}}
             \rput[t](2,1){\circlenode{inAdd}{$+$}}
             \pnode(! \psGetNodeCenter{inAdd} 2.5 inAdd.y 0.25 add){averageAddLoop}
             \pnode(! \psGetNodeCenter{inAdd} 2.5 inAdd.y 0.25 sub){averageAddIn}
@@ -124,27 +125,26 @@ blah
             \pnode(2.5,0.2){averageDataSplit}
             \pnode(! \psGetNodeCenter{inAdd} 1.2 inAdd.y){averageMuxInAdd}
             \pnode(1.2,0.2){averageMuxInData}
-            \pnode(-0.9,0.1){averageOutMuxCtrl}
-            \pnode(1.1,0.1){averageMuxCtrl}
             \ncline[linecolor=blue]{inAdd}{averageAddIn}
             \ncline[linecolor=blue]{inAdd}{averageMuxInAdd}
             \ncline[linecolor=green]{inAdd}{averageAddLoop}
-            \ncloop[linecolor=green, loopsize=.3, armA=0.2, armB=0.2, offsetB=-1pt]{averageAddLoop}{inMem}
-            \ncangle[linecolor=green, offsetB=1pt]{averageMuxOut}{inMem}
+            \ncangle[linecolor=green, angleA=90, angleB=-90, offsetB=-1pt]{averageAddLoop}{inMem}
+            \ncloop[linecolor=green, armA=0.2, angleA=90, offsetA=1pt, angleB=180, loopsize=-1]{inMem}{averageMuxOut}
             \ncline[linecolor=blue]{averageAddIn}{averageDataSplit}
             \ncline[linecolor=blue]{averageDataSplit}{averageMuxInData}
             \psdot[linecolor=blue](averageDataSplit)
-            \ncangle[linecolor=red, angleA=-90, angleB=90]{averageOutMuxCtrl}{averageMemCtrl}
-            \ncangle[linecolor=red, angleA=-90, angleB=90]{averageMuxCtrl}{averageMemCtrl}
-            \pnode(-0.8,0.5){averageOutMuxIn}
-            \pnode(-1,0.5){averageOutMuxOut}
-            \ncline[linecolor=green]{inMem}{averageOutMuxIn}
-            \ncline[linecolor=green]{averageOutMuxOut}{inbufData}
+            \pnode(0.1,1.05){inMuxOut}
+            \pnode(0.1,2.35){inMuxIn}
+            \ncangle[linecolor=green, angleB=-90, offsetB=1pt, armB=0]{inMuxOut}{inMem}
+            \ncangle[linecolor=green, angleB=90, offsetB=1pt, armB=0]{inMuxIn}{inMem}
+            \ncline[linecolor=green]{inMuxOut}{inbufDataOut}
+            \ncline[linecolor=green]{inMuxIn}{inbufDataIn}
             \rput(1,0){\pspolygon[fillcolor=white,fillstyle=solid](0,0.15)(0.2,0)(0.2,1)(0,0.85)}
-            \rput(-1,0){\pspolygon[fillcolor=white,fillstyle=solid](0,0.15)(0.2,0)(0.2,1)(0,0.85)}
+            \rput(0,0.7){\pspolygon[fillcolor=white,fillstyle=solid](0,0.15)(0.2,0)(0.2,0.7)(0,0.55)}
+            \rput{180}(0.2,2.7){\pspolygon[fillcolor=white,fillstyle=solid](0,0.15)(0.2,0)(0.2,0.7)(0,0.55)}
         }
     }
-    \rput(5.2,2)
+    \rput(4.2,2)
     {
         \psframe(0,-0.6)(5.8,0.9)
         \rput[tr](5.7,0.8){receiver}
@@ -184,7 +184,7 @@ blah
         \ncangle[angleA=-90, armB=0]{wallclk}{inbufCtrl}
         \ncangle[angleA=-90, armB=0]{inbufDataMux}{inbufCtrl}
     }
-    \rput(4.8,1.65){\pspolygon[fillcolor=white,fillstyle=solid](0,0.15)(0.2,0)(0.2,0.7)(0,0.55)}
+    \rput(3.8,1.65){\pspolygon[fillcolor=white,fillstyle=solid](0,0.15)(0.2,0)(0.2,0.7)(0,0.55)}
 }
 {
     \rput[tr](7.4,8.1){core}
