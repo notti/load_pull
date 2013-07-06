@@ -102,7 +102,7 @@ blah
 
 \begin{pspicture}[showgrid](0,0)(10,10)
 \SpecialCoor
-\rput(0,4)
+\rput(0,8.4)
 {
     \psframe(0,0)(11.3,4.1)
     \rput[tr](11.1,4){inbuf}
@@ -117,7 +117,7 @@ blah
         \rput(0.6,0.4)
         {
             \rput(0,0.5){\rnode{inMem}{\psframebox[fillstyle=solid]{mem}}}
-            \rput[t](2,1){\circlenode{inAdd}{+}}
+            \rput[t](2,1){\circlenode{inAdd}{$+$}}
             \pnode(! \psGetNodeCenter{inAdd} 2.5 inAdd.y 0.25 add){averageAddLoop}
             \pnode(! \psGetNodeCenter{inAdd} 2.5 inAdd.y 0.25 sub){averageAddIn}
             \pnode(1,0.5){averageMuxOut}
@@ -134,7 +134,6 @@ blah
             \ncline[linecolor=blue]{averageAddIn}{averageDataSplit}
             \ncline[linecolor=blue]{averageDataSplit}{averageMuxInData}
             \psdot[linecolor=blue](averageDataSplit)
-            \ncangle[linecolor=red, angleA=-90, angleB=90]{inMem}{averageMemCtrl}
             \ncangle[linecolor=red, angleA=-90, angleB=90]{averageOutMuxCtrl}{averageMemCtrl}
             \ncangle[linecolor=red, angleA=-90, angleB=90]{averageMuxCtrl}{averageMemCtrl}
             \pnode(-0.8,0.5){averageOutMuxIn}
@@ -187,15 +186,73 @@ blah
     }
     \rput(4.8,1.65){\pspolygon[fillcolor=white,fillstyle=solid](0,0.15)(0.2,0)(0.2,0.7)(0,0.55)}
 }
-
-%core
-% h
-% overlap_add
-%  fftncmul
-%   cmul
-%  ifftnadd
-%  fft
-%  scratch
+{
+    \rput[tr](7.4,8.1){core}
+    \psframe(0,0)(7.5,8.2)
+    \rput(2,0.2)
+    {
+        \rput[tr](5.2,7.4){overlap\_add}
+        \psframe(0,0)(5.3,7.5)
+        \rput(3,3.2)
+        {
+            \rput[tr](2,3.5){fftncmul}
+            \psframe(0,0)(2.1,3.6)
+            \rput(1,2.5){\rnode{wave}{\psframebox[fillstyle=solid]{wave}}}
+            \rput(1,1){\circlenode[fillstyle=solid]{fftncmulMul}{$\times$}}
+            \pnode(! \psGetNodeCenter{fftncmulMul} fftncmulMul.x 0.25 sub fftncmulMul.y 0.5 add){fftncmulMulA}
+            \pnode(! \psGetNodeCenter{fftncmulMul} fftncmulMul.x 0.25 add fftncmulMul.y 0.5 add){fftncmulMulB}
+            \ncline[linecolor=blue]{fftncmulMul}{fftncmulMulA}
+            \ncline[linecolor=green]{fftncmulMul}{fftncmulMulB}
+            \pnode(1.05,0){fftncmulCtrl}
+        }
+        \rput(3,0.2)
+        {
+            \rput[tr](2,2.5){ifftnadd}
+            \psframe(0,0)(2.1,2.6)
+            \rput(1,1){\circlenode[fillstyle=solid]{ifftnaddAdd}{$+$}}
+            \pnode(! \psGetNodeCenter{ifftnaddAdd} ifftnaddAdd.x 0.25 sub ifftnaddAdd.y 0.5 add){ifftnaddAddA}
+            \pnode(! \psGetNodeCenter{ifftnaddAdd} ifftnaddAdd.x 0.25 add ifftnaddAdd.y 0.5 add){ifftnaddAddB}
+            \ncline[linecolor=blue]{ifftnaddAdd}{ifftnaddAddA}
+            \ncline[linecolor=green]{ifftnaddAdd}{ifftnaddAddB}
+            \pnode(1.05,2.6){ifftnaddCtrl}
+        }
+        \rput(2.4,3){\rnode{fft}{\psframebox{fft}}}
+        \rput[l](0.2,2.5){\rnode{scratch}{\psframebox{scratch}}}
+        \pnode(! \psGetNodeCenter{ifftnaddAdd} 3.2 ifftnaddAdd.y 0.5 0.2 add add){fftOutSplit}
+        \psdot[linecolor=blue](fftOutSplit)
+        \ncangle[linecolor=blue, angleA=-90, angleB=180, armB=0.2]{fft}{fftOutSplit}
+        \ncangle[linecolor=blue, angleA=-90, angleB=90, armB=0.2]{fftOutSplit}{fftncmulMulA}
+        \ncangle[linecolor=blue, angleA=-90, angleB=90, armB=0.2]{fftOutSplit}{ifftnaddAddA}
+        \pnode(2.9,3){fftCtrlSplit}
+        \pnode(2.4,4.1){fftMux}
+        \ncangle[linecolor=red, angleB=-90, armB=0]{fftCtrlSplit}{fftncmulCtrl}
+        \ncangle[linecolor=red, angleB=90, armB=0]{fftCtrlSplit}{ifftnaddCtrl}
+        \ncangle[linecolor=red, angleA=90]{fftCtrlSplit}{fftMux}
+        \ncline[linecolor=red]{fft}{fftCtrlSplit}
+        \ncangle[linecolor=green, angleA=90, angleB=-90]{scratch}{fftncmulMul}
+        \ncangle[linecolor=blue, angleA=-90, angleB=90, offsetB=0.15, armB=1.2]{wave}{fftMux}
+        \ncline[linecolor=blue]{fftMux}{fft}
+        \pnode(1.85,2.05){scratchSplit}
+        \ncangle[linecolor=green, angleA=-90, angleB=180]{scratch}{scratchSplit}
+        \ncangle[linecolor=green, angleA=90, angleB=90, offsetB=-0.15]{scratchSplit}{fftMux}
+        \psdot[linecolor=green](scratchSplit)
+        \ncangle[linecolor=green, angleB=90]{scratchSplit}{ifftnaddAddB}
+        \rput{90}(2.75,4){\pspolygon[fillcolor=white,fillstyle=solid](0,0.15)(0.2,0)(0.2,0.7)(0,0.55)}
+    }
+    \rput(1,5.7){\rnode{H}{\psframebox{H}}}
+    \ncangle[linecolor=green, angleA=-90, angleB=90, offsetA=1pt]{H}{fftncmulMulB}
+    \pnode(0,7){coreCtrl}
+    \pnode(2,7){overlapAddCtrl}
+    \pnode(0,6.4){coreIn}
+    \pnode(0,6.2){coreHIn}
+    \pnode(0,5.25){coreHOut}
+    \pnode(0,0.6){coreOut}
+    \ncline[linecolor=red]{coreCtrl}{overlapAddCtrl}
+    \ncangle[linecolor=green, angleB=90, armB=0]{coreIn}{wave}
+    \ncangle[linecolor=green, angleB=90, armB=0]{coreHIn}{H}
+    \ncangle[linecolor=green, angleB=-90, armB=0, offsetB=1pt]{coreHOut}{H}
+    \ncangle[linecolor=green, angleB=-90, armB=0]{coreOut}{ifftnaddAdd}
+}
 %outbuf
 % mem
 % mem
