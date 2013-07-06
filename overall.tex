@@ -104,18 +104,50 @@ blah
 \SpecialCoor
 \rput(0,4)
 {
-    \rput[tr](9.9,3.3){inbuf}
+    \psframe(0,0)(11.3,4.1)
+    \rput[tr](11.1,4){inbuf}
     \pnode(0,0.2){inbufCtrl}
-    \pnode(0,2){inbufData}
-    \pnode(3.7,2){inbufDataMux}
-    \rput(0.2,1.4)
+    \pnode(0,2.3){inbufData}
+    \pnode(4.9,2){inbufDataMux}
+    \pnode(1.9,1.4){averageMemCtrl}
+    \rput(0.9,1.4)
     {
-        \rput[tr](2.9,1.4){average\_mem}
-        \rput(1.5,0.4){\psframebox[fillstyle=solid]{mem}}
-        \psframe(0,0)(3,1.5)
+        \rput[tr](3.4,2.1){average\_mem}
+        \psframe(-0.7,0)(3.5,2.2)
+        \rput(0.6,0.4)
+        {
+            \rput(0,0.5){\rnode{inMem}{\psframebox[fillstyle=solid]{mem}}}
+            \rput[t](2,1){\circlenode{inAdd}{+}}
+            \pnode(! \psGetNodeCenter{inAdd} 2.5 inAdd.y 0.25 add){averageAddLoop}
+            \pnode(! \psGetNodeCenter{inAdd} 2.5 inAdd.y 0.25 sub){averageAddIn}
+            \pnode(1,0.5){averageMuxOut}
+            \pnode(2.5,0.2){averageDataSplit}
+            \pnode(! \psGetNodeCenter{inAdd} 1.2 inAdd.y){averageMuxInAdd}
+            \pnode(1.2,0.2){averageMuxInData}
+            \pnode(-0.9,0.1){averageOutMuxCtrl}
+            \pnode(1.1,0.1){averageMuxCtrl}
+            \ncline[linecolor=blue]{inAdd}{averageAddIn}
+            \ncline[linecolor=blue]{inAdd}{averageMuxInAdd}
+            \ncline[linecolor=green]{inAdd}{averageAddLoop}
+            \ncloop[linecolor=green, loopsize=.3, armA=0.2, armB=0.2, offsetB=-1pt]{averageAddLoop}{inMem}
+            \ncangle[linecolor=green, offsetB=1pt]{averageMuxOut}{inMem}
+            \ncline[linecolor=blue]{averageAddIn}{averageDataSplit}
+            \ncline[linecolor=blue]{averageDataSplit}{averageMuxInData}
+            \psdot[linecolor=blue](averageDataSplit)
+            \ncangle[linecolor=red, angleA=-90, angleB=90]{inMem}{averageMemCtrl}
+            \ncangle[linecolor=red, angleA=-90, angleB=90]{averageOutMuxCtrl}{averageMemCtrl}
+            \ncangle[linecolor=red, angleA=-90, angleB=90]{averageMuxCtrl}{averageMemCtrl}
+            \pnode(-0.8,0.5){averageOutMuxIn}
+            \pnode(-1,0.5){averageOutMuxOut}
+            \ncline[linecolor=green]{inMem}{averageOutMuxIn}
+            \ncline[linecolor=green]{averageOutMuxOut}{inbufData}
+            \rput(1,0){\pspolygon[fillcolor=white,fillstyle=solid](0,0.15)(0.2,0)(0.2,1)(0,0.85)}
+            \rput(-1,0){\pspolygon[fillcolor=white,fillstyle=solid](0,0.15)(0.2,0)(0.2,1)(0,0.85)}
+        }
     }
-    \rput(4,2)
+    \rput(5.2,2)
     {
+        \psframe(0,-0.6)(5.8,0.9)
         \rput[tr](5.7,0.8){receiver}
         \multido{\i=2+-1,\n=0.1+-0.1}{3}
         {
@@ -137,30 +169,25 @@ blah
                 \ncangle[angleA=-90, armB=0]{descramble\i}{inbufCtrl}
             }
         }
-        \psframe(0,-0.6)(5.8,0.9)
     }
     {
         \psset{fillstyle=solid}
         \rput[l](2.1,0.7){\rnode{wallclk}{\psframebox{wallclk}}}
         \rput[r](1.6,0.7){\rnode{trigger}{\psframebox{trigger}}}
-        \pnode(1.9,1.4){averageMemCtrl}
-        \pnode(0.2,2){averageMemDataOut}
-        \pnode(3.2,2){averageMemDataIn}
     }
-    \ncline[linecolor=blue]{inbufDataMux}{averageMemDataIn}
+    \ncline[linecolor=blue]{inbufDataMux}{averageDataSplit}
     {
         \psset{linecolor=red}
-        \ncangle[angleA=-90, angleB=180, armB=0, offset=2pt]{averageMemCtrl}{wallclk}
-        \ncangle[angleA=-90, armB=0, offset=-2pt]{averageMemCtrl}{trigger}
+        \ncangle[angleA=-90, angleB=180, armB=0, offsetA=2pt]{averageMemCtrl}{wallclk}
+        \ncangle[angleA=-90, armB=0, offsetA=-2pt]{averageMemCtrl}{trigger}
         \ncangle[angleA=-90, armB=0]{averageMemCtrl}{inbufCtrl}
         \ncangle[angleA=-90, armB=0]{trigger}{inbufCtrl}
         \ncangle[angleA=-90, armB=0]{wallclk}{inbufCtrl}
         \ncangle[angleA=-90, armB=0]{inbufDataMux}{inbufCtrl}
     }
-    \rput(3.6,1.65){\pspolygon[fillcolor=white,fillstyle=solid](0,0.15)(0.2,0)(0.2,0.7)(0,0.55)}
-    \ncline[linecolor=green]{averageMemDataOut}{inbufData}
-    \psframe(0,0)(10,3.4)
+    \rput(4.8,1.65){\pspolygon[fillcolor=white,fillstyle=solid](0,0.15)(0.2,0)(0.2,0.7)(0,0.55)}
 }
+
 %core
 % h
 % overlap_add
