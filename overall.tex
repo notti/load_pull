@@ -102,7 +102,7 @@ blah
 
 \begin{pspicture}[showgrid](0,0)(10,10)
 \SpecialCoor
-\rput(0,8.4)
+\rput(0,11.7)
 {
     \psframe(0,0)(10.2,5.3)
     \rput[tr](10,5.2){inbuf}
@@ -186,6 +186,7 @@ blah
     }
     \rput(3.8,1.65){\pspolygon[fillcolor=white,fillstyle=solid](0,0.15)(0.2,0)(0.2,0.7)(0,0.55)}
 }
+\rput(0,3.3)
 {
     \rput[tr](7.4,8.1){core}
     \psframe(0,0)(7.5,8.2)
@@ -253,12 +254,37 @@ blah
     \ncangle[linecolor=green, angleB=-90, armB=0, offsetB=1pt]{coreHOut}{H}
     \ncangle[linecolor=green, angleB=-90, armB=0]{coreOut}{ifftnaddAdd}
 }
-%outbuf
-% mem
-% mem
-% mux
-% cmul
-% transmitter
-%  balance
+\rput(0,0)
+{
+    \psframe(0,0)(8.4,3.1)
+    \rput[tr](8.3,3.0){outbuf}
+    \rput(1,2){\rnode{outMem0}{\psframebox{mem\_0}}}
+    \rput(3,2){\rnode{outMem1}{\psframebox{mem\_1}}}
+    \pnode(0,0.2){outCtrl}
+    \pnode(0,0.4){outDataOut}
+    \pnode(0,2.5){outDataIn}
+    \pnode(1,2.5){outDataSplit}
+    \pnode(2,0.8){outMemMuxOut}
+    \pnode(4.2,1.45){outMemMuxData}
+    \ncangle[linecolor=green, angleA=-90, angleB=90, offsetB=-0.1, offsetA=-0.1]{outMem0}{outMemMuxOut}
+    \ncangle[linecolor=green, angleA=-90, angleB=90, offsetB=0.1, offsetA=-0.1]{outMem1}{outMemMuxOut}
+    \ncangle[linecolor=green, angleA=-90, angleB=180, offsetB=-0.1, offsetA=0.1]{outMem0}{outMemMuxData}
+    \ncangle[linecolor=green, angleA=-90, angleB=180, offsetB=0.1, offsetA=0.1]{outMem1}{outMemMuxData}
+    \rput(5.2,1.45){\circlenode[fillstyle=solid]{outMul}{$\times$}}
+    \rput[l](6,1.45){\rnode{transmitter}{\psframebox{transmitter}}}
+    \ncline[linecolor=blue]{outMemMuxData}{outMul}
+    \ncangle[linecolor=red, angleB=-90, armA=0, armB=0]{outMemMuxOut}{outMemMuxData} 
+    \ncangle[linecolor=red, angleB=-90, armA=0, armB=0]{outCtrl}{outMemMuxData}
+    \ncangle[linecolor=red, angleB=-90, armA=0, armB=0]{outCtrl}{outMul}
+    \ncangle[linecolor=red, angleB=-90, armA=0, armB=0]{outCtrl}{transmitter}
+    \ncline[linecolor=green]{outDataIn}{outDataSplit}
+    \ncline[linecolor=green]{outDataSplit}{outMem0}
+    \psdot[linecolor=green](outDataSplit)
+    \ncangle[linecolor=green, angleB=90, armA=0, armB=0]{outDataSplit}{outMem1}
+    \ncangle[linecolor=green, angleB=-90, armA=0, armB=0]{outDataOut}{outMemMuxOut}
+    \rput{90}(2.35,0.7){\pspolygon[fillcolor=white,fillstyle=solid](0,0.15)(0.2,0)(0.2,0.7)(0,0.55)}
+    \rput{180}(4.3,1.8){\pspolygon[fillcolor=white,fillstyle=solid](0,0.15)(0.2,0)(0.2,0.7)(0,0.55)}
+    \ncline[linecolor=blue]{outMul}{transmitter}
+}
 \end{pspicture}
 \end{document}
