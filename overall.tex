@@ -5,6 +5,7 @@
 \usepackage[T1]{fontenc}
 \usepackage[pdf]{pstricks}
 \usepackage{pst-circ}
+\usepackage{pst-plot}
 \begin{document}
 
 \title{}
@@ -100,9 +101,9 @@ blah
 \reglabel{Reset}\regnewline%
 \end{register}
 
-\begin{pspicture}[showgrid](0,0)(10,10)
+\begin{pspicture}[showgrid](0,0)(15,19)
 \SpecialCoor
-\rput(0,11.7)
+\rput(0,13.1)
 {
     \psframe(0,0)(10.2,5.3)
     \rput[tr](10,5.2){inbuf}
@@ -188,17 +189,47 @@ blah
 }
 \rput(0,3.3)
 {
-    \rput[tr](7.4,8.1){core}
-    \psframe(0,0)(7.5,8.2)
+    \rput[tr](8.4,9.5){core}
+    \psframe(0,0)(8.5,9.6)
     \rput(2,0.2)
     {
-        \rput[tr](5.2,7.4){overlap\_add}
-        \psframe(0,0)(5.3,7.5)
+        \rput[tr](6.2,8.8){overlap\_add}
+        \psframe(0,0)(6.3,8.9)
         \rput(3,3.2)
         {
-            \rput[tr](2,3.5){fftncmul}
-            \psframe(0,0)(2.1,3.6)
-            \rput(1,2.5){\rnode{wave}{\psframebox[fillstyle=solid]{wave}}}
+            \rput[tr](3,5){fftncmul}
+            \psframe(0,0)(3.1,5.1)
+            \rput(0.2,3)
+            {
+                \rput[tr](2.6,1.4){wave}
+                \psframe(0,-0.7)(2.7,1.5)
+                \rput(0.5,0){\circlenode[fillstyle=solid]{iqMulQ}{$\times$}}
+                \rput(2.2,0){\circlenode[fillstyle=solid]{iqMulI}{$\times$}}
+                \pnode(! \psGetNodeCenter{iqMulQ} iqMulQ.x 0.25 sub iqMulQ.y 0.5 add){iqMulQA}
+                \dotnode[linecolor=green](! \psGetNodeCenter{iqMulQ} iqMulQ.x 0.25 sub 1){iqMulInSplit}
+                \pnode(! \psGetNodeCenter{iqMulQ} iqMulQ.x 0.25 add iqMulQ.y 0.5 add){iqMulQB}
+                \pnode(! \psGetNodeCenter{iqMulI} iqMulI.x 0.25 sub iqMulI.y 0.5 add){iqMulIA}
+                \pnode(! \psGetNodeCenter{iqMulI} iqMulI.x 0.25 add iqMulI.y 0.5 add){iqMulIB}
+                \pnode(! \psGetNodeCenter{iqMulI} 1.35 iqMulI.y 0.5 add){iq}
+                \pnode(1.35,-0.5){iqMulOutSplit}
+                \ncline[linecolor=blue]{iq}{iqMulIA}
+                \ncline[linecolor=blue]{iqMulIA}{iqMulI}
+                \ncline[linecolor=blue]{iq}{iqMulQB}
+                \ncline[linecolor=blue]{iqMulQB}{iqMulQ}
+                \ncline[linecolor=green]{iqMulIB}{iqMulI}
+                \ncline[linecolor=green]{iqMulQA}{iqMulQ}
+                \ncline[linecolor=green]{iqMulQA}{iqMulInSplit}
+                \ncangle[linecolor=green, angleB=90]{iqMulInSplit}{iqMulIB}
+                \ncangle[linecolor=blue, angleA=-90, angleB=180]{iqMulQ}{iqMulOutSplit}
+                \ncangle[linecolor=blue, angleA=-90]{iqMulI}{iqMulOutSplit}
+                \rput(! \psGetNodeCenter{iqMulI} 1 iqMulI.y 0.15 add)
+                {
+                    \psframe[fillstyle=solid](0,0)(0.7,0.7)
+                    \psline(0.01,0.01)(.69,.69)
+                    \rput(0.21,0.525){\parametricplot[linewidth=.7pt, plotpoints=100]{-1}{1}{0.175 t mul t 180 mul sin -0.0875 mul}}
+                    \rput(0.49,0.175){\parametricplot[linewidth=.7pt, plotpoints=100]{-1}{1}{0.175 t mul t 180 mul cos -0.0875 mul}}
+                }
+            }
             \rput(1,1){\circlenode[fillstyle=solid]{fftncmulMul}{$\times$}}
             \pnode(! \psGetNodeCenter{fftncmulMul} fftncmulMul.x 0.25 sub fftncmulMul.y 0.5 add){fftncmulMulA}
             \pnode(! \psGetNodeCenter{fftncmulMul} fftncmulMul.x 0.25 add fftncmulMul.y 0.5 add){fftncmulMulB}
@@ -231,7 +262,7 @@ blah
         \ncangle[linecolor=red, angleA=90]{fftCtrlSplit}{fftMux}
         \ncline[linecolor=red]{fft}{fftCtrlSplit}
         \ncangle[linecolor=green, angleA=90, angleB=-90]{scratch}{fftncmulMul}
-        \ncangle[linecolor=blue, angleA=-90, angleB=90, offsetB=0.15, armB=1.2]{wave}{fftMux}
+        \ncangle[linecolor=blue, angleA=-90, angleB=90, offsetB=0.15, armB=1.2]{iqMulOutSplit}{fftMux}
         \ncline[linecolor=blue]{fftMux}{fft}
         \pnode(1.85,2.05){scratchSplit}
         \ncangle[linecolor=green, angleA=-90, angleB=180]{scratch}{scratchSplit}
@@ -242,14 +273,14 @@ blah
     }
     \rput(1,5.7){\rnode{H}{\psframebox{H}}}
     \ncangle[linecolor=green, angleA=-90, angleB=90, offsetA=1pt]{H}{fftncmulMulB}
-    \pnode(0,7){coreCtrl}
-    \pnode(2,7){overlapAddCtrl}
-    \pnode(0,6.4){coreIn}
+    \pnode(0,8){coreCtrl}
+    \pnode(2,8){overlapAddCtrl}
+    \pnode(0,7.4){coreIn}
     \pnode(0,6.2){coreHIn}
     \pnode(0,5.25){coreHOut}
     \pnode(0,0.6){coreOut}
     \ncline[linecolor=red]{coreCtrl}{overlapAddCtrl}
-    \ncangle[linecolor=green, angleB=90, armB=0]{coreIn}{wave}
+    \ncline[linecolor=green]{coreIn}{iqMulInSplit}
     \ncangle[linecolor=green, angleB=90, armB=0]{coreHIn}{H}
     \ncangle[linecolor=green, angleB=-90, armB=0, offsetB=1pt]{coreHOut}{H}
     \ncangle[linecolor=green, angleB=-90, armB=0]{coreOut}{ifftnaddAdd}
@@ -286,5 +317,6 @@ blah
     \rput{180}(4.3,1.8){\pspolygon[fillcolor=white,fillstyle=solid](0,0.15)(0.2,0)(0.2,0.7)(0,0.55)}
     \ncline[linecolor=blue]{outMul}{transmitter}
 }
+
 \end{pspicture}
 \end{document}
