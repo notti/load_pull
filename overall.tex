@@ -6,6 +6,11 @@
 \usepackage[pdf]{pstricks}
 \usepackage{pst-circ}
 \usepackage{pst-plot}
+
+\newcommand{\legendline}[2]{\begingroup
+\setbox0=\hbox{\textcolor{#1}{\linethickness{#2}\line(1,0){4pt}}}%
+\parbox{\wd0}{\box0}\endgroup}
+
 \begin{document}
 
 \title{}
@@ -104,9 +109,18 @@ blah
 \end{register}
 \begin{figure}
 \centering
-\begin{pspicture}(0,0)(13.4,20)
+\begin{pspicture}(0,0)(15,20)
 \SpecialCoor
 \scalebox{0.85}{
+\rput[tl](13.5,20){\psframebox{\shortstack[l]{
+    \legendline{blue}{1pt} data\\
+    \legendline{red}{1pt} ctrl\\
+    \legendline{green}{1pt} memory bus\\
+    \legendline{magenta}{1pt} external\\
+    \legendline{yellow}{4pt} sample\_clk\\
+    \legendline{magenta}{4pt} core\_clk\\
+    \legendline{cyan}{4pt} cpu\_clk}}}
+
 \pspolygon*[linecolor=yellow,opacity=0.4,linearc=0.2](2.7,18.9)(13.1,18.9)(13.1,13.4)(2.7,13.4)
 \pspolygon*[linecolor=yellow,opacity=0.4,linearc=0.2](2.7,3.6)(11.3,3.6)(11.3,0.3)(2.7,0.3)
 \pspolygon*[linecolor=magenta,opacity=0.4,linearc=0.2](2.7,13.4)(11.4,13.4)(11.4,3.6)(2.7,3.6)
