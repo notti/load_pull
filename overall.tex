@@ -134,7 +134,7 @@ blah
         \rput(0.6,0.4)
         {
             \rput(1.7,1.7){\rnode{inMem}{\psframebox[fillstyle=solid]{mem}}}
-            \rput[t](2,1){\circlenode{inAdd}{$+$}}
+            \rput[t](2,1){\circlenode[fillstyle=solid]{inAdd}{$+$}}
             \pnode(! \psGetNodeCenter{inAdd} 2.5 inAdd.y 0.25 add){averageAddLoop}
             \pnode(! \psGetNodeCenter{inAdd} 2.5 inAdd.y 0.25 sub){averageAddIn}
             \pnode(1,0.5){averageMuxOut}
@@ -265,8 +265,8 @@ blah
             \ncline[linecolor=green]{ifftnaddAdd}{ifftnaddAddB}
             \pnode(1.05,2.6){ifftnaddCtrl}
         }
-        \rput(2.4,3){\rnode{fft}{\psframebox{fft}}}
-        \rput[l](0.2,2.5){\rnode{scratch}{\psframebox{scratch}}}
+        \rput(2.4,3){\rnode{fft}{\psframebox[fillstyle=solid]{fft}}}
+        \rput[l](0.2,2.5){\rnode{scratch}{\psframebox[fillstyle=solid]{scratch}}}
         \pnode(! \psGetNodeCenter{ifftnaddAdd} 3.2 ifftnaddAdd.y 0.5 0.2 add add){fftOutSplit}
         \psdot[linecolor=blue](fftOutSplit)
         \ncangle[linecolor=blue, angleA=-90, angleB=180, armB=0.2]{fft}{fftOutSplit}
@@ -288,7 +288,7 @@ blah
         \ncangle[linecolor=green, angleB=90]{scratchSplit}{ifftnaddAddB}
         \rput{90}(2.75,4){\pspolygon[fillcolor=white,fillstyle=solid](0,0.15)(0.2,0)(0.2,0.7)(0,0.55)}
     }
-    \rput(1,5.7){\rnode{H}{\psframebox{H}}}
+    \rput(1,5.7){\rnode{H}{\psframebox[fillstyle=solid]{H}}}
     \ncangle[linecolor=green, angleA=-90, angleB=90, offsetA=1pt]{H}{fftncmulMulB}
     \pnode(0,8){coreCtrl}
     \pnode(2,8){overlapAddCtrl}
@@ -305,9 +305,9 @@ blah
 \rput(1.1,0.2)
 {
     \psframe(0,0)(8.4,3.1)
-    \rput[tr](8.3,3.0){outbuf}
-    \rput(1,2){\rnode{outMem0}{\psframebox{mem\_0}}}
-    \rput(3,2){\rnode{outMem1}{\psframebox{mem\_1}}}
+    \rput[tr](8.3,3.0){\psframebox*[outbuf]}
+    \rput(1,2){\rnode{outMem0}{\psframebox[fillstyle=solid]{mem\_0}}}
+    \rput(3,2){\rnode{outMem1}{\psframebox[fillstyle=solid]{mem\_1}}}
     \pnode(0,0.2){outCtrl}
     \pnode(0,0.4){outDataOut}
     \pnode(0,2.5){outDataIn}
@@ -319,7 +319,7 @@ blah
     \ncangle[linecolor=green, angleA=-90, angleB=180, offsetB=-0.1, offsetA=0.1]{outMem0}{outMemMuxData}
     \ncangle[linecolor=green, angleA=-90, angleB=180, offsetB=0.1, offsetA=0.1]{outMem1}{outMemMuxData}
     \rput(5.2,1.45){\circlenode[fillstyle=solid]{outMul}{$\times$}}
-    \rput[l](6,1.45){\rnode{transmitter}{\psframebox{transmitter}}}
+    \rput[l](6,1.45){\rnode{transmitter}{\psframebox[fillstyle=solid]{transmitter}}}
     \ncline[linecolor=blue]{outMemMuxData}{outMul}
     \ncangle[linecolor=red, angleB=-90, armA=0, armB=0]{outMemMuxOut}{outMemMuxData} 
     \ncangle[linecolor=red, angleB=-90, armA=0, armB=0]{outCtrl}{outMemMuxData}
@@ -384,9 +384,9 @@ blah
 \ncangles[linecolor=green, angleA=180, armA=0.1, armB=0]{mainInbufOut}{memMuxInbuf}
 \ncline[linecolor=green]{mainCoreHOut}{memMuxCoreH}
 \pnode(1.1,8.9){memMuxOut}
-\rput[c]{90}(0.5,13.7){\rnode{procRegister}{\psframebox{proc\_register}}}
-\rput[c]{90}(0.5,8.9){\rnode{procMem}{\psframebox{proc\_mem}}}
-\rput[c]{90}(0.5,11.2){\rnode{cpu}{\psframebox{cpu}}}
+\rput[c]{90}(0.5,13.7){\rnode{procRegister}{\psframebox[fillstyle=solid]{proc\_register}}}
+\rput[c]{90}(0.5,8.9){\rnode{procMem}{\psframebox[fillstyle=solid]{proc\_mem}}}
+\rput[c]{90}(0.5,11.2){\rnode{cpu}{\psframebox[fillstyle=solid]{cpu}}}
 \ncline[linecolor=green, offsetA=0.05, offsetB=0.05]{memMuxOut}{procMem}
 \rput(1.1,8.55){\pspolygon[fillcolor=white,fillstyle=solid](0,0.15)(0.2,0)(0.2,0.7)(0,0.55)}
 \pnode(1.0,8.95){memBusSplit}
