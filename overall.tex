@@ -63,9 +63,9 @@ blah
 \begin{register}{htbp}{reg(2)}{0x08}%
 \label{reg2}%
 \regfield{Reserved}{4}{28}{0}%
-\regfield{core\_scale\_schi}{12}{16}{0}%
+\regfield{core\_scale\_schi}{12}{16}{011010101010}%
 \regfield{Reserved}{4}{12}{0}%
-\regfield{core\_scale\_sch}{12}{0}{0}%
+\regfield{core\_scale\_sch}{12}{0}{011010101010}%
 \reglabel{Reset}\regnewline%
 \end{register}
 \begin{register}{htbp}{reg(3)}{0x0C}%
@@ -79,7 +79,7 @@ blah
 \regfield{core\_start}{1}{25}{0}%
 \regfield{core\_iq}{1}{24}{0}%
 \regfield{Reserved}{3}{21}{0}%
-\regfield{core\_n}{5}{16}{0}%
+\regfield{core\_n}{5}{16}{00011}%
 \regfield{core\_scale\_cmul}{2}{14}{0}%
 \regfield{Reserved}{2}{12}{0}%
 \regfield{core\_L}{12}{0}{0}%
