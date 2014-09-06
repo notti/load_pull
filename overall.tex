@@ -1,440 +1,568 @@
-%
-\documentclass[11pt]{article}
+\documentclass[11pt,technote,a4paper,twocolumn]{IEEEtran}
+
+\usepackage{etex}
 \usepackage{register}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage[pdf]{pstricks}
+\usepackage{pstricks}
 \usepackage{pst-circ}
 \usepackage{pst-plot}
+\usepackage{pst-sigsys}
+\usepackage{calc}
+\usepackage{tikz-timing}
+\usetikztiminglibrary{counters}
+\usepackage{siunitx}
 
-\newcommand{\legendline}[2]{\begingroup
-\setbox0=\hbox{\textcolor{#1}{\linethickness{#2}\line(1,0){4pt}}}%
-\parbox{\wd0}{\box0}\endgroup}
+\usepackage[colorlinks,hyperindex,plainpages=false,
+pdftitle={Specialized DSP in FPGA with Processor Bindings},
+pdfauthor={Gernot Vormayr},
+pdfsubject={Bac thesis},
+pdfkeywords={},
+pdfpagelabels,
+pagebackref,
+bookmarksopen=false
+]{hyperref}
+
+\usepackage[nameinlink]{cleveref}
+
+\markboth{EMCE-Vienna University of Technology,~Sep 2014}{Gernot Vormayr: DPS in FPGA}
+
+\newcommand{\legendline}[2]{\begingroup\setbox0=\hbox{\textcolor{#1}{\rule{4pt}{#2}}}\parbox{\wd0}{\box0}\endgroup}
 
 \begin{document}
 
-\title{}
-\author{Gernot Vormayr}
-\date{}
+\title{\huge Specialized DSP in FPGA with Processor Bindings}
+\author{\IEEEauthorblockN{Gernot Vormayr - 0425210}\\
+\IEEEauthorblockA{Vienna University of Technology\\
+\url{gvormayr@gmail.com}}}
+
 \maketitle
-blah
-\begin{register}{htbp}{reg(0)}{0x00}%
-\label{reg0}%
-\regfield{rec\_rst}{1}{31}{0}%
-\regfield{Reserved}{4}{27}{0}%
-\regfield{rec\_stream\_valid}{1}{26}{0}%
-\regfield{rec\_input\_select}{2}{24}{0}%
-\regfield{Reserved}{2}{22}{0}%
-\regfield{rec\_data\_valid(2)}{1}{21}{0}%
-\regfield{rec\_rxeqmix(2)}{2}{19}{0}%
-\regfield{rec\_descramble(2)}{1}{18}{1}%
-\regfield{rec\_polarity(2)}{1}{17}{1}%
-\regfield{rec\_enable(2)}{1}{16}{1}%
-\regfield{Reserved}{2}{14}{0}%
-\regfield{rec\_data\_valid(1)}{1}{13}{0}%
-\regfield{rec\_rxeqmix(1)}{2}{11}{0}%
-\regfield{rec\_descramble(1)}{1}{10}{1}%
-\regfield{rec\_polarity(1)}{1}{9}{1}%
-\regfield{rec\_enable(1)}{1}{8}{1}%
-\regfield{Reserved}{2}{6}{0}%
-\regfield{rec\_data\_valid(0)}{1}{5}{0}%
-\regfield{rec\_rxeqmix(0)}{2}{3}{0}%
-\regfield{rec\_descramble(0)}{1}{2}{1}%
-\regfield{rec\_polarity(0)}{1}{1}{1}%
-\regfield{rec\_enable(0)}{1}{0}{1}%
-\reglabel{Reset}\regnewline%
-\end{register}
-\begin{register}{htbp}{reg(1)}{0x04}%
-\label{reg1}%
-\regfield{avg\_rst}{1}{31}{0}%
-\regfield{Reserved}{3}{28}{0}%
-\regfield{avg\_err}{1}{27}{0}%
-\regfield{avg\_active}{1}{26}{0}%
-\regfield{avg\_width}{2}{24}{0}%
-\regfield{trig\_rst}{1}{23}{0}%
-\regfield{Reserved}{3}{19}{0}%
-\regfield{trig\_int}{1}{19}{0}%
-\regfield{trig\_arm}{1}{18}{0}%
-\regfield{Reserved}{1}{17}{0}%
-\regfield{trig\_type}{1}{16}{0}%
-\regfield{depth}{16}{0}{0}%
-\reglabel{Reset}\regnewline%
-\end{register}
-\begin{register}{htbp}{reg(2)}{0x08}%
-\label{reg2}%
-\regfield{Reserved}{4}{28}{0}%
-\regfield{core\_scale\_schi}{12}{16}{011010101010}%
-\regfield{Reserved}{4}{12}{0}%
-\regfield{core\_scale\_sch}{12}{0}{011010101010}%
-\reglabel{Reset}\regnewline%
-\end{register}
-\begin{register}{htbp}{reg(3)}{0x0C}%
-\label{reg3}%
-\regfield{core\_rst}{1}{31}{0}%
-\regfield{Reserved}{1}{30}{0}%
-\regfield{core\_circular}{1}{29}{0}%
-\regfield{core\_ov\_cmul}{1}{28}{0}%
-\regfield{core\_ov\_ifft}{1}{27}{0}%
-\regfield{core\_ov\_fft}{1}{26}{0}%
-\regfield{core\_start}{1}{25}{0}%
-\regfield{core\_iq}{1}{24}{0}%
-\regfield{Reserved}{3}{21}{0}%
-\regfield{core\_n}{5}{16}{00011}%
-\regfield{core\_scale\_cmul}{2}{14}{0}%
-\regfield{Reserved}{2}{12}{0}%
-\regfield{core\_L}{12}{0}{0}%
-\reglabel{Reset}\regnewline%
-\end{register}
-\begin{register}{htbp}{reg(4)}{0x10}%
-\label{reg4}%
-\regfield{tx\_mulq}{16}{16}{0}%
-\regfield{tx\_muli}{16}{0}{0}%
-\reglabel{Reset}\regnewline%
-\end{register}
-\begin{register}{htbp}{reg(5)}{0x14}%
-\label{reg5}%
-\regfield{tx\_shift}{2}{30}{0}%
-\regfield{tx\_ovfl}{1}{29}{0}%
-\regfield{tx\_sat}{1}{28}{1}%
-\regfield{Reserved}{3}{25}{0}%
-\regfield{mem\_req}{1}{24}{0}%
-\regfield{tx\_rst}{1}{23}{0}%
-\regfield{Reserved}{3}{20}{0}%
-\regfield{tx\_resync}{1}{19}{0}%
-\regfield{tx\_toggle}{1}{18}{0}%
-\regfield{tx\_dc\_balance}{1}{17}{0}%
-\regfield{tx\_deskew}{1}{16}{0}%
-\regfield{tx\_frame\_offset}{16}{0}{0}%
-\reglabel{Reset}\regnewline%
-\end{register}
-\begin{figure}
-\centering
-\begin{pspicture}(0,0)(15,20)
-\SpecialCoor
-\scalebox{0.85}{
-\rput[tl](13.5,20){\psframebox{\shortstack[l]{
-    \legendline{blue}{1pt} data\\
-    \legendline{red}{1pt} ctrl\\
-    \legendline{green}{1pt} memory bus\\
-    \legendline{magenta}{1pt} external\\
-    \legendline{yellow}{4pt} sample\_clk\\
-    \legendline{magenta}{4pt} core\_clk\\
-    \legendline{cyan}{4pt} cpu\_clk}}}
 
-\pspolygon*[linecolor=yellow,opacity=0.4,linearc=0.2](2.7,18.9)(13.1,18.9)(13.1,13.4)(2.7,13.4)
-\pspolygon*[linecolor=yellow,opacity=0.4,linearc=0.2](2.7,3.6)(11.3,3.6)(11.3,0.3)(2.7,0.3)
-\pspolygon*[linecolor=magenta,opacity=0.4,linearc=0.2](2.7,13.4)(11.4,13.4)(11.4,3.6)(2.7,3.6)
-\pspolygon*[linecolor=cyan,opacity=0.4,linearc=0.1](0.15,15.05)(0.85,15.05)(0.85,7.75)(0.15,7.75)
+\begin{abstract}
+This bachelor thesis presents a step by step guide for implementing a
+specialized DSP functionality on an ML507 Board. The whole guide
+covers implementing the actual hardware, the interface to the integrated
+PowerPC processor, building the linux kernel and a small base system,
+writing a kernel driver for the interface, and implementing a small
+web interface in python.
+\end{abstract}
 
-\rput[tr](13.3,19.9){top}
-\psframe(0,0)(13.4,20)
-\rput(1.7,0.2)
-{
-\rput[tr](11.4,19.1){main}
-\psframe(0,0)(11.5,19.2)
-\rput(1.1,13.3)
-{
-    \psframe(0,0)(10.2,5.3)
-    \rput[tr](10,5.2){inbuf}
-    \pnode(0,0.2){inbufCtrl}
-    \pnode(0,4.15){inbufDataIn}
-    \pnode(0,2.85){inbufDataOut}
-    \pnode(3.9,2){inbufDataMux}
-    \pnode(1.9,1.4){averageMemCtrl}
-    \rput(0,1.4)
-    {
-        \rput[tr](3.4,3.3){average\_mem}
-        \psframe(0.2,0)(3.5,3.4)
-        \rput(0.6,0.4)
-        {
-            \rput(1.7,1.7){\rnode{inMem}{\psframebox[fillstyle=solid]{mem}}}
-            \rput[t](2,1){\circlenode[fillstyle=solid]{inAdd}{$+$}}
-            \pnode(! \psGetNodeCenter{inAdd} 2.5 inAdd.y 0.25 add){averageAddLoop}
-            \pnode(! \psGetNodeCenter{inAdd} 2.5 inAdd.y 0.25 sub){averageAddIn}
-            \pnode(1,0.5){averageMuxOut}
-            \pnode(2.5,0.2){averageDataSplit}
-            \pnode(! \psGetNodeCenter{inAdd} 1.2 inAdd.y){averageMuxInAdd}
-            \pnode(1.2,0.2){averageMuxInData}
-            \ncline[linecolor=blue]{inAdd}{averageAddIn}
-            \ncline[linecolor=blue]{inAdd}{averageMuxInAdd}
-            \ncline[linecolor=green]{inAdd}{averageAddLoop}
-            \ncangle[linecolor=green, angleA=90, angleB=-90, offsetB=-1pt]{averageAddLoop}{inMem}
-            \ncloop[linecolor=green, armA=0.2, angleA=90, offsetA=1pt, angleB=180, loopsize=-1]{inMem}{averageMuxOut}
-            \ncline[linecolor=blue]{averageAddIn}{averageDataSplit}
-            \ncline[linecolor=blue]{averageDataSplit}{averageMuxInData}
-            \psdot[linecolor=blue](averageDataSplit)
-            \pnode(0.1,1.05){inMuxOut}
-            \pnode(0.1,2.35){inMuxIn}
-            \ncangle[linecolor=green, angleB=-90, offsetB=1pt, armB=0]{inMuxOut}{inMem}
-            \ncangle[linecolor=green, angleB=90, offsetB=1pt, armB=0]{inMuxIn}{inMem}
-            \ncline[linecolor=green]{inMuxOut}{inbufDataOut}
-            \ncline[linecolor=green]{inMuxIn}{inbufDataIn}
-            \rput(1,0){\pspolygon[fillcolor=white,fillstyle=solid](0,0.15)(0.2,0)(0.2,1)(0,0.85)}
-            \rput(0,0.7){\pspolygon[fillcolor=white,fillstyle=solid](0,0.15)(0.2,0)(0.2,0.7)(0,0.55)}
-            \rput{180}(0.2,2.7){\pspolygon[fillcolor=white,fillstyle=solid](0,0.15)(0.2,0)(0.2,0.7)(0,0.55)}
+\renewcommand{\contentsname}{\small{Table of Contents}}
+\tableofcontents
+
+\section{Introduction}
+\begin{figure*}[bt]
+    \centering
+    \begin{pspicture}(0,-1.5)(12.25,2)
+        \pssignal(0,0){x}{ADC}
+        \psblock(2,0){avg}{AVG}
+        \pssignal(3.5,-1.5){e}{$e^{j 2 \pi \SI{30}{MHz} \cdot k/T_s}$}
+        \pscircleop[operation=times](3.5,0){otimes}       
+        \psblock(5,0){fft}{FFT}
+        \pssignal(6.5,1.75){h}{$H[n]$}
+        \pscircleop[operation=times](6.5,0){ftimes}
+        \psblock(8,0){ifft}{iFFT}
+        \psblock(10,0){buf}{buffer}
+        \pssignal(12.25,0){out}{SMBV}
+
+        \psset{style=Arrow}
+        \ncline{x}{avg}
+        \ncline{avg}{otimes}
+        \psset{doubleline=true}
+        \nclist{ncline}{e,otimes,fft,ftimes,ifft,buf,out}
+        \ncline{h}{ftimes}
+
+        \fnode[doubleline=false,style=RoundCorners,style=Dash,linecolor=red,framesize=10 2.75](6,-0.5){box}
+        \nput[offsetA=2]{90}{box}{\textcolor{red}{DSP}}
+    \end{pspicture}
+    \caption{Overall datapath}
+    \label{fig:datapath}
+\end{figure*}
+The signal processing task to solve consisted of the following steps (see
+\Cref{fig:datapath}):
+\begin{enumerate}
+    \item Read data from ADC (\SI{16}{Bit} \SI{100}{MHz}, LVDS)
+\item Store data into Memory
+\item Averaging
+\item I/Q Demodulation (\SI{30}{MHz})
+\item Convolute values with configurable data
+\item Continuously output computed values (\SI{100}{MHz}, LVDS)
+\end{enumerate}
+Since data has to be continuously output, even while computing or reading
+new data, the computed data is double buffered. Because of the high
+data throughput needed this DSP algorithm has been implemented in an FPGA.\\
+The ADC is an LTC2274 and has a single link LVDS as output with 8/10B line
+coding. For synchronization the ADC sends the comma value K28.5. Standard
+SATA cabling has been chosen to connect the FPGA to the ADC with one pair
+for clock from the FPGA and the other for data to the FPGA. To prevent the
+need for a separate reset line, a small circuit asserts the SYNC pin of the
+ADC in case of a clock pause. The ADC features an additional scrambling
+circuit to minimise the noise caused by the digital interface.\\
+The internal buffers were designed so that the FPGA is nearly fully utilized
+which resulted in a buffer depth of \SI{48}{KiB}. Since such large FFT sizes
+would fill the whole FPGA, overlap add has been used for the convolution with
+possible FFT sizes ranging from 8 to 4096.\\
+In order to read or write to the different memories these are mapped into the
+address space of the integrated processor. The control pins are connected to
+memory mapped registers. Processor and the rest of design work on different
+clock domains. Because of that the control pins have synchronization circuits
+and the memories can switch to the CPU clock domain. This clashes with the
+need for continuous output. Because of that the active output buffer can
+only be read. If one wants to send data to the output the inactive output
+buffer has to be filled, followed by switching the output buffers.\\
+The overall FPGA design can be seen in \Cref{fig:overallDesign} and is 
+explained in more detail in \Cref{sec:hardware}.
+\begin{figure*}[tb]
+    \centering
+    \begin{pspicture}(0,0)(15,20)
+        \SpecialCoor
+        \rput[tl](13.5,20){\psframebox{\shortstack[l]{%
+            \legendline{blue}{1pt} data\\
+            \legendline{red}{1pt} ctrl\\
+            \legendline{green}{1pt} memory bus\\
+            \legendline{magenta}{1pt} external\\
+            \legendline{yellow}{4pt} sample\_clk\\
+            \legendline{magenta}{4pt} core\_clk\\
+            \legendline{cyan}{4pt} cpu\_clk}}
         }
-    }
-    \rput(4.2,2)
-    {
-        \psframe(0,-0.6)(5.8,0.9)
-        \rput[tr](5.7,0.8){receiver}
-        \multido{\i=2+-1,\n=0.1+-0.1}{3}
-        {
-            \pnode(!\n\space 3.5 add 5){GTXExt\i}
-            \rput(\n,\n)
-            {
+
+        \pspolygon*[linecolor=yellow,opacity=0.4,linearc=0.2](2.7,18.9)(13.1,18.9)(13.1,13.4)(2.7,13.4)
+        \pspolygon*[linecolor=yellow,opacity=0.4,linearc=0.2](2.7,3.6)(11.3,3.6)(11.3,0.3)(2.7,0.3)
+        \pspolygon*[linecolor=magenta,opacity=0.4,linearc=0.2](2.7,13.4)(11.4,13.4)(11.4,3.6)(2.7,3.6)
+        \pspolygon*[linecolor=cyan,opacity=0.4,linearc=0.1](0.15,15.05)(0.85,15.05)(0.85,7.75)(0.15,7.75)
+
+        \rput[tr](13.3,19.9){top}
+        \psframe(0,0)(13.4,20)
+        \rput(1.7,0.2){%
+            \rput[tr](11.4,19.1){main}
+            \psframe(0,0)(11.5,19.2)
+            \rput(1.1,13.3){%
+                \psframe(0,0)(10.2,5.3)
+                \rput[tr](10,5.2){inbuf}
+                \pnode(0,0.2){inbufCtrl}
+                \pnode(0,4.15){inbufDataIn}
+                \pnode(0,2.85){inbufDataOut}
+                \pnode(3.9,2){inbufDataMux}
+                \pnode(1.9,1.4){averageMemCtrl}
+                \rput(0,1.4){%
+                    \rput[tr](3.4,3.3){average\_mem}
+                    \psframe(0.2,0)(3.5,3.4)
+                    \rput(0.6,0.4){%
+                        \rput(1.7,1.7){\rnode{inMem}{\psframebox[fillstyle=solid]{mem}}}
+                        \rput[t](2,1){\circlenode[fillstyle=solid]{inAdd}{$+$}}
+                        \pnode(! \psGetNodeCenter{inAdd} 2.5 inAdd.y 0.25 add){averageAddLoop}
+                        \pnode(! \psGetNodeCenter{inAdd} 2.5 inAdd.y 0.25 sub){averageAddIn}
+                        \pnode(1,0.5){averageMuxOut}
+                        \pnode(2.5,0.2){averageDataSplit}
+                        \pnode(! \psGetNodeCenter{inAdd} 1.2 inAdd.y){averageMuxInAdd}
+                        \pnode(1.2,0.2){averageMuxInData}
+                        \ncline[linecolor=blue]{inAdd}{averageAddIn}
+                        \ncline[linecolor=blue]{inAdd}{averageMuxInAdd}
+                        \ncline[linecolor=green]{inAdd}{averageAddLoop}
+                        \ncangle[linecolor=green, angleA=90, angleB=-90, offsetB=-1pt]{averageAddLoop}{inMem}
+                        \ncloop[linecolor=green, armA=0.2, angleA=90, offsetA=1pt, angleB=180, loopsize=-1]{inMem}{averageMuxOut}
+                        \ncline[linecolor=blue]{averageAddIn}{averageDataSplit}
+                        \ncline[linecolor=blue]{averageDataSplit}{averageMuxInData}
+                        \psdot[linecolor=blue](averageDataSplit)
+                        \pnode(0.1,1.05){inMuxOut}
+                        \pnode(0.1,2.35){inMuxIn}
+                        \ncangle[linecolor=green, angleB=-90, offsetB=1pt, armB=0]{inMuxOut}{inMem}
+                        \ncangle[linecolor=green, angleB=90, offsetB=1pt, armB=0]{inMuxIn}{inMem}
+                        \ncline[linecolor=green]{inMuxOut}{inbufDataOut}
+                        \ncline[linecolor=green]{inMuxIn}{inbufDataIn}
+                        \rput(1,0){\pspolygon[fillcolor=white,fillstyle=solid](0,0.15)(0.2,0)(0.2,1)(0,0.85)}
+                        \rput(0,0.7){\pspolygon[fillcolor=white,fillstyle=solid](0,0.15)(0.2,0)(0.2,0.7)(0,0.55)}
+                        \rput{180}(0.2,2.7){\pspolygon[fillcolor=white,fillstyle=solid](0,0.15)(0.2,0)(0.2,0.7)(0,0.55)}
+                    }
+                }
+                \rput(4.2,2){%
+                    \psframe(0,-0.6)(5.8,0.9)
+                    \rput[tr](5.7,0.8){receiver}
+                    \multido{\i=2+-1,\n=0.1+-0.1}{3}{%
+                        \pnode(!\n\space 3.5 add 5){GTXExt\i}
+                        \rput(\n,\n){%
+                            {
+                                \psset{fillstyle=solid}
+                                \rput[l](0.3,0){\rnode{descramble\i}{\psframebox{descramble}}}
+                                \rput(3.5,0){\rnode{GTX\i}{\psframebox{GTX}}}
+                                \rput(5,0){\rnode{align\i}{\psframebox{align}}}
+                            }
+                            \pnode(!\n\space neg -0.2 add 0){inbufDataMUX\i}
+                            \ncline[linecolor=blue]{GTX\i}{descramble\i}
+                            \ncline[linecolor=blue]{descramble\i}{inbufDataMUX\i}
+                            \psset{linecolor=red}
+                            \ncline{align\i}{GTX\i}
+                            \ncangle[angleA=-90, armB=0]{align\i}{inbufCtrl}
+                            \ncangle[angleA=-90, armB=0]{GTX\i}{inbufCtrl}
+                            \ncangle[angleA=-90, armB=0]{descramble\i}{inbufCtrl}
+                        }
+                        \ncline[linecolor=magenta]{GTX\i}{GTXExt\i}
+                    }
+                }
                 {
                     \psset{fillstyle=solid}
-                    \rput[l](0.3,0){\rnode{descramble\i}{\psframebox{descramble}}}
-                    \rput(3.5,0){\rnode{GTX\i}{\psframebox{GTX}}}
-                    \rput(5,0){\rnode{align\i}{\psframebox{align}}}
+                    \rput[l](2.1,0.7){\rnode{wallclk}{\psframebox{wallclk}}}
+                    \rput[r](1.6,0.7){\rnode{trigger}{\psframebox{trigger}}}
                 }
-                \pnode(!\n\space neg -0.2 add 0){inbufDataMUX\i}
-                \ncline[linecolor=blue]{GTX\i}{descramble\i}
-                \ncline[linecolor=blue]{descramble\i}{inbufDataMUX\i}
-                \psset{linecolor=red}
-                \ncline{align\i}{GTX\i}
-                \ncangle[angleA=-90, armB=0]{align\i}{inbufCtrl}
-                \ncangle[angleA=-90, armB=0]{GTX\i}{inbufCtrl}
-                \ncangle[angleA=-90, armB=0]{descramble\i}{inbufCtrl}
-            }
-            \ncline[linecolor=magenta]{GTX\i}{GTXExt\i}
-        }
-    }
-    {
-        \psset{fillstyle=solid}
-        \rput[l](2.1,0.7){\rnode{wallclk}{\psframebox{wallclk}}}
-        \rput[r](1.6,0.7){\rnode{trigger}{\psframebox{trigger}}}
-    }
-    \ncline[linecolor=blue]{inbufDataMux}{averageDataSplit}
-    {
-        \psset{linecolor=red}
-        \ncangle[angleA=-90, angleB=180, armB=0, offsetA=2pt]{averageMemCtrl}{wallclk}
-        \ncangle[angleA=-90, armB=0, offsetA=-2pt]{averageMemCtrl}{trigger}
-        \ncangle[angleA=-90, armB=0]{averageMemCtrl}{inbufCtrl}
-        \ncangle[angleA=-90, armB=0]{trigger}{inbufCtrl}
-        \ncangle[angleA=-90, armB=0]{wallclk}{inbufCtrl}
-        \ncangle[angleA=-90, armB=0]{inbufDataMux}{inbufCtrl}
-    }
-    \rput(3.8,1.65){\pspolygon[fillcolor=white,fillstyle=solid](0,0.15)(0.2,0)(0.2,0.7)(0,0.55)}
-}
-\rput(1.1,3.5)
-{
-    \rput[tr](8.4,9.5){core}
-    \psframe(0,0)(8.5,9.6)
-    \rput(2,0.2)
-    {
-        \rput[tr](6.2,8.8){overlap\_add}
-        \psframe(0,0)(6.3,8.9)
-        \rput(3,3.2)
-        {
-            \rput[tr](3,5){fftncmul}
-            \psframe(0,0)(3.1,5.1)
-            \rput(0.2,3)
-            {
-                \rput[tr](2.6,1.4){wave}
-                \psframe(0,-0.7)(2.7,1.5)
-                \rput(0.5,0){\circlenode[fillstyle=solid]{iqMulQ}{$\times$}}
-                \rput(2.2,0){\circlenode[fillstyle=solid]{iqMulI}{$\times$}}
-                \pnode(! \psGetNodeCenter{iqMulQ} iqMulQ.x 0.25 sub iqMulQ.y 0.5 add){iqMulQA}
-                \dotnode[linecolor=green](! \psGetNodeCenter{iqMulQ} iqMulQ.x 0.25 sub 1){iqMulInSplit}
-                \pnode(! \psGetNodeCenter{iqMulQ} iqMulQ.x 0.25 add iqMulQ.y 0.5 add){iqMulQB}
-                \pnode(! \psGetNodeCenter{iqMulI} iqMulI.x 0.25 sub iqMulI.y 0.5 add){iqMulIA}
-                \pnode(! \psGetNodeCenter{iqMulI} iqMulI.x 0.25 add iqMulI.y 0.5 add){iqMulIB}
-                \pnode(! \psGetNodeCenter{iqMulI} 1.35 iqMulI.y 0.5 add){iq}
-                \pnode(1.35,-0.5){iqMulOutSplit}
-                \ncline[linecolor=blue]{iq}{iqMulIA}
-                \ncline[linecolor=blue]{iqMulIA}{iqMulI}
-                \ncline[linecolor=blue]{iq}{iqMulQB}
-                \ncline[linecolor=blue]{iqMulQB}{iqMulQ}
-                \ncline[linecolor=green]{iqMulIB}{iqMulI}
-                \ncline[linecolor=green]{iqMulQA}{iqMulQ}
-                \ncline[linecolor=green]{iqMulQA}{iqMulInSplit}
-                \ncangle[linecolor=green, angleB=90]{iqMulInSplit}{iqMulIB}
-                \ncangle[linecolor=blue, angleA=-90, angleB=180]{iqMulQ}{iqMulOutSplit}
-                \ncangle[linecolor=blue, angleA=-90]{iqMulI}{iqMulOutSplit}
-                \rput(! \psGetNodeCenter{iqMulI} 1 iqMulI.y 0.15 add)
+                \ncline[linecolor=blue]{inbufDataMux}{averageDataSplit}
                 {
-                    \psframe[fillstyle=solid](0,0)(0.7,0.7)
-                    \psline(0.01,0.01)(.69,.69)
-                    \rput(0.21,0.525){\parametricplot[linewidth=.7pt, plotpoints=100]{-1}{1}{0.175 t mul t 180 mul sin -0.0875 mul}}
-                    \rput(0.49,0.175){\parametricplot[linewidth=.7pt, plotpoints=100]{-1}{1}{0.175 t mul t 180 mul cos -0.0875 mul}}
+                    \psset{linecolor=red}
+                    \ncangle[angleA=-90, angleB=180, armB=0, offsetA=2pt]{averageMemCtrl}{wallclk}
+                    \ncangle[angleA=-90, armB=0, offsetA=-2pt]{averageMemCtrl}{trigger}
+                    \ncangle[angleA=-90, armB=0]{averageMemCtrl}{inbufCtrl}
+                    \ncangle[angleA=-90, armB=0]{trigger}{inbufCtrl}
+                    \ncangle[angleA=-90, armB=0]{wallclk}{inbufCtrl}
+                    \ncangle[angleA=-90, armB=0]{inbufDataMux}{inbufCtrl}
                 }
+                \rput(3.8,1.65){\pspolygon[fillcolor=white,fillstyle=solid](0,0.15)(0.2,0)(0.2,0.7)(0,0.55)}
             }
-            \rput(1,1){\circlenode[fillstyle=solid]{fftncmulMul}{$\times$}}
-            \pnode(! \psGetNodeCenter{fftncmulMul} fftncmulMul.x 0.25 sub fftncmulMul.y 0.5 add){fftncmulMulA}
-            \pnode(! \psGetNodeCenter{fftncmulMul} fftncmulMul.x 0.25 add fftncmulMul.y 0.5 add){fftncmulMulB}
-            \ncline[linecolor=blue]{fftncmulMul}{fftncmulMulA}
-            \ncline[linecolor=green]{fftncmulMul}{fftncmulMulB}
-            \pnode(1.05,0){fftncmulCtrl}
+            \rput(1.1,3.5){%
+                \rput[tr](8.4,9.5){core}
+                \psframe(0,0)(8.5,9.6)
+                \rput(2,0.2){%
+                    \rput[tr](6.2,8.8){overlap\_add}
+                    \psframe(0,0)(6.3,8.9)
+                    \rput(3,3.2){%
+                        \rput[tr](3,5){fftncmul}
+                        \psframe(0,0)(3.1,5.1)
+                        \rput(0.2,3){%
+                            \rput[tr](2.6,1.4){wave}
+                            \psframe(0,-0.7)(2.7,1.5)
+                            \rput(0.5,0){\circlenode[fillstyle=solid]{iqMulQ}{$\times$}}
+                            \rput(2.2,0){\circlenode[fillstyle=solid]{iqMulI}{$\times$}}
+                            \pnode(! \psGetNodeCenter{iqMulQ} iqMulQ.x 0.25 sub iqMulQ.y 0.5 add){iqMulQA}
+                            \dotnode[linecolor=green](! \psGetNodeCenter{iqMulQ} iqMulQ.x 0.25 sub 1){iqMulInSplit}
+                            \pnode(! \psGetNodeCenter{iqMulQ} iqMulQ.x 0.25 add iqMulQ.y 0.5 add){iqMulQB}
+                            \pnode(! \psGetNodeCenter{iqMulI} iqMulI.x 0.25 sub iqMulI.y 0.5 add){iqMulIA}
+                            \pnode(! \psGetNodeCenter{iqMulI} iqMulI.x 0.25 add iqMulI.y 0.5 add){iqMulIB}
+                            \pnode(! \psGetNodeCenter{iqMulI} 1.35 iqMulI.y 0.5 add){iq}
+                            \pnode(1.35,-0.5){iqMulOutSplit}
+                            \ncline[linecolor=blue]{iq}{iqMulIA}
+                            \ncline[linecolor=blue]{iqMulIA}{iqMulI}
+                            \ncline[linecolor=blue]{iq}{iqMulQB}
+                            \ncline[linecolor=blue]{iqMulQB}{iqMulQ}
+                            \ncline[linecolor=green]{iqMulIB}{iqMulI}
+                            \ncline[linecolor=green]{iqMulQA}{iqMulQ}
+                            \ncline[linecolor=green]{iqMulQA}{iqMulInSplit}
+                            \ncangle[linecolor=green, angleB=90]{iqMulInSplit}{iqMulIB}
+                            \ncangle[linecolor=blue, angleA=-90, angleB=180]{iqMulQ}{iqMulOutSplit}
+                            \ncangle[linecolor=blue, angleA=-90]{iqMulI}{iqMulOutSplit}
+                            \rput(! \psGetNodeCenter{iqMulI} 1 iqMulI.y 0.15 add){%
+                                \psframe[fillstyle=solid](0,0)(0.7,0.7)
+                                \psline(0.01,0.01)(.69,.69)
+                                \rput(0.21,0.525){\parametricplot[linewidth=.7pt, plotpoints=100]{-1}{1}{0.175 t mul t 180 mul sin -0.0875 mul}}
+                                \rput(0.49,0.175){\parametricplot[linewidth=.7pt, plotpoints=100]{-1}{1}{0.175 t mul t 180 mul cos -0.0875 mul}}
+                            }
+                        }
+                        \rput(1,1){\circlenode[fillstyle=solid]{fftncmulMul}{$\times$}}
+                        \pnode(! \psGetNodeCenter{fftncmulMul} fftncmulMul.x 0.25 sub fftncmulMul.y 0.5 add){fftncmulMulA}
+                        \pnode(! \psGetNodeCenter{fftncmulMul} fftncmulMul.x 0.25 add fftncmulMul.y 0.5 add){fftncmulMulB}
+                        \ncline[linecolor=blue]{fftncmulMul}{fftncmulMulA}
+                        \ncline[linecolor=green]{fftncmulMul}{fftncmulMulB}
+                        \pnode(1.05,0){fftncmulCtrl}
+                    }
+                    \rput(3,0.2){%
+                        \rput[tr](2,2.5){ifftnadd}
+                        \psframe(0,0)(2.1,2.6)
+                        \rput(1,1){\circlenode[fillstyle=solid]{ifftnaddAdd}{$+$}}
+                        \pnode(! \psGetNodeCenter{ifftnaddAdd} ifftnaddAdd.x 0.25 sub ifftnaddAdd.y 0.5 add){ifftnaddAddA}
+                        \pnode(! \psGetNodeCenter{ifftnaddAdd} ifftnaddAdd.x 0.25 add ifftnaddAdd.y 0.5 add){ifftnaddAddB}
+                        \ncline[linecolor=blue]{ifftnaddAdd}{ifftnaddAddA}
+                        \ncline[linecolor=green]{ifftnaddAdd}{ifftnaddAddB}
+                        \pnode(1.05,2.6){ifftnaddCtrl}
+                    }
+                    \rput(2.4,3){\rnode{fft}{\psframebox[fillstyle=solid]{fft}}}
+                    \rput[l](0.2,2.5){\rnode{scratch}{\psframebox[fillstyle=solid]{scratch}}}
+                    \pnode(! \psGetNodeCenter{ifftnaddAdd} 3.2 ifftnaddAdd.y 0.5 0.2 add add){fftOutSplit}
+                    \psdot[linecolor=blue](fftOutSplit)
+                    \ncangle[linecolor=blue, angleA=-90, angleB=180, armB=0.2]{fft}{fftOutSplit}
+                    \ncangle[linecolor=blue, angleA=-90, angleB=90, armB=0.2]{fftOutSplit}{fftncmulMulA}
+                    \ncangle[linecolor=blue, angleA=-90, angleB=90, armB=0.2]{fftOutSplit}{ifftnaddAddA}
+                    \pnode(2.9,3){fftCtrlSplit}
+                    \pnode(2.4,4.1){fftMux}
+                    \ncangle[linecolor=red, angleB=-90, armB=0]{fftCtrlSplit}{fftncmulCtrl}
+                    \ncangle[linecolor=red, angleB=90, armB=0]{fftCtrlSplit}{ifftnaddCtrl}
+                    \ncangle[linecolor=red, angleA=90]{fftCtrlSplit}{fftMux}
+                    \ncline[linecolor=red]{fft}{fftCtrlSplit}
+                    \ncangle[linecolor=green, angleA=90, angleB=-90]{scratch}{fftncmulMul}
+                    \ncangle[linecolor=blue, angleA=-90, angleB=90, offsetB=0.15, armB=1.2]{iqMulOutSplit}{fftMux}
+                    \ncline[linecolor=blue]{fftMux}{fft}
+                    \pnode(1.85,2.05){scratchSplit}
+                    \ncangle[linecolor=green, angleA=-90, angleB=180]{scratch}{scratchSplit}
+                    \ncangle[linecolor=green, angleA=90, angleB=90, offsetB=-0.15]{scratchSplit}{fftMux}
+                    \psdot[linecolor=green](scratchSplit)
+                    \ncangle[linecolor=green, angleB=90]{scratchSplit}{ifftnaddAddB}
+                    \rput{90}(2.75,4){\pspolygon[fillcolor=white,fillstyle=solid](0,0.15)(0.2,0)(0.2,0.7)(0,0.55)}
+                }
+                \rput(1,5.7){\rnode{H}{\psframebox[fillstyle=solid]{H}}}
+                \ncangle[linecolor=green, angleA=-90, angleB=90, offsetA=1pt]{H}{fftncmulMulB}
+                \pnode(0,8){coreCtrl}
+                \pnode(2,8){overlapAddCtrl}
+                \pnode(0,7.4){coreIn}
+                \pnode(0,6.2){coreHIn}
+                \pnode(0,5.25){coreHOut}
+                \pnode(0,0.6){coreOut}
+                \ncline[linecolor=red]{coreCtrl}{overlapAddCtrl}
+                \ncline[linecolor=green]{coreIn}{iqMulInSplit}
+                \ncangle[linecolor=green, angleB=90, armB=0]{coreHIn}{H}
+                \ncangle[linecolor=green, angleB=-90, armB=0, offsetB=1pt]{coreHOut}{H}
+                \ncangle[linecolor=green, angleB=-90, armB=0]{coreOut}{ifftnaddAdd}
+            }
+            \rput(1.1,0.2){%
+                \psframe(0,0)(8.4,3.1)
+                \rput[tr](8.3,3.0){outbuf}
+                \rput(1,2){\rnode{outMem0}{\psframebox[fillstyle=solid]{mem\_0}}}
+                \rput(3,2){\rnode{outMem1}{\psframebox[fillstyle=solid]{mem\_1}}}
+                \pnode(0,0.2){outCtrl}
+                \pnode(0,0.4){outDataOut}
+                \pnode(0,2.5){outDataIn}
+                \pnode(1,2.5){outDataSplit}
+                \pnode(2,0.8){outMemMuxOut}
+                \pnode(4.2,1.45){outMemMuxData}
+                \ncangle[linecolor=green, angleA=-90, angleB=90, offsetB=-0.1, offsetA=-0.1]{outMem0}{outMemMuxOut}
+                \ncangle[linecolor=green, angleA=-90, angleB=90, offsetB=0.1, offsetA=-0.1]{outMem1}{outMemMuxOut}
+                \ncangle[linecolor=green, angleA=-90, angleB=180, offsetB=-0.1, offsetA=0.1]{outMem0}{outMemMuxData}
+                \ncangle[linecolor=green, angleA=-90, angleB=180, offsetB=0.1, offsetA=0.1]{outMem1}{outMemMuxData}
+                \rput(5.2,1.45){\circlenode[fillstyle=solid]{outMul}{$\times$}}
+                \rput[l](6,1.45){\rnode{transmitter}{\psframebox[fillstyle=solid]{transmitter}}}
+                \ncline[linecolor=blue]{outMemMuxData}{outMul}
+                \ncangle[linecolor=red, angleB=-90, armA=0, armB=0]{outMemMuxOut}{outMemMuxData} 
+                \ncangle[linecolor=red, angleB=-90, armA=0, armB=0]{outCtrl}{outMemMuxData}
+                \ncangle[linecolor=red, angleB=-90, armA=0, armB=0]{outCtrl}{outMul}
+                \ncangle[linecolor=red, angleB=-90, armA=0, armB=0]{outCtrl}{transmitter}
+                \ncline[linecolor=green]{outDataIn}{outDataSplit}
+                \ncline[linecolor=green]{outDataSplit}{outMem0}
+                \psdot[linecolor=green](outDataSplit)
+                \ncangle[linecolor=green, angleB=90, armA=0, armB=0]{outDataSplit}{outMem1}
+                \ncangle[linecolor=green, angleB=-90, armA=0, armB=0]{outDataOut}{outMemMuxOut}
+                \rput{90}(2.35,0.7){\pspolygon[fillcolor=white,fillstyle=solid](0,0.15)(0.2,0)(0.2,0.7)(0,0.55)}
+                \rput{180}(4.3,1.8){\pspolygon[fillcolor=white,fillstyle=solid](0,0.15)(0.2,0)(0.2,0.7)(0,0.55)}
+                \ncline[linecolor=blue]{outMul}{transmitter}
+            }
+            \pnode(0.7,16.15){mainMuxInInSplit}
+            \psdot[linecolor=green](mainMuxInInSplit)
+            \ncline[linecolor=green]{mainMuxInInSplit}{inbufDataOut}
+            \ncangle[linecolor=green, angleA=90, angleB=180]{mainMuxInInSplit}{coreIn}
+            \pnode(0.7,4.1){outbufMuxInCoreSplit}
+            \psdot[linecolor=green](outbufMuxInCoreSplit)
+            \pnode(0.4,3.1){outbufMuxInExt}
+            \pnode(0.7,3.1){outbufMuxInCore}
+            \pnode(0.55,2.9){outbufMuxOut}
+            \ncangle[linecolor=green, angleA=90, angleB=180]{outbufMuxOut}{outDataIn}
+            \ncline[linecolor=green]{outbufMuxInCore}{outbufMuxInCoreSplit}
+            \ncline[linecolor=green]{outbufMuxInCoreSplit}{coreOut}
+            \pnode(0,17.45){mainInbufIn}
+            \pnode(0,16.15){mainInbufOut}
+            \pnode(0,13.5){mainInbufCtrl}
+            \pnode(0,11.5){mainCoreCtrl}
+            \pnode(0,9.7){mainCoreHIn}
+            \pnode(0,8.75){mainCoreHOut}
+            \pnode(0,4.1){mainCoreOut}
+            \pnode(0,3.3){mainOutbufIn}
+            \pnode(0,0.6){mainOutbufOut}
+            \pnode(0,0.4){mainOutbufCtrl}
+            \ncline[linecolor=green]{mainInbufIn}{inbufDataIn}
+            \ncline[linecolor=green]{mainInbufOut}{mainMuxInInSplit}
+            \ncline[linecolor=red]{mainInbufCtrl}{inbufCtrl}
+            \ncline[linecolor=red]{mainCoreCtrl}{coreCtrl}
+            \ncline[linecolor=green]{mainCoreHIn}{coreHIn}
+            \ncline[linecolor=green]{mainCoreHOut}{coreHOut}
+            \ncline[linecolor=green]{mainCoreOut}{outbufMuxInCoreSplit}
+            \ncangle[linecolor=green, angleB=90, armB=0]{mainOutbufIn}{outbufMuxInExt}
+            \ncline[linecolor=green]{mainOutbufOut}{outDataOut}
+            \ncline[linecolor=red]{mainOutbufCtrl}{outCtrl}
+            \rput{90}(0.9,2.9){\pspolygon[fillcolor=white,fillstyle=solid](0,0.15)(0.2,0)(0.2,0.7)(0,0.55)}
         }
-        \rput(3,0.2)
-        {
-            \rput[tr](2,2.5){ifftnadd}
-            \psframe(0,0)(2.1,2.6)
-            \rput(1,1){\circlenode[fillstyle=solid]{ifftnaddAdd}{$+$}}
-            \pnode(! \psGetNodeCenter{ifftnaddAdd} ifftnaddAdd.x 0.25 sub ifftnaddAdd.y 0.5 add){ifftnaddAddA}
-            \pnode(! \psGetNodeCenter{ifftnaddAdd} ifftnaddAdd.x 0.25 add ifftnaddAdd.y 0.5 add){ifftnaddAddB}
-            \ncline[linecolor=blue]{ifftnaddAdd}{ifftnaddAddA}
-            \ncline[linecolor=green]{ifftnaddAdd}{ifftnaddAddB}
-            \pnode(1.05,2.6){ifftnaddCtrl}
-        }
-        \rput(2.4,3){\rnode{fft}{\psframebox[fillstyle=solid]{fft}}}
-        \rput[l](0.2,2.5){\rnode{scratch}{\psframebox[fillstyle=solid]{scratch}}}
-        \pnode(! \psGetNodeCenter{ifftnaddAdd} 3.2 ifftnaddAdd.y 0.5 0.2 add add){fftOutSplit}
-        \psdot[linecolor=blue](fftOutSplit)
-        \ncangle[linecolor=blue, angleA=-90, angleB=180, armB=0.2]{fft}{fftOutSplit}
-        \ncangle[linecolor=blue, angleA=-90, angleB=90, armB=0.2]{fftOutSplit}{fftncmulMulA}
-        \ncangle[linecolor=blue, angleA=-90, angleB=90, armB=0.2]{fftOutSplit}{ifftnaddAddA}
-        \pnode(2.9,3){fftCtrlSplit}
-        \pnode(2.4,4.1){fftMux}
-        \ncangle[linecolor=red, angleB=-90, armB=0]{fftCtrlSplit}{fftncmulCtrl}
-        \ncangle[linecolor=red, angleB=90, armB=0]{fftCtrlSplit}{ifftnaddCtrl}
-        \ncangle[linecolor=red, angleA=90]{fftCtrlSplit}{fftMux}
-        \ncline[linecolor=red]{fft}{fftCtrlSplit}
-        \ncangle[linecolor=green, angleA=90, angleB=-90]{scratch}{fftncmulMul}
-        \ncangle[linecolor=blue, angleA=-90, angleB=90, offsetB=0.15, armB=1.2]{iqMulOutSplit}{fftMux}
-        \ncline[linecolor=blue]{fftMux}{fft}
-        \pnode(1.85,2.05){scratchSplit}
-        \ncangle[linecolor=green, angleA=-90, angleB=180]{scratch}{scratchSplit}
-        \ncangle[linecolor=green, angleA=90, angleB=90, offsetB=-0.15]{scratchSplit}{fftMux}
-        \psdot[linecolor=green](scratchSplit)
-        \ncangle[linecolor=green, angleB=90]{scratchSplit}{ifftnaddAddB}
-        \rput{90}(2.75,4){\pspolygon[fillcolor=white,fillstyle=solid](0,0.15)(0.2,0)(0.2,0.7)(0,0.55)}
-    }
-    \rput(1,5.7){\rnode{H}{\psframebox[fillstyle=solid]{H}}}
-    \ncangle[linecolor=green, angleA=-90, angleB=90, offsetA=1pt]{H}{fftncmulMulB}
-    \pnode(0,8){coreCtrl}
-    \pnode(2,8){overlapAddCtrl}
-    \pnode(0,7.4){coreIn}
-    \pnode(0,6.2){coreHIn}
-    \pnode(0,5.25){coreHOut}
-    \pnode(0,0.6){coreOut}
-    \ncline[linecolor=red]{coreCtrl}{overlapAddCtrl}
-    \ncline[linecolor=green]{coreIn}{iqMulInSplit}
-    \ncangle[linecolor=green, angleB=90, armB=0]{coreHIn}{H}
-    \ncangle[linecolor=green, angleB=-90, armB=0, offsetB=1pt]{coreHOut}{H}
-    \ncangle[linecolor=green, angleB=-90, armB=0]{coreOut}{ifftnaddAdd}
-}
-\rput(1.1,0.2)
-{
-    \psframe(0,0)(8.4,3.1)
-    \rput[tr](8.3,3.0){\psframebox*[outbuf]}
-    \rput(1,2){\rnode{outMem0}{\psframebox[fillstyle=solid]{mem\_0}}}
-    \rput(3,2){\rnode{outMem1}{\psframebox[fillstyle=solid]{mem\_1}}}
-    \pnode(0,0.2){outCtrl}
-    \pnode(0,0.4){outDataOut}
-    \pnode(0,2.5){outDataIn}
-    \pnode(1,2.5){outDataSplit}
-    \pnode(2,0.8){outMemMuxOut}
-    \pnode(4.2,1.45){outMemMuxData}
-    \ncangle[linecolor=green, angleA=-90, angleB=90, offsetB=-0.1, offsetA=-0.1]{outMem0}{outMemMuxOut}
-    \ncangle[linecolor=green, angleA=-90, angleB=90, offsetB=0.1, offsetA=-0.1]{outMem1}{outMemMuxOut}
-    \ncangle[linecolor=green, angleA=-90, angleB=180, offsetB=-0.1, offsetA=0.1]{outMem0}{outMemMuxData}
-    \ncangle[linecolor=green, angleA=-90, angleB=180, offsetB=0.1, offsetA=0.1]{outMem1}{outMemMuxData}
-    \rput(5.2,1.45){\circlenode[fillstyle=solid]{outMul}{$\times$}}
-    \rput[l](6,1.45){\rnode{transmitter}{\psframebox[fillstyle=solid]{transmitter}}}
-    \ncline[linecolor=blue]{outMemMuxData}{outMul}
-    \ncangle[linecolor=red, angleB=-90, armA=0, armB=0]{outMemMuxOut}{outMemMuxData} 
-    \ncangle[linecolor=red, angleB=-90, armA=0, armB=0]{outCtrl}{outMemMuxData}
-    \ncangle[linecolor=red, angleB=-90, armA=0, armB=0]{outCtrl}{outMul}
-    \ncangle[linecolor=red, angleB=-90, armA=0, armB=0]{outCtrl}{transmitter}
-    \ncline[linecolor=green]{outDataIn}{outDataSplit}
-    \ncline[linecolor=green]{outDataSplit}{outMem0}
-    \psdot[linecolor=green](outDataSplit)
-    \ncangle[linecolor=green, angleB=90, armA=0, armB=0]{outDataSplit}{outMem1}
-    \ncangle[linecolor=green, angleB=-90, armA=0, armB=0]{outDataOut}{outMemMuxOut}
-    \rput{90}(2.35,0.7){\pspolygon[fillcolor=white,fillstyle=solid](0,0.15)(0.2,0)(0.2,0.7)(0,0.55)}
-    \rput{180}(4.3,1.8){\pspolygon[fillcolor=white,fillstyle=solid](0,0.15)(0.2,0)(0.2,0.7)(0,0.55)}
-    \ncline[linecolor=blue]{outMul}{transmitter}
-}
-\pnode(0.4,12.2){mainMuxInExt}
-\pnode(0.7,12.2){mainMuxInIn}
-\pnode(0.55,12){mainMuxOut}
-\pnode(0.7,16.15){mainMuxInInSplit}
-\psdot[linecolor=green](mainMuxInInSplit)
-\ncline[linecolor=green]{mainMuxInIn}{mainMuxInInSplit}
-\ncline[linecolor=green]{mainMuxInInSplit}{inbufDataOut}
-\ncangle[linecolor=green, angleA=90, angleB=180]{mainMuxOut}{coreIn}
-\pnode(0.7,4.1){outbufMuxInCoreSplit}
-\psdot[linecolor=green](outbufMuxInCoreSplit)
-\pnode(0.4,3.1){outbufMuxInExt}
-\pnode(0.7,3.1){outbufMuxInCore}
-\pnode(0.55,2.9){outbufMuxOut}
-\ncangle[linecolor=green, angleA=90, angleB=180]{outbufMuxOut}{outDataIn}
-\ncline[linecolor=green]{outbufMuxInCore}{outbufMuxInCoreSplit}
-\ncline[linecolor=green]{outbufMuxInCoreSplit}{coreOut}
-\pnode(0,17.45){mainInbufIn}
-\pnode(0,16.15){mainInbufOut}
-\pnode(0,13.5){mainInbufCtrl}
-\pnode(0,12.4){mainCoreIn}
-\pnode(0,11.5){mainCoreCtrl}
-\pnode(0,9.7){mainCoreHIn}
-\pnode(0,8.75){mainCoreHOut}
-\pnode(0,4.1){mainCoreOut}
-\pnode(0,3.3){mainOutbufIn}
-\pnode(0,0.6){mainOutbufOut}
-\pnode(0,0.4){mainOutbufCtrl}
-\ncline[linecolor=green]{mainInbufIn}{inbufDataIn}
-\ncline[linecolor=green]{mainInbufOut}{mainMuxInInSplit}
-\ncline[linecolor=red]{mainInbufCtrl}{inbufCtrl}
-\ncangle[linecolor=green, angleB=90, armB=0]{mainCoreIn}{mainMuxInExt}
-\ncline[linecolor=red]{mainCoreCtrl}{coreCtrl}
-\ncline[linecolor=green]{mainCoreHIn}{coreHIn}
-\ncline[linecolor=green]{mainCoreHOut}{coreHOut}
-\ncline[linecolor=green]{mainCoreOut}{outbufMuxInCoreSplit}
-\ncangle[linecolor=green, angleB=90, armB=0]{mainOutbufIn}{outbufMuxInExt}
-\ncline[linecolor=green]{mainOutbufOut}{outDataOut}
-\ncline[linecolor=red]{mainOutbufCtrl}{outCtrl}
-\rput{90}(0.9,2.9){\pspolygon[fillcolor=white,fillstyle=solid](0,0.15)(0.2,0)(0.2,0.7)(0,0.55)}
-\rput{90}(0.9,12){\pspolygon[fillcolor=white,fillstyle=solid](0,0.15)(0.2,0)(0.2,0.7)(0,0.55)}
-}
-\pnode(1.3,8.75){memMuxOutbuf}
-\pnode(1.3,8.85){memMuxCore}
-\pnode(1.3,8.95){memMuxCoreH}
-\pnode(1.3,9.05){memMuxInbuf}
-\ncangles[linecolor=green, angleA=180, armA=0.2, armB=0]{mainOutbufOut}{memMuxOutbuf}
-\ncangles[linecolor=green, angleA=180, armA=0.1, armB=0]{mainCoreOut}{memMuxCore}
-\ncangles[linecolor=green, angleA=180, armA=0.1, armB=0]{mainInbufOut}{memMuxInbuf}
-\ncline[linecolor=green]{mainCoreHOut}{memMuxCoreH}
-\pnode(1.1,8.9){memMuxOut}
-\rput[c]{90}(0.5,13.7){\rnode{procRegister}{\psframebox[fillstyle=solid]{proc\_register}}}
-\rput[c]{90}(0.5,8.9){\rnode{procMem}{\psframebox[fillstyle=solid]{proc\_mem}}}
-\rput[c]{90}(0.5,11.2){\rnode{cpu}{\psframebox[fillstyle=solid]{cpu}}}
-\ncline[linecolor=green, offsetA=0.05, offsetB=0.05]{memMuxOut}{procMem}
-\rput(1.1,8.55){\pspolygon[fillcolor=white,fillstyle=solid](0,0.15)(0.2,0)(0.2,0.7)(0,0.55)}
-\pnode(1.0,8.95){memBusSplit}
-\psdot[linecolor=green](memBusSplit)
-\ncline[linecolor=green, offsetB=-0.02]{memBusSplit}{procMem}
-\ncangle[linecolor=green, angleB=-90]{mainOutbufIn}{memBusSplit}
-\pnode(0.9,13.7){ctrlBusSplit}
-\psdot[linecolor=red](ctrlBusSplit)
-\pnode(1.0,12.6){memBusSplitCore}
-\psdot[linecolor=green](memBusSplitCore)
-\pnode(0.9,11.7){ctrlBusSplitCore}
-\psdot[linecolor=red](ctrlBusSplitCore)
-\pnode(1.0,9.9){memBusSplitCoreH}
-\psdot[linecolor=green](memBusSplitCoreH)
-\ncangle[linecolor=green, angleB=90]{mainInbufIn}{memBusSplitCore}
-\ncline[linecolor=green]{memBusSplitCore}{memBusSplitCoreH}
-\ncline[linecolor=green]{memBusSplitCoreH}{memBusSplit}
-\ncline[linecolor=green]{mainCoreHIn}{memBusSplitCoreH}
-\ncline[linecolor=green]{mainCoreIn}{memBusSplitCore}
-\ncangle[linecolor=red, angleB=90]{mainOutbufCtrl}{ctrlBusSplitCore}
-\ncline[linecolor=red]{mainCoreCtrl}{ctrlBusSplitCore}
-\ncline[linecolor=red]{mainInbufCtrl}{ctrlBusSplit}
-\ncline[linecolor=red]{ctrlBusSplitCore}{ctrlBusSplit}
-\ncline[linecolor=red]{procRegister}{ctrlBusSplit}
-\ncline[linecolor=green]{procRegister}{cpu}
-\ncline[linecolor=green]{procMem}{cpu}
+        \pnode(1.3,8.75){memMuxOutbuf}
+        \pnode(1.3,8.85){memMuxCore}
+        \pnode(1.3,8.95){memMuxCoreH}
+        \pnode(1.3,9.05){memMuxInbuf}
+        \ncangles[linecolor=green, angleA=180, armA=0.2, armB=0]{mainOutbufOut}{memMuxOutbuf}
+        \ncangles[linecolor=green, angleA=180, armA=0.1, armB=0]{mainCoreOut}{memMuxCore}
+        \ncangles[linecolor=green, angleA=180, armA=0.1, armB=0]{mainInbufOut}{memMuxInbuf}
+        \ncline[linecolor=green]{mainCoreHOut}{memMuxCoreH}
+        \pnode(1.1,8.9){memMuxOut}
+        \rput[c]{90}(0.5,13.7){\rnode{procRegister}{\psframebox[fillstyle=solid]{proc\_register}}}
+        \rput[c]{90}(0.5,8.9){\rnode{procMem}{\psframebox[fillstyle=solid]{proc\_mem}}}
+        \rput[c]{90}(0.5,11.2){\rnode{cpu}{\psframebox[fillstyle=solid]{cpu}}}
+        \ncline[linecolor=green, offsetA=0.05, offsetB=0.05]{memMuxOut}{procMem}
+        \rput(1.1,8.55){\pspolygon[fillcolor=white,fillstyle=solid](0,0.15)(0.2,0)(0.2,0.7)(0,0.55)}
+        \pnode(1.0,8.95){memBusSplit}
+        \psdot[linecolor=green](memBusSplit)
+        \ncline[linecolor=green, offsetB=-0.02]{memBusSplit}{procMem}
+        \ncangle[linecolor=green, angleB=-90]{mainOutbufIn}{memBusSplit}
+        \pnode(0.9,13.7){ctrlBusSplit}
+        \psdot[linecolor=red](ctrlBusSplit)
+        \pnode(0.9,11.7){ctrlBusSplitCore}
+        \psdot[linecolor=red](ctrlBusSplitCore)
+        \pnode(1.0,9.9){memBusSplitCoreH}
+        \psdot[linecolor=green](memBusSplitCoreH)
+        \ncangle[linecolor=green, angleB=90]{mainInbufIn}{memBusSplitCoreH}
+        \ncline[linecolor=green]{memBusSplitCoreH}{memBusSplit}
+        \ncline[linecolor=green]{mainCoreHIn}{memBusSplitCoreH}
+        \ncangle[linecolor=red, angleB=90]{mainOutbufCtrl}{ctrlBusSplitCore}
+        \ncline[linecolor=red]{mainCoreCtrl}{ctrlBusSplitCore}
+        \ncline[linecolor=red]{mainInbufCtrl}{ctrlBusSplit}
+        \ncline[linecolor=red]{ctrlBusSplitCore}{ctrlBusSplit}
+        \ncline[linecolor=red]{procRegister}{ctrlBusSplit}
+        \ncline[linecolor=green]{procRegister}{cpu}
+        \ncline[linecolor=green]{procMem}{cpu}
 
-\pnode(-0.5,11.2){cpuExt}
-\ncline[linecolor=magenta]{cpu}{cpuExt}
-\pnode(13.9,1.85){transmitterExt}
-\ncline[linecolor=magenta]{transmitter}{transmitterExt}
-}
-\end{pspicture}
-\label{fig:overall}
-\caption{Overall Functional Design}
-\end{figure}
+        \pnode(-0.5,11.2){cpuExt}
+        \ncline[linecolor=magenta]{cpu}{cpuExt}
+        \pnode(13.9,1.85){transmitterExt}
+        \ncline[linecolor=magenta]{transmitter}{transmitterExt}
+    \end{pspicture}
+    \caption{Overall Functional Design with the VHDL module names.}
+    \label{fig:overallDesign}
+\end{figure*}
+\section{Hardware}
+\label{sec:hardware}
+\subsection{Sources}
+\subsubsection{Inbuf}
+\subsubsection{Core}
+%\begin {tikztimingtable}
+%    Dec & [timing/counter/new={char=Q,max value=15,                  wraps,text style={font=\scriptsize}}]    33{Q}d\\
+%    Bin & [timing/counter/new={char=Q,max value=15,base=2, digits=4, wraps,text style={font=\tiny,scale=.8}}] 33{Q}d\\
+%    Oct & [timing/counter/new={char=Q,max value=15,base=8, digits=3, wraps,text style={font=\tiny}}]          33{Q}d\\
+%    Hex & [timing/counter/new={char=Q,max value=15,base=16,          wraps,text style={font=\scriptsize}}]    33{Q}d\\
+%\extracode
+%    \begin{background}[shift={(0.1,0)},help lines]
+%        \vertlines{}
+%    \end{background}
+%\end{tikztimingtable}
+\subsubsection{outbuf}
+\subsubsection{ppc}
+\begin{register}{htbp}{reg(0)}{0x00}%
+    \label{reg0}%
+    \regfield{rec\_rst}{1}{31}{0}%
+    \regfield{Reserved}{4}{27}{0}%
+    \regfield{rec\_stream\_valid}{1}{26}{0}%
+    \regfield{rec\_input\_select}{2}{24}{0}%
+    \regfield{Reserved}{2}{22}{0}%
+    \regfield{rec\_data\_valid(2)}{1}{21}{0}%
+    \regfield{rec\_rxeqmix(2)}{2}{19}{0}%
+    \regfield{rec\_descramble(2)}{1}{18}{1}%
+    \regfield{rec\_polarity(2)}{1}{17}{1}%
+    \regfield{rec\_enable(2)}{1}{16}{1}%
+    \regfield{Reserved}{2}{14}{0}%
+    \regfield{rec\_data\_valid(1)}{1}{13}{0}%
+    \regfield{rec\_rxeqmix(1)}{2}{11}{0}%
+    \regfield{rec\_descramble(1)}{1}{10}{1}%
+    \regfield{rec\_polarity(1)}{1}{9}{1}%
+    \regfield{rec\_enable(1)}{1}{8}{1}%
+    \regfield{Reserved}{2}{6}{0}%
+    \regfield{rec\_data\_valid(0)}{1}{5}{0}%
+    \regfield{rec\_rxeqmix(0)}{2}{3}{0}%
+    \regfield{rec\_descramble(0)}{1}{2}{1}%
+    \regfield{rec\_polarity(0)}{1}{1}{1}%
+    \regfield{rec\_enable(0)}{1}{0}{1}%
+    \reglabel{Reset}\regnewline%
+\end{register}
+\begin{register}{htbp}{reg(1)}{0x04}%
+    \label{reg1}%
+    \regfield{avg\_rst}{1}{31}{0}%
+    \regfield{Reserved}{3}{28}{0}%
+    \regfield{avg\_err}{1}{27}{0}%
+    \regfield{avg\_active}{1}{26}{0}%
+    \regfield{avg\_width}{2}{24}{0}%
+    \regfield{trig\_rst}{1}{23}{0}%
+    \regfield{Reserved}{3}{19}{0}%
+    \regfield{trig\_int}{1}{19}{0}%
+    \regfield{trig\_arm}{1}{18}{0}%
+    \regfield{Reserved}{1}{17}{0}%
+    \regfield{trig\_type}{1}{16}{0}%
+    \regfield{depth}{16}{0}{0}%
+    \reglabel{Reset}\regnewline%
+\end{register}
+\begin{register}{htbp}{reg(2)}{0x08}%
+    \label{reg2}%
+    \regfield{Reserved}{4}{28}{0}%
+    \regfield{core\_scale\_schi}{12}{16}{011010101010}%
+    \regfield{Reserved}{4}{12}{0}%
+    \regfield{core\_scale\_sch}{12}{0}{011010101010}%
+    \reglabel{Reset}\regnewline%
+\end{register}
+\begin{register}{htbp}{reg(3)}{0x0C}%
+    \label{reg3}%
+    \regfield{core\_rst}{1}{31}{0}%
+    \regfield{Reserved}{1}{30}{0}%
+    \regfield{core\_circular}{1}{29}{0}%
+    \regfield{core\_ov\_cmul}{1}{28}{0}%
+    \regfield{core\_ov\_ifft}{1}{27}{0}%
+    \regfield{core\_ov\_fft}{1}{26}{0}%
+    \regfield{core\_start}{1}{25}{0}%
+    \regfield{core\_iq}{1}{24}{0}%
+    \regfield{Reserved}{3}{21}{0}%
+    \regfield{core\_n}{5}{16}{00011}%
+    \regfield{core\_scale\_cmul}{2}{14}{0}%
+    \regfield{Reserved}{2}{12}{0}%
+    \regfield{core\_L}{12}{0}{0}%
+    \reglabel{Reset}\regnewline%
+\end{register}
+\begin{register}{htbp}{reg(4)}{0x10}%
+    \label{reg4}%
+    \regfield{tx\_mulq}{16}{16}{0}%
+    \regfield{tx\_muli}{16}{0}{0}%
+    \reglabel{Reset}\regnewline%
+\end{register}
+\begin{register}{htbp}{reg(5)}{0x14}%
+    \label{reg5}%
+    \regfield{tx\_shift}{2}{30}{0}%
+    \regfield{tx\_ovfl}{1}{29}{0}%
+    \regfield{tx\_sat}{1}{28}{1}%
+    \regfield{Reserved}{3}{25}{0}%
+    \regfield{mem\_req}{1}{24}{0}%
+    \regfield{tx\_rst}{1}{23}{0}%
+    \regfield{Reserved}{3}{20}{0}%
+    \regfield{tx\_resync}{1}{19}{0}%
+    \regfield{tx\_toggle}{1}{18}{0}%
+    \regfield{tx\_dc\_balance}{1}{17}{0}%
+    \regfield{tx\_deskew}{1}{16}{0}%
+    \regfield{tx\_frame\_offset}{16}{0}{0}%
+    \reglabel{Reset}\regnewline%
+\end{register}
+\section{build}
+\subsection{overall}
+\subsection{cpu}
+\subsection{device tree}
+\section{Software}
+What and why
+\subsection{Buildroot}
+patch in twisted, zope, smmap\\
+make menuconfig\\
+config (glibc, powerpc 440 without fpu, software fpu, c++, glibc (uclibc bug with powerpc), python, python-zope-interface, python-twisted, python-smmap)\\
+\verb+undefined reference to `copysignl'+\\
+make
+\subsection{kernel}
+mainline kernel min version\\% TODO
+toolchain.sh\\
+pmake menuconfig\\
+AMC 44x, 46x, 47x\\
+Generic Xilinx Virtex 5 FXT board support\\
+Math emulation\\
+kexec (for reboot)\\
+initial command string: console=ttyS0,115200 root=/dev/xsa2\\
+default image types: simpleImage.virtex440-final\\ %TODO
+devtmpfs + automount\\
+Xilinx SystemACE\\
+Xilinx LL TEMAC\\
+Marvell PHYs\\
+8250/16550 and compatible serial support\\
+Serial port on Open Firmware platform bus\\
+Console on 8250/16550 and compatible serial port\\
+\\
+arch/powerpc/boot/dts/virtex440-final.dts\\
+pmake simpleImage.virtex440-final %TODO
+\subsection{kernel module}
+\section{Boostrap}
+\subsection{build image}
+\subsection{debug/test hw}
+\subsection{build complete image}
+\section{usage}
+what how and why
+\subsection{boot}
+\subsection{sysfs}
+\subsection{webinterface}
+
 \end{document}
