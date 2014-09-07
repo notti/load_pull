@@ -5,13 +5,16 @@
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{pstricks}
+\usepackage{pstricks-add}
 \usepackage{pst-circ}
 \usepackage{pst-plot}
 \usepackage{pst-sigsys}
 \usepackage{calc}
-\usepackage{tikz-timing}
-\usetikztiminglibrary{counters}
+%\usepackage{tikz-timing}
+%\usetikztiminglibrary{counters}
 \usepackage{siunitx}
+\usepackage{cite}
+\usepackage{url}
 
 \usepackage[colorlinks,hyperindex,plainpages=false,
 pdftitle={Specialized DSP in FPGA with Processor Bindings},
@@ -28,6 +31,13 @@ bookmarksopen=false
 \markboth{EMCE-Vienna University of Technology,~Sep 2014}{Gernot Vormayr: DPS in FPGA}
 
 \newcommand{\legendline}[2]{\begingroup\setbox0=\hbox{\textcolor{#1}{\rule{4pt}{#2}}}\parbox{\wd0}{\box0}\endgroup}
+
+\newcommand{\signal}[1]{{\ttfamily #1}}
+\newcommand{\module}[1]{{\ttfamily\bfseries #1}}
+\newcommand{\clk}[1]{{\itshape\ttfamily #1\_clock}}
+
+\crefname{Regfloat}{register}{registers}
+\Crefname{Regfloat}{Register}{Registers}
 
 \begin{document}
 
@@ -53,7 +63,7 @@ web interface in python.
 \section{Introduction}
 \begin{figure*}[bt]
     \centering
-    \begin{pspicture}(0,-1.5)(12.25,2)
+    \begin{pspicture}(0,-1.5)(13.25,2)
         \pssignal(0,0){x}{ADC}
         \psblock(2,0){avg}{AVG}
         \pssignal(3.5,-1.5){e}{$e^{j 2 \pi \SI{30}{MHz} \cdot k/T_s}$}
@@ -63,36 +73,40 @@ web interface in python.
         \pscircleop[operation=times](6.5,0){ftimes}
         \psblock(8,0){ifft}{iFFT}
         \psblock(10,0){buf}{buffer}
-        \pssignal(12.25,0){out}{SMBV}
+        \pscircleop[operation=times](11.5,0){btimes}
+        \pssignal(13.25,0){out}{SMBV}
+        \pssignal(13.25,-1){omul}{fixed}
 
         \psset{style=Arrow}
         \ncline{x}{avg}
         \ncline{avg}{otimes}
         \psset{doubleline=true}
-        \nclist{ncline}{e,otimes,fft,ftimes,ifft,buf,out}
+        \nclist{ncline}{e,otimes,fft,ftimes,ifft,buf,btimes,out}
         \ncline{h}{ftimes}
+        \ncangle[angleA=180,angleB=-90]{omul}{btimes}
 
-        \fnode[doubleline=false,style=RoundCorners,style=Dash,linecolor=red,framesize=10 2.75](6,-0.5){box}
-        \nput[offsetA=2]{90}{box}{\textcolor{red}{DSP}}
+        \fnode[doubleline=false,style=RoundCorners,style=Dash,linecolor=red,framesize=11 2.75](6.5,-0.5){box}
+        \nput[offsetA=-4]{90}{box}{\textcolor{red}{DSP}}
     \end{pspicture}
-    \caption{Overall datapath}
+    \caption{Overall datapath. Double lines indicate I/Q-data.}
     \label{fig:datapath}
 \end{figure*}
 The signal processing task to solve consisted of the following steps (see
 \Cref{fig:datapath}):
 \begin{enumerate}
     \item Read data from ADC (\SI{16}{Bit} \SI{100}{MHz}, LVDS)
-\item Store data into Memory
-\item Averaging
-\item I/Q Demodulation (\SI{30}{MHz})
-\item Convolute values with configurable data
-\item Continuously output computed values (\SI{100}{MHz}, LVDS)
+    \item Store data into Memory
+    \item Averaging
+    \item I/Q Demodulation (\SI{30}{MHz})
+    \item Convolute values with configurable data
+    \item Continuously output computed values (\SI{100}{MHz}, LVDS)
 \end{enumerate}
 Since data has to be continuously output, even while computing or reading
 new data, the computed data is double buffered. Because of the high
 data throughput needed this DSP algorithm has been implemented in an FPGA.\\
 The ADC is an LTC2274 and has a single link LVDS as output with 8/10B line
-coding. For synchronization the ADC sends the comma value K28.5. Standard
+coding. For synchronization the ADC sends the comma value K28.5
+\cite{ltc2274}. Standard
 SATA cabling has been chosen to connect the FPGA to the ADC with one pair
 for clock from the FPGA and the other for data to the FPGA. To prevent the
 need for a separate reset line, a small circuit asserts the SYNC pin of the
@@ -106,13 +120,19 @@ In order to read or write to the different memories these are mapped into the
 address space of the integrated processor. The control pins are connected to
 memory mapped registers. Processor and the rest of design work on different
 clock domains. Because of that the control pins have synchronization circuits
-and the memories can switch to the CPU clock domain. This clashes with the
-need for continuous output. Because of that the active output buffer can
-only be read. If one wants to send data to the output the inactive output
-buffer has to be filled, followed by switching the output buffers.\\
+and the memories can switch to the CPU clock domain. Since this clashes with
+the need for continuous output, the active output buffer can only be read. If
+one wants to send data to the output the inactive output buffer has to be
+filled, followed by switching the output buffers.\\
 The overall FPGA design can be seen in \Cref{fig:overallDesign} and is 
-explained in more detail in \Cref{sec:hardware}.
-\begin{figure*}[tb]
+explained in more detail in \Cref{sec:hardware}.\\
+For the rest of the document the following formating is used:
+\begin{itemize}
+    \item \signal{signal}
+    \item \module{module}
+    \item \clk{}
+\end{itemize}
+\begin{figure*}[bt]
     \centering
     \begin{pspicture}(0,0)(15,20)
         \SpecialCoor
@@ -416,23 +436,258 @@ explained in more detail in \Cref{sec:hardware}.
     \caption{Overall Functional Design with the VHDL module names.}
     \label{fig:overallDesign}
 \end{figure*}
+
 \section{Hardware}
 \label{sec:hardware}
-\subsection{Sources}
-\subsubsection{Inbuf}
-\subsubsection{Core}
-%\begin {tikztimingtable}
-%    Dec & [timing/counter/new={char=Q,max value=15,                  wraps,text style={font=\scriptsize}}]    33{Q}d\\
-%    Bin & [timing/counter/new={char=Q,max value=15,base=2, digits=4, wraps,text style={font=\tiny,scale=.8}}] 33{Q}d\\
-%    Oct & [timing/counter/new={char=Q,max value=15,base=8, digits=3, wraps,text style={font=\tiny}}]          33{Q}d\\
-%    Hex & [timing/counter/new={char=Q,max value=15,base=16,          wraps,text style={font=\scriptsize}}]    33{Q}d\\
-%\extracode
-%    \begin{background}[shift={(0.1,0)},help lines]
-%        \vertlines{}
-%    \end{background}
-%\end{tikztimingtable}
-\subsubsection{outbuf}
-\subsubsection{ppc}
+This project uses ISE 10.1 to implement the Hardware on a Virtex 5 (XC5VFX70T).
+The whole project is structured into the modules \module{inbuf}
+(\Cref{sec:inbuf}), \module{core} (\Cref{sec:core}) and \module{outbuf}
+(\Cref{sec:outbuf}). These modules are split into several clock domains as can
+be seen in \Cref{fig:overallDesign}:
+\begin{description}
+    \item[\clk{sample}:] \hfill \\
+        Clock recovered from LVDS (GTX). \SI{100}{MHz}.
+    \item[\clk{core}:] \hfill \\
+        This clock is only used for the DSP core, to be able
+        to speed up the calculations. Due to synthesis constraints it is
+        currently the same as \clk{sample}. \SI{100}{MHz}.
+    \item[\clk{cpu}] \hfill \\
+        Internal CPU bus clock. \SI{100}{Mhz}; not aligned to
+        \clk{sample}.
+\end{description}
+Since \clk{sample} and \clk{cpu} are not related, all affected memory
+clocks are sourced from clock muxes. Therefore it is possible to do only
+one of the following activities at a time:
+\begin{itemize}
+    \item Capture data from ADC.
+    \item Convolute.
+    \item Read/Write data with the CPU.
+\end{itemize}
+This is guarded by \signal{core\_busy} and \signal{mem\_req} (see
+\Cref{sec:register}, \Cref{reg5}).\\
+Xilinx wizards and inferring from VHDL have been avoided for the memories,
+because those achieved suboptimal results, which could be cause by the
+high FPGA utilization.
+
+\subsection{Module \module{inbuf}}
+\label{sec:inbuf}
+This module consists of the following submodules:
+\begin{description}
+    \item[\module{align}:] \hfill \\
+        Simple state machine for generating the clock pauses to sync with
+        the ADC. The timings can be configured with generics.
+    \item[\module{GTX}:] \hfill \\
+        GTX transceiver configured by wizard. This component has to be
+        replaced in case the FPGA changes. Because of the abundant number of
+        signals and generics instantiating this module by hand is not advised.
+        Runtime configuration pins are exposed via \Cref{reg0}.
+    \item[\module{descramble}:] \hfill \\
+        Descrambler modelled after \cite{ltc2274} page 28.
+    \item[\module{trigger}:] \hfill \\
+        Trigger for data capture. Can use either external trigger (Signal
+        \signal{inbuf\_trigger} pin~AN33) or internal trigger which triggers
+        on position 0 of a frame. If no frame has been captured yet, the
+        internal trigger can be fired with \signal{trig\_int} (see \Cref{reg1}).
+    \item[\module{wallclk}:] \hfill \\
+        Generates frame position, frame trigger and start index for \module{wave}
+        (I/Q demodulation).
+    \item[\module{average\_mem}:] \hfill \\
+        Averaging memory, that can average over 1, 2, 4, 8 samples. Averaging
+        is achieved by adding the samples from consecutive runs and shifting
+        the values on memory read.
+\end{description}
+Since there are three GTX transceivers easily accessible on the ML507 board
+(two SATA connectors and one with four SMA headers; see \cite{ml507}), all
+three have been instantiated. A multiplexer allows changing the input during
+runtime (see \Cref{reg0}).
+\subsection{Module \module{core}}
+\label{sec:core}
+\module{core} is mainly a wrapper for \module{overlap\_add} which does all
+the calculations. For the (i)FFT the Xilinx IP \cite{xilinx_fft} has been
+used. Since integer values are used during every step of the calculation the
+bit width increases, scaling with convergent rounding is used. To achieve a
+faster computation the pipelined version was chosen. \module{wave} implements
+the I/Q demodulation which is realized with a ROM consisting of the $\sin$
+and $\cos$ values for 10 cycles (\SI{30}{MHz} sampled at \SI{100}{MHz}) and
+multipliers.\\
+\begin{figure}[h]
+    \centering
+    \begin{pspicture}(0,0)(7.5,6.9)
+        \psset{braceWidth=.5pt,braceWidthInner=4pt,braceWidthOuter=4pt,nodesepB=-2pt,rot=-90}
+        \psbrace[ref=B](3,5.1)(1,5.1){$L$}
+        \psbrace[ref=B](3.5,5.7)(1,5.7){$nfft$}
+        \psbrace[ref=B](5.5,6.3)(1,6.3){$n$}
+        \psset{hatchsep=2pt,dotsep=1pt}
+        \pspolygon(1,4.5)(5.5,4.5)(5.5,5)(1,5)
+        \psline(3,4.5)(3,5)
+        \psline(5,4.5)(5,5)
+        \psline[linestyle=dashed](5.5,4.5)(7,4.5)(7,5)(5.5,5)
+
+        \psline(3,3)(1,3)(1,3.5)(3,3.5)
+        \psline[fillstyle=crosshatch](3,3)(3.5,3)(3.5,3.5)(3,3.5)
+
+        \psline(5,2)(3,2)(3,2.5)(5,2.5)
+        \psline[fillstyle=crosshatch](5,2)(5.5,2)(5.5,2.5)(5,2.5)
+
+        \psline(7,1)(5,1)(5,1.5)(7,1.5)
+        \psline[linestyle=dotted](7,1)(7.2,1)
+        \psline[linestyle=dotted](7,1.5)(7.2,1.5)
+        {
+            \psset{linecolor=red,hatchcolor=red}
+            \psline[linestyle=dotted](0.8,1)(1,1)
+            \psline[linestyle=dotted](0.8,1.5)(1,1.5)
+            \psline[fillstyle=crosshatch](1,1)(1.5,1)(1.5,1.5)(1,1.5)
+        }
+
+        \pspolygon(1,0)(5.5,0)(5.5,0.5)(1,0.5)
+
+        \psset{dotsep=1pt,linestyle=dotted,linecolor=gray}
+        \psline(1,3.5)(1,4.5)
+        \psline(3.5,3.5)(3,4.5)
+
+        \psline(1,0.5)(1,1)
+        \psline(1,1.5)(1,3)
+
+        \psline(1.5,0.5)(1.5,1)
+        \psline(1.5,1.5)(1.5,3)
+
+        \psline(3,0.5)(3,2)
+        \psline(3,2.5)(3,3)
+
+        \psline(3.5,0.5)(3.5,2)
+        \psline(3.5,2.5)(3.5,3)
+
+        \psline(5,0.5)(5,1)
+        \psline(5,1.5)(5,2)
+
+        \psline(5.5,0.5)(5.5,1)
+        \psline(5.5,1.5)(5.5,2)
+
+        \psline(5.5,2.5)(5.5,3.5)(5,4.5)
+
+        \psline(7.25,4)(7,4.5)
+
+        \rput(6.25,4.75){$000000$}
+
+        \rput(3.25,2.75){$+$}
+        \rput(5.25,1.75){$+$}
+        \rput(1.25,2.25){$+$}
+
+        \rput(0.25,4.75){$x[n]$}
+        \rput(0.25,0.25){$y[n]$}
+        \rput(0.25,3.25){$y_0[n]$}
+        \rput(0.25,2.25){$y_1[n]$}
+        \rput(0.25,1.25){$y_2[n]$}
+
+    \end{pspicture}
+    \caption{Overlap add algorithm. The red part is only needed for cirular
+        convolution. $y_n[n] = \mathcal{F}^{-1}\left(\mathcal{F}\left(
+        x[L\cdot n:(L+1)\cdot n], nfft \right) \cdot H[n] \right)$
+        where $\mathcal{F}\left(x, n \right)$ denotes the zero extended FFT of $x$.}
+    \label{fig:olapadd}
+\end{figure}
+Overlap add as described in \Cref{fig:olapadd} can be used to calculate the
+linear or circular convolution. This algorithm needs the following steps:
+\begin{enumerate}
+    \item Zero extend the input signal $x[n]$ to a multiple of $L$.
+    \item Take an $L$ sized block out of $x[n]$.
+    \item Zero extend the block to a length of $nfft$.
+    \item Fourier transform the block.
+    \item Multiply the result with $H[n]$.
+    \item Transform the result back.
+    \item $y[n]$ is Steps 2-6 done with every block. The overlapping
+        parts need to be added together.
+    \item For cirular convolution the overlapping part of the last block has
+        to be added to the beginning of $y[n]$
+\end{enumerate}
+In hardware the zero extending is achived by a multiplexer zeroing the inputs.
+Another difference is that the result as calculated by the used FFT IP
+\cite{xilinx_fft} is in bit reversed order. This does not matter for the iFFT,
+because the result gets written to memory and there the order is not important.
+After the FFT however the result has to be sorted so it can be used again as 
+input for the FFT IP \cite{xilinx_fft}. For this the memory \module{scratch}
+is used. Scratch is also filled during the iFFT with the current overlapping
+block from the result, for easier calculation of the addition. The state machine
+controlling the whole process is split into the two modules \module{fftncmul} and
+\module{ifftnadd}. With this split it is possible to run both at the same time,
+resulting in a higher trough put. \Cref{fig:olapadd_flow} describes how this
+works.
+\begin{figure}[bh]
+    \centering
+    \begin{pspicture}(9.2,6.8)
+        \rput[bl](-0.2,0){
+        {
+            \psset{style=RoundCorners,style=Dash}
+            \fnode[linecolor=red,framesize=5 1.5](4.6,5.6){fft}
+            \nput{90}{fft}{\textcolor{red}{\module{fftncmul}}}
+            \pspolygon[linecolor=purple](7.4,6.3)(9.2,6.3)(9.2,0.5)(3.8,0.5)(3.8,4.8)(7.4,4.8)
+            \rput(6.5,0.25){\textcolor{purple}{\module{ifftnadd}}}
+        }
+        \psmatrix[colsep=.5cm,rowsep=.5cm,mnode=r]
+        [mnode=oval] start & \psframebox{FFT} & & \psframebox{\shortstack{$\times H[n]$ $\rightarrow$\\ \module{scratch}}} & \psframebox{iFFT} \\
+        & [mnode=dia] last & [mnode=p] & \psframebox{\shortstack{$y[n] \rightarrow$\\\module{scratch}}} & [mnode=dia] first \\
+        & & [mnode=p] & \psframebox{\shortstack{$0 \rightarrow$\\\module{scratch}}} & \\
+        & [mnode=dia] last & & \psframebox{\shortstack{$+$\module{scratch}\\$\rightarrow y[n]$}} & \\
+        & [mnode=oval] finished & & &
+        \psset{arrows=->}
+        \ncline{1,1}{1,2}
+        \ncline{1,2}{1,4}\naput{wait}\nbput{FFT}
+        \ncline{1,4}{1,5}
+        \ncline{1,5}{2,5}
+        \ncangle[angleA=-90]{2,5}{3,4}\nbput{Yes}
+        \ncline{2,5}{2,4}\nbput{No}
+        \ncline[arrows=-]{2,4}{2,3}
+        \ncline[arrows=-]{3,4}{3,3}
+        \ncangle[angleA=90]{3,3}{2,2}
+        \ncline{2,2}{1,2}\nbput{No}
+        \ncangles[armA=0.7,angleA=-90]{3,3}{4,4}
+        \ncline{4,4}{4,2}\nbput{wait}\naput{iFFT}
+        \ncline{4,2}{5,2}\nbput{Yes}
+        \endpsmatrix}
+    \end{pspicture}
+    \caption{Overlap add control/data flow.}
+    \label{fig:olapadd_flow}
+\end{figure}
+The module \module{core} has the following control signals:
+\begin{description}
+    \item[\signal{start}] \hfill \\
+        Starts the convolution. All the other signals are sampled on
+        \signal{start} and can change during the rest of the time.
+    \item[\signal{n}] \hfill \\
+        Size of the fft in $\log_2\left( nfft \right)$.
+    \item[\signal{scale\_sch}:] \hfill \\
+        Scaling schedule for the FFT. See \cite{xilinx_fft}.
+    \item[\signal{scale\_schi}:] \hfill \\
+        Scaling schedule for the iFFT. See \cite{xilinx_fft}.
+    \item[\signal{scale\_cmul}:] \hfill \\
+        Scaling applied after the complex multiplication.
+    \item[\signal{L}:] \hfill \\
+        $L$
+    \item[\signal{depth}:] \hfill \\
+        $n$
+    \item[\signal{iq}:] \hfill \\
+        Switches I/Q-demodulation on/off.
+    \item[\signal{circular}:] \hfill \\
+        Selects between circular and linear convolution.
+    \item[\signal{ov\_*}:] \hfill \\
+        After a complete run these indicate if an overflow happened during
+        \begin{itemize}
+            \item FFT
+            \item iFFT
+            \item Complex multiplication
+        \end{itemize}
+    \item[\signal{busy}:] \hfill \\
+        High during run.
+    \item[\signal{done}:] \hfill \\
+        Pulses after complete run.
+    \item[\signal{wave\_index}:] \hfill \\
+        Wave index of the first value. Needed for the I/Q-demodulation.
+\end{description}
+
+\subsection{Module \module{outbuf}}
+\label{sec:outbuf}
+\subsection{Module \module{proc\_register}}
+\label{sec:register}
 \begin{register}{htbp}{reg(0)}{0x00}%
     \label{reg0}%
     \regfield{rec\_rst}{1}{31}{0}%
@@ -522,10 +777,8 @@ explained in more detail in \Cref{sec:hardware}.
     \regfield{tx\_frame\_offset}{16}{0}{0}%
     \reglabel{Reset}\regnewline%
 \end{register}
-\section{build}
-\subsection{overall}
-\subsection{cpu}
-\subsection{device tree}
+\subsection{Processor}
+\subsection{Building}
 \section{Software}
 What and why
 \subsection{Buildroot}
@@ -564,5 +817,14 @@ what how and why
 \subsection{boot}
 \subsection{sysfs}
 \subsection{webinterface}
+
+
+
+\bibliographystyle{IEEEtran}
+\begingroup
+\raggedright
+\sloppy
+\bibliography{IEEEabrv,literature}
+\endgroup
 
 \end{document}
