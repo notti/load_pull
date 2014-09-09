@@ -10,11 +10,11 @@
 \usepackage{pst-plot}
 \usepackage{pst-sigsys}
 \usepackage{calc}
-%\usepackage{tikz-timing}
-%\usetikztiminglibrary{counters}
+\usepackage{tikz-timing}
 \usepackage{siunitx}
 \usepackage{cite}
 \usepackage{url}
+\usepackage{dblfloatfix}
 
 \usepackage[colorlinks,hyperindex,plainpages=false,
 pdftitle={Specialized DSP in FPGA with Processor Bindings},
@@ -34,7 +34,7 @@ bookmarksopen=false
 
 \newcommand{\signal}[1]{{\ttfamily #1}}
 \newcommand{\module}[1]{{\ttfamily\bfseries #1}}
-\newcommand{\clk}[1]{{\itshape\ttfamily #1\_clock}}
+\newcommand{\clk}[1]{{\itshape\ttfamily #1}}
 
 \crefname{Regfloat}{register}{registers}
 \Crefname{Regfloat}{Register}{Registers}
@@ -124,6 +124,9 @@ and the memories can switch to the CPU clock domain. Since this clashes with
 the need for continuous output, the active output buffer can only be read. If
 one wants to send data to the output the inactive output buffer has to be
 filled, followed by switching the output buffers.\\
+To convert the signal back to analog form a R\&S SMBV100A is used. In order to
+communicate the digital data to the SMBV the LVDS interface for
+\emph{DIGITAL IQ IN/OUT} has been emulated.\\
 The overall FPGA design can be seen in \Cref{fig:overallDesign} and is 
 explained in more detail in \Cref{sec:hardware}.\\
 For the rest of the document the following formating is used:
@@ -132,7 +135,7 @@ For the rest of the document the following formating is used:
     \item \module{module}
     \item \clk{}
 \end{itemize}
-\begin{figure*}[bt]
+\begin{figure*}[p]
     \centering
     \begin{pspicture}(0,0)(15,20)
         \SpecialCoor
@@ -445,17 +448,17 @@ The whole project is structured into the modules \module{inbuf}
 (\Cref{sec:outbuf}). These modules are split into several clock domains as can
 be seen in \Cref{fig:overallDesign}:
 \begin{description}
-    \item[\clk{sample}:] \hfill \\
-        Clock recovered from LVDS (GTX). \SI{100}{MHz}.
-    \item[\clk{core}:] \hfill \\
+    \item[\clk{sample\_clock}:] \hfill \\
+        Clock recovered from LVDS (GTX \cite[p. 179ff]{gtx}). \SI{100}{MHz}.
+    \item[\clk{core\_clock}:] \hfill \\
         This clock is only used for the DSP core, to be able
         to speed up the calculations. Due to synthesis constraints it is
-        currently the same as \clk{sample}. \SI{100}{MHz}.
-    \item[\clk{cpu}] \hfill \\
+        currently the same as \clk{sample\_clock}. \SI{100}{MHz}.
+    \item[\clk{cpu\_clock}] \hfill \\
         Internal CPU bus clock. \SI{100}{Mhz}; not aligned to
-        \clk{sample}.
+        \clk{sample\_clock}.
 \end{description}
-Since \clk{sample} and \clk{cpu} are not related, all affected memory
+Since \clk{sample\_clock} and \clk{cpu\_clock} are not related, all affected memory
 clocks are sourced from clock muxes. Therefore it is possible to do only
 one of the following activities at a time:
 \begin{itemize}
@@ -477,12 +480,12 @@ This module consists of the following submodules:
         Simple state machine for generating the clock pauses to sync with
         the ADC. The timings can be configured with generics.
     \item[\module{GTX}:] \hfill \\
-        GTX transceiver configured by wizard. This component has to be
+        GTX transceiver \cite{gtx} configured by wizard\cite{gtx_wizard}. This component has to be
         replaced in case the FPGA changes. Because of the abundant number of
         signals and generics instantiating this module by hand is not advised.
         Runtime configuration pins are exposed via \Cref{reg0}.
     \item[\module{descramble}:] \hfill \\
-        Descrambler modelled after \cite{ltc2274} page 28.
+        Descrambler modelled after \cite[p. 28]{ltc2274}.
     \item[\module{trigger}:] \hfill \\
         Trigger for data capture. Can use either external trigger (Signal
         \signal{inbuf\_trigger} pin~AN33) or internal trigger which triggers
@@ -496,7 +499,7 @@ This module consists of the following submodules:
         is achieved by adding the samples from consecutive runs and shifting
         the values on memory read.
 \end{description}
-Since there are three GTX transceivers easily accessible on the ML507 board
+Since there are three GTX transceivers \cite{gtx} easily accessible on the ML507 board
 (two SATA connectors and one with four SMA headers; see \cite{ml507}), all
 three have been instantiated. A multiplexer allows changing the input during
 runtime (see \Cref{reg0}).
@@ -510,7 +513,7 @@ faster computation the pipelined version was chosen. \module{wave} implements
 the I/Q demodulation which is realized with a ROM consisting of the $\sin$
 and $\cos$ values for 10 cycles (\SI{30}{MHz} sampled at \SI{100}{MHz}) and
 multipliers.\\
-\begin{figure}[h]
+\begin{figure}[t]
     \centering
     \begin{pspicture}(0,0)(7.5,6.9)
         \psset{braceWidth=.5pt,braceWidthInner=4pt,braceWidthOuter=4pt,nodesepB=-2pt,rot=-90}
@@ -618,31 +621,32 @@ works.
         \rput[bl](-0.2,0){
         {
             \psset{style=RoundCorners,style=Dash}
-            \fnode[linecolor=red,framesize=5 1.5](4.6,5.6){fft}
+            \fnode[linecolor=red,framesize=5 1.3](4.6,5.75){fft}
             \nput{90}{fft}{\textcolor{red}{\module{fftncmul}}}
-            \pspolygon[linecolor=purple](7.4,6.3)(9.2,6.3)(9.2,0.5)(3.8,0.5)(3.8,4.8)(7.4,4.8)
+            \pspolygon[linecolor=purple](7.4,6.3)(9.2,6.3)(9.2,0.5)(3.8,0.5)(3.8,4.9)(7.4,4.9)
             \rput(6.5,0.25){\textcolor{purple}{\module{ifftnadd}}}
         }
         \psmatrix[colsep=.5cm,rowsep=.5cm,mnode=r]
         [mnode=oval] start & \psframebox{FFT} & & \psframebox{\shortstack{$\times H[n]$ $\rightarrow$\\ \module{scratch}}} & \psframebox{iFFT} \\
         & [mnode=dia] last & [mnode=p] & \psframebox{\shortstack{$y[n] \rightarrow$\\\module{scratch}}} & [mnode=dia] first \\
         & & [mnode=p] & \psframebox{\shortstack{$0 \rightarrow$\\\module{scratch}}} & \\
-        & [mnode=dia] last & & \psframebox{\shortstack{$+$\module{scratch}\\$\rightarrow y[n]$}} & \\
+        & [mnode=dia] last & & \psframebox{\shortstack{$+$\module{scratch}\\$\rightarrow y[n]$}} & [mnode=r] \\
         & [mnode=oval] finished & & &
         \psset{arrows=->}
         \ncline{1,1}{1,2}
         \ncline{1,2}{1,4}\naput{wait}\nbput{FFT}
         \ncline{1,4}{1,5}
         \ncline{1,5}{2,5}
-        \ncangle[angleA=-90]{2,5}{3,4}\nbput{Yes}
-        \ncline{2,5}{2,4}\nbput{No}
+        \ncangle[angleA=-90]{2,5}{3,4}\naput[npos=0]{Yes}
+        \ncline{2,5}{2,4}\nbput[npos=0]{No}
         \ncline[arrows=-]{2,4}{2,3}
         \ncline[arrows=-]{3,4}{3,3}
         \ncangle[angleA=90]{3,3}{2,2}
-        \ncline{2,2}{1,2}\nbput{No}
-        \ncangles[armA=0.7,angleA=-90]{3,3}{4,4}
-        \ncline{4,4}{4,2}\nbput{wait}\naput{iFFT}
-        \ncline{4,2}{5,2}\nbput{Yes}
+        \ncline{2,2}{1,2}\nbput[npos=0]{No}
+        \ncangle[arrows=-,armB=0.8,angleA=-90,angleB=90]{3,3}{4,5}
+        \ncline{4,5}{4,4}\nbput{wait}\naput{iFFT}
+        \ncline{4,4}{4,2}
+        \ncline{4,2}{5,2}\nbput[npos=0]{Yes}
         \endpsmatrix}
     \end{pspicture}
     \caption{Overlap add control/data flow.}
@@ -686,6 +690,59 @@ The module \module{core} has the following control signals:
 
 \subsection{Module \module{outbuf}}
 \label{sec:outbuf}
+\begin{figure*}[b]
+    \centering
+    \begin{tikztimingtable}
+        \clk{clk} & c11{7c}c  \\
+        \clk{ckm} & c22{3.5c}c \\
+        \clk{ckh} & c77{c}c \\
+        \signal{outdata\_long}(0) & x2{14x}{}3{14d}7dd\\
+        \signal{outdata\_long}(1) & x3{14x}{}2{14d}7dd \\
+        \signal{outdata\_long}(2) & x{}4{14d}{}14d7dd \\
+        \signal{outdata\_long}(3) & x14x{}4{14d}{}7dd \\
+        \signal{outdata\_short} & [font=\scriptsize] x7d{(0)(6:3)}7d{(0)(2:0) (1)(6)}7d{(1)(5:2)}7d{(1)(1:0) (2)(6:5)}7d{(2)(4:1)}7d{(2)(0) (3)(6:4)}7d{(3)(3:0)}7d{(0)(6:3)}7d{(0)(2:0) (1)(6)}7d{(1)(5:2)}7d{(1)(1:0) (2)(6:5)}{}d \\
+        \signal{out\_en} & l49{l}28{h}h \\
+    \end{tikztimingtable}
+    \caption{LVDS Output generation timing. {\scriptsize (0)(2:0) (1)(6)} in \signal{outdata\_short} means {\ttfamily outdata\_long(0)(2 downto 0) \& outdata\_long(1)(6 downto 6)}.}
+    \label{fig:trans}
+\end{figure*}
+This module consists of the two main parts \module{transmitter} and the two
+memory buffers for holding the result. The active buffer can be switched with
+a pulse to \signal{toggle\_buf}. Switching gets deferred until the address
+counter reaches zero. A successful switch is reported with a pulse to
+\signal{toggled}. This module is also able to synchronize the output cycle
+to the input cycle with asserting \signal{resync}. The data gets multiplied by
+\signal{muli}/\signal{mulq} before transmission. For handling overflows, which
+would be reported by \signal{ovfl}, saturation (\signal{sat}) or shift
+(\signal{shift}) can be used.\\
+For communication with the SMBV the interface desribed by \cite{fsq_b17} has
+been implemented in VHDL. To be able to communicate with the R\&S SMBV100A the
+pinout mentioned in \cite[p. 9]{fsq_b17} has been used. One undocumented
+change has to be made: In order for the SMBV100A to be
+able to detect connected Hardware the S\_CLK pin has to be connected to GND.
+According to \cite[p. 10]{fsq_b17}, the different signals are assigned to
+\signal{e1} (D24 - D47) and \signal{e2} (D0-D23). The triggers and markers are
+hardcoded to zero, because the SMBV100A is not able to use those signals from
+\emph{DIGITAL I/Q IN/OUT}. Since the data is always valid and enabled, those two
+signals are hard coded to one. \cite[p. 10]{fsq_b17} also states that the LVDS
+link is similar to the one implemented by a TI DS90CR485. Because of this the module
+\module{transmitter} is a clean room VHDL implementation written according to
+the specification in \cite{ds90cr485}. Because at the time of the implementation,
+the settings of the receiver were unknown, the whole feature set of the
+transmitter with every control signal has been implemented. The balance value
+of a value is calculated with a pre filled ROM, that has been generated with
+the script \emph{balance\_table.py}. Since there are no suitable GTX
+transceivers \cite{gtx} available, SelectIO\cite[p. 270ff]{virtex5} is used
+for the transmitters. In order to create the LVDS outputs with the same
+characteristics, OSERDES \cite[p. 370ff]{virtex5} elements in
+DDR mode have been used. This results in the high clock frequencies of
+\SI{350}{MHz} (=7 Bit per \SI{100}{MHz} Cycle/2 Bit per Cycle, \clk{ckh}) and
+\SI{175}{MHz} (\clk{ckm}). To achieve the timing goals and correct ordering
+of the output signals, the timing in \Cref{fig:trans} was implemented and the
+last registers and multiplexers in front of the OSERDES
+\cite[p. 370ff]{virtex5} were assigned fixed locations in the floor plan
+(see \Cref{sec:synthesis}).
+
 \subsection{Module \module{proc\_register}}
 \label{sec:register}
 \begin{register}{htbp}{reg(0)}{0x00}%
@@ -778,7 +835,8 @@ The module \module{core} has the following control signals:
     \reglabel{Reset}\regnewline%
 \end{register}
 \subsection{Processor}
-\subsection{Building}
+\subsection{Synthesis}
+\label{sec:synthesis}
 \section{Software}
 What and why
 \subsection{Buildroot}
