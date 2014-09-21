@@ -1,4 +1,4 @@
-\documentclass[11pt,technote,a4paper,twocolumn]{IEEEtran}
+\documentclass[11pt,technote,a4paper,onecolumn]{IEEEtran}
 
 \usepackage{etex}
 \usepackage{register}
@@ -28,7 +28,7 @@ bookmarksopen=false
 
 \usepackage[nameinlink]{cleveref}
 
-\markboth{EMCE-Vienna University of Technology,~Sep 2014}{Gernot Vormayr: DPS in FPGA}
+\markboth{EMCE-Vienna University of Technology,~Sep 2014}{Gernot Vormayr: DSP in FPGA}
 
 \newcommand{\legendline}[2]{\begingroup\setbox0=\hbox{\textcolor{#1}{\rule{4pt}{#2}}}\parbox{\wd0}{\box0}\endgroup}
 
@@ -745,7 +745,44 @@ last registers and multiplexers in front of the OSERDES
 
 \subsection{Module \module{proc\_register}}
 \label{sec:register}
-\begin{register}{htbp}{reg(0)}{0x00}%
+
+The control communication between the processor and hardware is handled by this
+module. Since there are several clock domains involved this module also handles
+the clock synchronization if needed. This is done with the module \module{flag}
+which is a simple two stage synchronizer with two flip flops. Since this likely
+causes timing issues during synthesis, this module also sets the needed
+attributes:
+\begin{description}
+    \item[\protect{TIG = TRUE\cite[p. 302]{constraints}:}] \hfill \\
+        Ignore timing on this signal.
+    \item[\protect{IOB = FALSE\cite[p. 146]{constraints}:}] \hfill \\
+        Prevents packing this into an IO block. This is needed,
+        because an IO block contains only one flip flop and in order to ensure
+        proper synchronization the two flip flops shouldn't have long
+        connections in between.
+    \item[\protect{ASYNC\_REG = TRUE\cite[p. 87]{constraints}:}] \hfill \\
+        This constraint disables propagation of 'X' during timing simulation.
+    \item[\protect{SHIFT\_EXTRACT = FALSE\cite[p. 385]{xst}:}] \hfill \\
+        This prevents inferring a dedicated shift register.
+    \item[\protect{HBLKNM = name\cite[p. 134]{constraints}:}] \hfill \\
+        This assigns a hierarchical block name to both flip flops to ensure
+        both end up in the same slice.
+\end{description}
+The mentioned module can only synchronize slow changing single signal logic
+values. For
+synchronizing a single pulse \module{toggle} has to be used. In order to
+synchronize a value consisting of several signals, \module{value} has to
+be used. This module prevents the assertion of \signal{fpga2bus\_wrack}
+to guarantee the value doesn't change during synchronization.\\
+Input and output ports of \module{proc\_register} are sorted by
+needed synchronization/clock and the source contains a table which describes
+every signal.\\
+\module{proc\_register} also generates the interrupt register. This register
+is sampled by the user logic in the processor module and generates an
+interrupt on the rising edge.\\
+\Crefrange{reg0}{intr} contain a list of all the registers and the meaning of
+every bit therein.
+\begin{register}{h}{reg(0)}{0x00}%
     \label{reg0}%
     \regfield{rec\_rst}{1}{31}{0}%
     \regfield{Reserved}{4}{27}{0}%
@@ -770,8 +807,22 @@ last registers and multiplexers in front of the OSERDES
     \regfield{rec\_polarity(0)}{1}{1}{1}%
     \regfield{rec\_enable(0)}{1}{0}{1}%
     \reglabel{Reset}\regnewline%
+    \begin{regdesc}\begin{reglist}[rec\_descramble(n)]
+        \item[rec\_rst] Writing a 1 to this bit resets the whole receiver.
+        \item[rec\_stream\_valid] 1 if stream is valid.
+        \item[rec\_input\_select] With this the data stream of receivers 0 - 2
+            can be selected.
+        \item[rec\_data\_valid(n)] 1 if the data received by n is valid.
+        \item[rec\_rxeqmix(n)] Controls the equalizer of the receiver
+            \cite[p. 165f]{gtx}.
+        \item[rec\_descramble(n)] Turns on the descrambler (see
+            \Cref{sec:inbuf}).
+        \item[rec\_polarity(n)] Sets the polarity of the LVDs pair.
+        \item[rec\_enable(n)] Enable/Disable transceiver. Disabling unneeded
+            transceivers saves power.
+    \end{reglist}\end{regdesc}
 \end{register}
-\begin{register}{htbp}{reg(1)}{0x04}%
+\begin{register}{h}{reg(1)}{0x04}%
     \label{reg1}%
     \regfield{avg\_rst}{1}{31}{0}%
     \regfield{Reserved}{3}{28}{0}%
@@ -786,16 +837,41 @@ last registers and multiplexers in front of the OSERDES
     \regfield{trig\_type}{1}{16}{0}%
     \regfield{depth}{16}{0}{0}%
     \reglabel{Reset}\regnewline%
+    \begin{regdesc}\begin{reglist}[avg\_active]
+        \item[avg\_rst] Writing a 1 to this bit resets \module{average\_mem}.
+        \item[avg\_err] 1 if the data stream became invalid during data
+            acquisition. Gets on next trigger event.
+        \item[avg\_active] 1 during data acquisition.
+        \item[avg\_width] Number of samples over which averaging is done:
+            \begin{itemize}
+                \item[0:] off.
+                \item[1:] 2 samples.
+                \item[2:] 4 samples.
+                \item[3:] 8 samples.
+            \end{itemize}
+        \item[trig\_rst] Writing a 1 to this bit resets \module{trigger}. 
+        \item[trig\_int] Writing a 1 to this bit manually triggers the
+            internal trigger.
+        \item[trig\_arm] Writing a 1 to this bit arms the trigger.
+        \item[trig\_type] 0: Internal trigger. 1: External trigger.
+        \item[depth] Number of samples to acquire. Can be range 1 - 49152.
+    \end{reglist}\end{regdesc}
 \end{register}
-\begin{register}{htbp}{reg(2)}{0x08}%
+\begin{register}{h}{reg(2)}{0x08}%
     \label{reg2}%
     \regfield{Reserved}{4}{28}{0}%
     \regfield{core\_scale\_schi}{12}{16}{011010101010}%
     \regfield{Reserved}{4}{12}{0}%
     \regfield{core\_scale\_sch}{12}{0}{011010101010}%
     \reglabel{Reset}\regnewline%
+    \begin{regdesc}\begin{reglist}[core\_scale\_schi]
+        \item[core\_scale\_schi] Scaling schedule for iFFT run (See
+            \cite[p. 24]{xilinx_fft}).
+        \item[core\_scale\_sch] Scaling schedule for FFT run (See
+            \cite[p. 24]{xilinx_fft}).
+    \end{reglist}\end{regdesc}
 \end{register}
-\begin{register}{htbp}{reg(3)}{0x0C}%
+\begin{register}{h}{reg(3)}{0x0C}%
     \label{reg3}%
     \regfield{core\_rst}{1}{31}{0}%
     \regfield{Reserved}{1}{30}{0}%
@@ -811,14 +887,48 @@ last registers and multiplexers in front of the OSERDES
     \regfield{Reserved}{2}{12}{0}%
     \regfield{core\_L}{12}{0}{0}%
     \reglabel{Reset}\regnewline%
+    \begin{regdesc}\begin{reglist}[core\_scale\_cmul]
+        \item[core\_rst] Writing a 1 to this bit resets \module{core}.
+        \item[core\_circular] Set to 1 for circular convolution.
+        \item[core\_ov\_cmul] 1 if complex multiplication has overflown.
+        \item[core\_ov\_ifft] 1 if iFFT has overflown.
+        \item[core\_ov\_fft] 1 if FFT has overflown.
+        \item[core\_start] Write 1 to this bit to start a convolution run.
+        \item[core\_iq] Set to 1 for I/Q demodulation.
+        \item[core\_n] Transform size in $\log_2(nfft)$. Valid values:
+            \begin{itemize}
+                \item[3:] 8
+                \item[4:] 16
+                \item[5:] 32
+                \item[6:] 64
+                \item[7:] 128
+                \item[8:] 256
+                \item[9:] 512
+                \item[10:] 1024
+                \item[11:] 2048
+                \item[12:] 4096
+            \end{itemize}
+        \item[core\_scale\_cmul] Scaling schedule for complex multiplication:
+            \begin{itemize}
+                \item[0:] $>> 17$.
+                \item[1:] $>> 16$.
+                \item[2:] $>> 15$.
+                \item[3:] $>> 14$.
+            \end{itemize}
+        \item[core\_L] $L$. See \Cref{sec:core}.
+    \end{reglist}\end{regdesc}
 \end{register}
-\begin{register}{htbp}{reg(4)}{0x10}%
+\begin{register}{h}{reg(4)}{0x10}%
     \label{reg4}%
     \regfield{tx\_mulq}{16}{16}{0}%
     \regfield{tx\_muli}{16}{0}{0}%
     \reglabel{Reset}\regnewline%
+    \begin{regdesc}\begin{reglist}[tx\_mulq]
+        \item[tx\_mulq] See \Cref{sec:outbuf}.
+        \item[tx\_muli] See \Cref{sec:outbuf}.
+    \end{reglist}\end{regdesc}
 \end{register}
-\begin{register}{htbp}{reg(5)}{0x14}%
+\begin{register}{h}{reg(5)}{0x14}%
     \label{reg5}%
     \regfield{tx\_shift}{2}{30}{0}%
     \regfield{tx\_ovfl}{1}{29}{0}%
@@ -833,8 +943,97 @@ last registers and multiplexers in front of the OSERDES
     \regfield{tx\_deskew}{1}{16}{0}%
     \regfield{tx\_frame\_offset}{16}{0}{0}%
     \reglabel{Reset}\regnewline%
+    \begin{regdesc}\begin{reglist}[tx\_frame\_offset]
+        \item[tx\_shift] Scaling schedule for complex multiplication:
+            \begin{itemize}
+                \item[0:] $>> 17$.
+                \item[1:] $>> 16$.
+                \item[2:] $>> 15$.
+                \item[3:] $>> 14$.
+            \end{itemize}
+        \item[tx\_ovfl] 1 if an overflow occurred in the complex multiplier.
+            Write a 0 to this bit to reset the overflow.
+        \item[tx\_sat] Enable saturation for complex multiplier.
+        \item[mem\_req] Write a 1 to this bit to enable access to the
+            memories. Accessing the memories is only safe if this bit is 1.
+        \item[tx\_rst] Writing a 1 to this bit resets \module{outbuf}.
+        \item[tx\_resync] Resynchronizes the sample output to
+            tx\_frame\_offset on the internal frame clock.
+        \item[tx\_toggle] Writing a 1 to this bit switches the output buffers.
+        \item[tx\_dc\_balance] Turns DC balance on for the output. (See
+            \cite[p. 11]{ds90cr485}).
+        \item[tx\_deskew] Writing a 1 to this bit starts a deskew cycle. (See
+            \cite[p. 12f]{ds90cr485}).
+        \item[tx\_frame\_offset] Frame offset.
+    \end{reglist}\end{regdesc}
+\end{register}
+\begin{register}{h}{intr}{0x220}%
+    \label{intr}%
+    \regfield{Reserved}{19}{13}{0}%
+    \regfield{tx\_ovfl}{1}{12}{0}%
+    \regfield{tx\_toggled}{1}{11}{0}%
+    \regfield{core\_done}{1}{10}{0}%
+    \regfield{avg\_done}{1}{9}{0}%
+    \regfield{trigd}{1}{8}{0}%
+    \regfield{stream\_invalid}{1}{7}{0}%
+    \regfield{stream\_valid}{1}{6}{0}%
+    \regfield{rec2\_invalid}{1}{5}{0}%
+    \regfield{rec2\_valid}{1}{4}{0}%
+    \regfield{rec1\_invalid}{1}{3}{0}%
+    \regfield{rec1\_valid}{1}{2}{0}%
+    \regfield{rec0\_invalid}{1}{1}{0}%
+    \regfield{rec0\_valid}{1}{0}{0}%
+    \reglabel{Reset}\regnewline%
 \end{register}
 \subsection{Processor}
+In order to be able to communicate the internal PowerPC 440 \cite{ppc} is used.
+This block is incorporated into the design by instantiating the module
+\module{processor}, which is generated by EDK, in the top level module.
+The following settings are needed to be able to run linux:
+\begin{itemize}
+    \item Enabled cache setup.
+    \item One UART. XPS\_UART16550. Use interrupt.
+    \item GPIO controllers if needed. Interrupts are not supported by the
+        linux driver.
+    \item Hard ethernet MAC. Use interrupt.
+    \item DDR2 SDRAM.
+    \item SysACE\_CompactFlash. Use interrupt.
+    \item XPS\_BRAM\_IF\_CNTLR\_1. 8 KB. This needs to be at the highest
+        address.
+    \item Cache enabled for the memories.
+\end{itemize}
+Communication with the rest of the design is handled by the IP
+\module{proc2fpga}. To
+keep the everything in one place and prevent switching between two projects
+(ISE and EDK), the this module is kept very basic.
+\module{proc2fpga} is created with the \emph{Create or Import Peripheral\ldots}
+wizard in the EDK. Settings used are:
+\begin{itemize}
+    \item Processor Local Bus.
+    \item Software reset.
+    \item Interrupt control.
+    \item User logic software register.
+    \item User logic memory space.
+    \item Burst and cache-line support. This is needed, so the memories can
+        be directly accessed by linux. Data width: 32 Bit. Write buffer depth:
+        32.
+    \item Use Device ISC. 16 Interrupts, edge detect.
+    \item 6 registers.
+    \item 4 memory address ranges.
+\end{itemize}
+In the generated IP, only very basic logic has been added. This logic only
+converts between the different bit orderings and exposes all signals, which
+were generated by the wizard, to the rest of the design. To be able to route
+these signals outside the processor design, these have to be annotated in the
+mpd description file with \verb+BUFFER_TYPE = none+. Without this modification
+EDK instantiates I/OBUFs for these signals, which will generate errors,
+since those signals won't be connected to a pad of the FPGA. After generating
+this, the final module is reimported back into the EDK and added to the
+design.\\
+The exposed signals are listed in \cite{slave_burst}. \cite[p. 14]{slave_burst}
+mentions that \signal{IP2Bus\_Error} is only sampled during acknowledge, which
+seems to be wrong. Asserting this signal outside of a read or write cycle
+causes random \emph{SIGBUS} faults.
 \subsection{Synthesis}
 \label{sec:synthesis}
 \section{Software}
@@ -842,7 +1041,7 @@ What and why
 \subsection{Buildroot}
 patch in twisted, zope, smmap\\
 make menuconfig\\
-config (glibc, powerpc 440 without fpu, software fpu, c++, glibc (uclibc bug with powerpc), python, python-zope-interface, python-twisted, python-smmap)\\
+config (glibc, powerpc 440 without fpu, software fpu, c++, glibc (uclibc bug with powerpc), python, python-zope-interface, python-twisted, python-smmap, expat!)\\
 \verb+undefined reference to `copysignl'+\\
 make
 \subsection{kernel}
