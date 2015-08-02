@@ -1,0 +1,1041 @@
+\makeatletter
+
+\ctikzset{rf/width/.initial=0.75}
+\ctikzset{rf/height/.initial=0.75}
+\ctikzset{rf/filter/sinewidth/.initial=0.8}
+\ctikzset{rf/filter/sineheight/.initial=0.2}
+\ctikzset{rf/switch/length/.initial=0.6}
+\ctikzset{rf/adc/width/.initial=1}
+
+
+\long\def\pgfrfdeclarenode#1#2#3{
+    \pgfdeclareshape{#1}
+    {
+        \anchor{center}{
+            \pgfpointorigin
+        }
+        \savedanchor\northwest{%
+            \pgf@y=\pgfkeysvalueof{/tikz/circuitikz/bipoles/length}
+            \pgf@y=\pgfkeysvalueof{/tikz/circuitikz/rf/height}\pgf@y
+            \pgf@y=.5\pgf@y
+            \pgf@x=\pgfkeysvalueof{/tikz/circuitikz/bipoles/length}
+            \pgf@x=.5\pgf@x
+            \pgf@x=-\pgfkeysvalueof{/tikz/circuitikz/rf/width}\pgf@x
+        }
+        \anchor{north}{
+            \northwest
+            \pgf@x=0pt
+        }
+        \anchor{south}{
+            \northwest
+            \pgf@x=0pt
+            \pgf@y=-\pgf@y
+        }
+        \anchor{west}{
+            \northwest
+            \pgf@y=0pt
+        }
+        \anchor{east}{
+            \northwest
+            \pgf@y=0pt
+            \pgf@x=-\pgf@x
+        }
+        \anchor{south west}{
+            \northwest
+            \pgf@y=-\pgf@y
+        }
+        \anchor{north east}{
+            \northwest
+            \pgf@x=-\pgf@x
+        }
+        \anchor{north west}{
+            \northwest
+        }
+        \anchor{south east}{
+            \northwest
+            \pgf@x=-\pgf@x
+            \pgf@y=-\pgf@y
+        }	  
+        \anchor{base}{
+            \northwest
+            \pgf@x=0pt	  	
+        }
+        \anchorborder{
+            \@tempdima=\pgf@x
+            \@tempdimb=\pgf@y
+            \northwest
+            \pgf@xa=-\pgf@x
+            \pgf@ya=\pgf@y
+            \pgfpointborderrectangle{\pgfpoint{\@tempdima}{\@tempdimb}}{\pgfpoint{\pgf@xa}{\pgf@ya}}
+        }
+        #3
+        \backgroundpath{			
+            \pgfsetcolor{\pgfkeysvalueof{/tikz/circuitikz/color}}	
+
+            \northwest
+            \pgf@circ@res@up = \pgf@y 
+            \pgf@circ@res@down = -\pgf@y
+            \pgf@circ@res@right = -\pgf@x
+            \pgf@circ@res@left = \pgf@x
+
+            \pgfscope
+                \pgfsetcornersarced{\pgfpoint{4pt}{4pt}}
+                \pgfpathrectanglecorners{\pgfpoint{\pgf@circ@res@left}{\pgf@circ@res@down}}{\pgfpoint{\pgf@circ@res@right}{\pgf@circ@res@up}}
+                \pgfstroke
+            \endpgfscope
+
+            #2
+
+        }
+    }
+}
+
+\long\def\pgfrfdeclaredoublenode#1#2#3{
+    \pgfdeclareshape{#1}
+    {
+        \anchor{center}{
+            \pgfpointorigin
+        }
+        \savedanchor\northwest{%
+            \pgf@y=\pgfkeysvalueof{/tikz/circuitikz/bipoles/length}
+            \pgf@y=\pgfkeysvalueof{/tikz/circuitikz/rf/height}\pgf@y
+            \pgf@y=.5\pgf@y
+            \pgf@x=\pgfkeysvalueof{/tikz/circuitikz/bipoles/length}
+            \pgf@x=.75\pgf@x
+            \pgf@x=-\pgfkeysvalueof{/tikz/circuitikz/rf/width}\pgf@x
+        }
+        \anchor{north}{
+            \northwest
+            \pgf@x=0pt
+        }
+        \anchor{south}{
+            \northwest
+            \pgf@x=0pt
+            \pgf@y=-\pgf@y
+        }
+        \anchor{west}{
+            \northwest
+            \pgf@y=0pt
+        }
+        \anchor{east}{
+            \northwest
+            \pgf@y=0pt
+            \pgf@x=-\pgf@x
+        }
+        \anchor{south west}{
+            \northwest
+            \pgf@y=-\pgf@y
+        }
+        \anchor{north east}{
+            \northwest
+            \pgf@x=-\pgf@x
+        }
+        \anchor{north west}{
+            \northwest
+        }
+        \anchor{south east}{
+            \northwest
+            \pgf@x=-\pgf@x
+            \pgf@y=-\pgf@y
+        }	  
+        \anchor{base}{
+            \northwest
+            \pgf@x=0pt	  	
+        }
+        \anchorborder{
+            \@tempdima=\pgf@x
+            \@tempdimb=\pgf@y
+            \northwest
+            \pgf@xa=-\pgf@x
+            \pgf@ya=\pgf@y
+            \pgfpointborderrectangle{\pgfpoint{\@tempdima}{\@tempdimb}}{\pgfpoint{\pgf@xa}{\pgf@ya}}
+        }
+        #3
+        \backgroundpath{			
+            \pgfsetcolor{\pgfkeysvalueof{/tikz/circuitikz/color}}	
+
+            \northwest
+            \pgf@circ@res@up = \pgf@y 
+            \pgf@circ@res@down = -\pgf@y
+            \pgf@circ@res@right = -\pgf@x
+            \pgf@circ@res@left = \pgf@x
+
+            \pgfscope
+                \pgfsetcornersarced{\pgfpoint{4pt}{4pt}}
+                \pgfpathrectanglecorners{\pgfpoint{\pgf@circ@res@left}{\pgf@circ@res@down}}{\pgfpoint{\pgf@circ@res@right}{\pgf@circ@res@up}}
+                \pgfstroke
+            \endpgfscope
+
+            #2
+
+        }
+    }
+}
+
+\long\def\pgfrfdeclaremonopole#1#2{
+    \pgfrfdeclarenode{#1}{#2}{
+        \anchor{A}{
+            \northwest
+            \pgf@y=0pt
+        }
+    }
+}
+
+\long\def\pgfrfdeclarebipole#1#2{
+    \pgfrfdeclarenode{#1}{#2}{
+        \anchor{A}{
+            \northwest
+            \pgf@y=0pt
+        }
+        \anchor{B}{
+            \northwest
+            \pgf@y=0pt
+            \pgf@x=-\pgf@x
+        }
+    }
+}
+
+\long\def\pgfrfdeclaretripole#1#2{
+    \pgfrfdeclarenode{#1}{#2}{
+        \anchor{A1}{
+            \northwest
+            \pgf@y=0pt
+        }
+        \anchor{B1}{
+            \northwest
+            \pgf@y=0.5\pgf@y
+            \pgf@x=-\pgf@x
+        }
+        \anchor{B2}{
+            \northwest
+            \pgf@y=-0.5\pgf@y
+            \pgf@x=-\pgf@x
+        }
+    }
+}
+
+\long\def\pgfrfdeclarequadpole#1#2{
+    \pgfrfdeclarenode{#1}{#2}{
+        \anchor{A1}{
+            \northwest
+            \pgf@y=0.5\pgf@y
+        }
+        \anchor{A2}{
+            \northwest
+            \pgf@y=-0.5\pgf@y
+        }
+        \anchor{B1}{
+            \northwest
+            \pgf@y=0.5\pgf@y
+            \pgf@x=-\pgf@x
+        }
+        \anchor{B2}{
+            \northwest
+            \pgf@y=-0.5\pgf@y
+            \pgf@x=-\pgf@x
+        }
+    }
+}
+
+\long\def\pgfrfdeclaredadc#1#2{
+    \pgfdeclareshape{#1}
+    {
+        \anchor{center}{
+            \pgfpointorigin
+        }
+        \savedanchor\northwest{%
+            \pgf@y=\pgfkeysvalueof{/tikz/circuitikz/bipoles/length}
+            \pgf@y=\pgfkeysvalueof{/tikz/circuitikz/rf/height}\pgf@y
+            \pgf@y=.5\pgf@y
+            \pgf@x=\pgfkeysvalueof{/tikz/circuitikz/bipoles/length}
+            \pgf@x=.5\pgf@x
+            \pgf@x=-\pgfkeysvalueof{/tikz/circuitikz/rf/adc/width}\pgf@x
+        }
+        \anchor{north}{
+            \northwest
+            \pgf@x=0pt
+        }
+        \anchor{south}{
+            \northwest
+            \pgf@x=0pt
+            \pgf@y=-\pgf@y
+        }
+        \anchor{west}{
+            \northwest
+            \pgf@y=0pt
+        }
+        \anchor{east}{
+            \northwest
+            \pgf@y=0pt
+            \pgf@x=-\pgf@x
+        }
+        \anchor{south west}{
+            \northwest
+            \pgf@y=-\pgf@y
+        }
+        \anchor{north east}{
+            \northwest
+            \pgf@x=-\pgf@x
+        }
+        \anchor{north west}{
+            \northwest
+        }
+        \anchor{south east}{
+            \northwest
+            \pgf@x=-\pgf@x
+            \pgf@y=-\pgf@y
+        }	  
+        \anchor{base}{
+            \northwest
+            \pgf@x=0pt	  	
+        }
+        \anchor{A}{
+            \northwest
+            \pgf@y=0pt
+        }
+        \anchor{B}{
+            \northwest
+            \pgf@y=0pt
+            \pgf@x=-\pgf@x
+        }
+        \anchorborder{
+            \@tempdima=\pgf@x
+            \@tempdimb=\pgf@y
+            \northwest
+            \pgf@xa=-\pgf@x
+            \pgf@ya=\pgf@y
+            \pgfpointborderrectangle{\pgfpoint{\@tempdima}{\@tempdimb}}{\pgfpoint{\pgf@xa}{\pgf@ya}}
+        }
+        \backgroundpath{			
+            \pgfsetcolor{\pgfkeysvalueof{/tikz/circuitikz/color}}	
+
+            \northwest
+            \pgf@circ@res@up = \pgf@y 
+            \pgf@circ@res@down = -\pgf@y
+            \pgf@circ@res@right = -\pgf@x
+            \pgf@circ@res@left = \pgf@x
+
+            #2
+
+        }
+    }
+}
+
+\pgfrfdeclarebipole{attenuator}{
+    \pgfscope             
+        \pgftransformscale{.5}
+        \pgfnode{resistorshape}{center}{}{pgf@att}{\pgfusepath{stroke}}
+    \endpgfscope
+    \pgfpathmoveto{\pgfpoint{\pgf@circ@res@left}{0}}
+    \pgfpathlineto{\pgfpointanchor{pgf@att}{b}}
+    \pgfpathmoveto{\pgfpoint{\pgf@circ@res@right}{0}}
+    \pgfpathlineto{\pgfpointanchor{pgf@att}{a}}
+    \pgfusepath{draw}
+
+}
+
+\pgfrfdeclarebipole{vattenuator}{
+    \pgfscope             
+        \pgftransformscale{.5}
+        \pgfnode{resistorshape}{center}{}{pgf@att}{\pgfusepath{stroke}}
+    \endpgfscope
+    \pgfpathmoveto{\pgfpoint{\pgf@circ@res@left}{0}}
+    \pgfpathlineto{\pgfpointanchor{pgf@att}{b}}
+    \pgfpathmoveto{\pgfpoint{\pgf@circ@res@right}{0}}
+    \pgfpathlineto{\pgfpointanchor{pgf@att}{a}}
+    \pgfusepath{draw}
+    \pgfpathmoveto{\pgfpoint{0.5\pgf@circ@res@left}{0.7\pgf@circ@res@down}}
+    \pgfpathlineto{\pgfpoint{0.5\pgf@circ@res@right}{0.7\pgf@circ@res@up}}
+    \pgfsetarrowsend{stealth}
+    \pgfusepath{draw}
+}
+
+\def\pgfrffiltersinewave{
+        \pgfpathmoveto{\pgfpoint{\pgf@xb}{\pgf@yb}}
+        \pgfpathsine{\pgfpoint{\pgf@xa}{\pgf@ya}}
+        \pgfpathcosine{\pgfpoint{\pgf@xa}{-\pgf@ya}}
+        \pgfpathsine{\pgfpoint{\pgf@xa}{-\pgf@ya}}
+        \pgfpathcosine{\pgfpoint{\pgf@xa}{\pgf@ya}}
+        \advance \pgf@yb by \pgf@circ@res@step
+}
+
+\long\def\pgfrfdeclarefilter#1#2{
+    \pgfrfdeclarebipole{#1}{
+        \pgfscope
+            \pgf@yb = 0.5\pgf@circ@res@up
+            \pgf@circ@res@step = -0.5\pgf@circ@res@up
+            
+            \pgf@xa = \ctikzvalof{rf/filter/sinewidth}\pgf@circ@res@right
+            \divide \pgf@xa by 2
+            \pgf@ya = \ctikzvalof{rf/filter/sineheight}\pgf@circ@res@up
+            \pgf@xb = \ctikzvalof{rf/filter/sinewidth}\pgf@circ@res@left
+
+            \pgfrffiltersinewave
+            \pgfrffiltersinewave
+            \pgfrffiltersinewave
+            \pgfstroke
+        \endpgfscope
+        #2
+    }
+}
+
+\def\pgfrfstrikewave#1{
+    \pgf@ya = 0.5\pgf@circ@res@up
+    \pgf@yb = #1\pgf@ya
+    \advance \pgf@ya by -\pgf@yb
+    \advance \pgf@ya by -2pt
+    \pgfpathmoveto{\pgfpoint{-2pt}{\pgf@ya}}
+    \advance \pgf@ya by 4pt
+    \pgfpathlineto{\pgfpoint{2pt}{\pgf@ya}}
+}
+
+\pgfrfdeclarefilter{lowpass}{
+    \pgfrfstrikewave{0}
+    \pgfrfstrikewave{1}
+    \pgfusepath{draw}
+}
+
+\pgfrfdeclarefilter{highpass}{
+    \pgfrfstrikewave{1}
+    \pgfrfstrikewave{2}
+    \pgfusepath{draw}
+}
+
+\pgfrfdeclarefilter{bandpass}{
+    \pgfrfstrikewave{0}
+    \pgfrfstrikewave{2}
+    \pgfusepath{draw}
+}
+
+\pgfrfdeclarefilter{allpass}{
+}
+
+\pgfrfdeclaretripole{altswitch}{
+    \pgf@xa = \ctikzvalof{rf/switch/length}\pgf@circ@res@left
+    \pgfpathmoveto{\pgfpoint{\pgf@circ@res@left}{0}}
+    \pgfpathlineto{\pgfpoint{\pgf@xa}{0}}
+    \pgfpathlineto{\pgfpoint{-\pgf@xa}{-0.5\pgf@circ@res@up}}
+    \pgfpathlineto{\pgfpoint{\pgf@circ@res@right}{-0.5\pgf@circ@res@up}}
+    \pgfpathmoveto{\pgfpoint{\pgf@circ@res@right}{0.5\pgf@circ@res@up}}
+    \pgfpathlineto{\pgfpoint{-\pgf@xa}{0.5\pgf@circ@res@up}}
+    \pgfusepath{draw}
+    \pgfpathcircle{\pgfpoint{-\ctikzvalof{rf/switch/length}\pgf@circ@res@left}{-0.5\pgf@circ@res@up}}{1.5pt}
+    \pgfusepath{draw,fill}
+    \pgfsetfillcolor{white}
+    \pgfpathcircle{\pgfpoint{-\ctikzvalof{rf/switch/length}\pgf@circ@res@left}{0.5\pgf@circ@res@up}}{1.5pt}
+    \pgfusepath{draw,fill}
+    \pgfpathmoveto{\pgfpoint{0}{0.25\pgf@circ@res@down}}
+    \pgfmathsetmacro{\tikz@start@angle@temp}{(atan2(0.5*\the\pgf@circ@res@up,2*\ctikzvalof{rf/switch/length}*\the\pgf@circ@res@right))}
+    \pgfpatharc{-\tikz@start@angle@temp}{+\tikz@start@angle@temp}{\ctikzvalof{rf/switch/length}\pgf@circ@res@right}
+    \pgfsetarrowsend{stealth}
+    \pgfusepath{draw}
+}
+
+\pgfrfdeclarequadpole{chswitch}{
+    \pgf@xa = \ctikzvalof{rf/switch/length}\pgf@circ@res@left
+    \pgfpathmoveto{\pgfpoint{\pgf@circ@res@left}{0.5\pgf@circ@res@up}}
+    \pgfpathlineto{\pgfpoint{\pgf@circ@res@right}{0.5\pgf@circ@res@up}}
+    \pgfpathmoveto{\pgfpoint{\pgf@circ@res@left}{0.5\pgf@circ@res@down}}
+    \pgfpathlineto{\pgfpoint{\pgf@circ@res@right}{0.5\pgf@circ@res@down}}
+    \pgfusepath{draw}
+    \pgfpathmoveto{\pgfpoint{\ctikzvalof{rf/switch/length}\pgf@circ@res@left}{0.5\pgf@circ@res@up}}{1.5pt}
+    \pgfpathlineto{\pgfpoint{\ctikzvalof{rf/switch/length}\pgf@circ@res@right}{0.5\pgf@circ@res@down}}{1.5pt}
+    \pgfpathmoveto{\pgfpoint{\ctikzvalof{rf/switch/length}\pgf@circ@res@right}{0.5\pgf@circ@res@up}}{1.5pt}
+    \pgfpathlineto{\pgfpoint{\ctikzvalof{rf/switch/length}\pgf@circ@res@left}{0.5\pgf@circ@res@down}}{1.5pt}
+    \pgfsetdash{{3pt}{2pt}}{0pt}
+    \pgfusepath{draw}
+    \pgfsetfillcolor{white}
+    \pgfsetdash{}{0pt}
+    \pgfpathcircle{\pgfpoint{\ctikzvalof{rf/switch/length}\pgf@circ@res@left}{0.5\pgf@circ@res@up}}{1.5pt}
+    \pgfpathcircle{\pgfpoint{\ctikzvalof{rf/switch/length}\pgf@circ@res@left}{0.5\pgf@circ@res@down}}{1.5pt}
+    \pgfpathcircle{\pgfpoint{\ctikzvalof{rf/switch/length}\pgf@circ@res@right}{0.5\pgf@circ@res@up}}{1.5pt}
+    \pgfpathcircle{\pgfpoint{\ctikzvalof{rf/switch/length}\pgf@circ@res@right}{0.5\pgf@circ@res@down}}{1.5pt}
+    \pgfusepath{draw,fill}
+}
+
+\pgfrfdeclaredadc{adc}{
+    \pgf@xa=\pgf@circ@res@left
+    \divide \pgf@xa by 3
+    \pgfpathmoveto{\pgfpoint{\pgf@circ@res@left}{0pt}}
+    \pgfpathlineto{\pgfpoint{\pgf@xa}{\pgf@circ@res@up}}
+    \pgfpathlineto{\pgfpoint{\pgf@circ@res@right}{\pgf@circ@res@up}}
+    \pgfpathlineto{\pgfpoint{\pgf@circ@res@right}{\pgf@circ@res@down}}
+    \pgfpathlineto{\pgfpoint{\pgf@xa}{\pgf@circ@res@down}}
+    \pgfclosepath
+    \pgfusepath{draw}
+}
+
+\pgfrfdeclaredadc{dac}{
+    \pgf@xa=\pgf@circ@res@right
+    \divide \pgf@xa by 3
+    \pgfpathmoveto{\pgfpoint{\pgf@circ@res@right}{0pt}}
+    \pgfpathlineto{\pgfpoint{\pgf@xa}{\pgf@circ@res@up}}
+    \pgfpathlineto{\pgfpoint{\pgf@circ@res@left}{\pgf@circ@res@up}}
+    \pgfpathlineto{\pgfpoint{\pgf@circ@res@left}{\pgf@circ@res@down}}
+    \pgfpathlineto{\pgfpoint{\pgf@xa}{\pgf@circ@res@down}}
+    \pgfclosepath
+    \pgfusepath{draw}
+}
+
+\pgfrfdeclarebipole{amp}{
+    \pgfscope             
+        \pgftransformscale{.5}
+        \pgfnode{buffer}{center}{}{pgf@amp}{\pgfusepath{stroke}}
+    \endpgfscope
+    \pgfpathmoveto{\pgfpoint{\pgf@circ@res@left}{0}}
+    \pgfpathlineto{\pgfpointanchor{pgf@amp}{in}}
+    \pgfpathmoveto{\pgfpoint{\pgf@circ@res@right}{0}}
+    \pgfpathlineto{\pgfpointanchor{pgf@amp}{out}}
+    \pgfusepath{draw}
+}
+
+\pgfrfdeclarenode{iqmix}{
+    \pgfscope             
+        \pgftransformshift{\pgfpoint{0.5\pgf@circ@res@right}{0.5\pgf@circ@res@up}}
+        \pgftransformrotate{180}
+        \pgftransformscale{.2}
+        \pgfnode{mixer}{center}{}{pgf@mixi}{\pgfusepath{stroke}}
+    \endpgfscope
+    \pgfscope             
+        \pgftransformshift{\pgfpoint{0}{0.5\pgf@circ@res@down}}
+        \pgftransformrotate{180}
+        \pgftransformscale{.2}
+        \pgfnode{mixer}{center}{}{pgf@mixq}{\pgfusepath{stroke}}
+    \endpgfscope
+    \pgfscope             
+        \pgftransformscale{.35}
+        \pgfnode{rectangle}{center}{$90\degree$}{pgf@phase}{\pgfusepath{stroke}}
+    \endpgfscope
+    \pgfpathmoveto{\pgfpoint{\pgf@circ@res@left}{0pt}}
+    \pgfpathlineto{\pgfpoint{0.6\pgf@circ@res@left}{0pt}}
+    \pgfpathlineto{\pgfpoint{0.6\pgf@circ@res@left}{0.5\pgf@circ@res@up}}
+    \pgfpathlineto{\pgfpointanchor{pgf@mixi}{out}}
+    \pgfpathmoveto{\pgfpoint{0.6\pgf@circ@res@left}{0pt}}
+    \pgfpathlineto{\pgfpoint{0.6\pgf@circ@res@left}{0.5\pgf@circ@res@down}}
+    \pgfpathlineto{\pgfpointanchor{pgf@mixq}{out}}
+    \pgfpathmoveto{\pgfpointanchor{pgf@mixi}{in}}
+    \pgfpathlineto{\pgfpoint{\pgf@circ@res@right}{0.5\pgf@circ@res@up}}
+    \pgfpathmoveto{\pgfpointanchor{pgf@mixq}{in}}
+    \pgfpathlineto{\pgfpoint{\pgf@circ@res@right}{0.5\pgf@circ@res@down}}
+    \pgfpathmoveto{\pgfpoint{0pt}{\pgf@circ@res@up}}
+    \pgfpathlineto{\pgfpointanchor{pgf@phase}{north}}
+    \pgfpathmoveto{\pgfpointanchor{pgf@phase}{south}}
+    \pgfpathlineto{\pgfpointanchor{pgf@mixq}{in 2}}
+    \pgfpathmoveto{\pgfpoint{0pt}{0.8\pgf@circ@res@up}}
+    \pgfpathlineto{\pgfpoint{0.5\pgf@circ@res@right}{0.8\pgf@circ@res@up}}
+    \pgfpathlineto{\pgfpointanchor{pgf@mixi}{in 2}}
+    \pgfusepath{draw}
+    \pgfpathcircle{\pgfpoint{0pt}{0.8\pgf@circ@res@up}}{1pt}
+    \pgfpathcircle{\pgfpoint{0.6\pgf@circ@res@left}{0pt}}{1pt}
+    \pgfusepath{fill}
+
+}{
+    \anchor{A1}{
+        \northwest
+        \pgf@y=0pt
+    }
+    \anchor{B1}{
+        \northwest
+        \pgf@y=0.5\pgf@y
+        \pgf@x=-\pgf@x
+    }
+    \anchor{B2}{
+        \northwest
+        \pgf@y=-0.5\pgf@y
+        \pgf@x=-\pgf@x
+    }
+    \anchor{C1}{
+        \northwest
+        \pgf@x=0pt
+    }
+}
+
+\pgfrfdeclarenode{iqmixdown}{
+    \pgfscope             
+        \pgftransformshift{\pgfpoint{0.5\pgf@circ@res@right}{0.5\pgf@circ@res@down}}
+        \pgftransformscale{.2}
+        \pgfnode{mixer}{center}{}{pgf@mixi}{\pgfusepath{stroke}}
+    \endpgfscope
+    \pgfscope             
+        \pgftransformshift{\pgfpoint{0}{0.5\pgf@circ@res@up}}
+        \pgftransformscale{.2}
+        \pgfnode{mixer}{center}{}{pgf@mixq}{\pgfusepath{stroke}}
+    \endpgfscope
+    \pgfscope             
+        \pgftransformscale{.35}
+        \pgfnode{rectangle}{center}{$90\degree$}{pgf@phase}{\pgfusepath{stroke}}
+    \endpgfscope
+    \pgfpathmoveto{\pgfpoint{\pgf@circ@res@left}{0pt}}
+    \pgfpathlineto{\pgfpoint{0.6\pgf@circ@res@left}{0pt}}
+    \pgfpathlineto{\pgfpoint{0.6\pgf@circ@res@left}{0.5\pgf@circ@res@down}}
+    \pgfpathlineto{\pgfpointanchor{pgf@mixi}{in}}
+    \pgfpathmoveto{\pgfpoint{0.6\pgf@circ@res@left}{0pt}}
+    \pgfpathlineto{\pgfpoint{0.6\pgf@circ@res@left}{0.5\pgf@circ@res@up}}
+    \pgfpathlineto{\pgfpointanchor{pgf@mixq}{in}}
+    \pgfpathmoveto{\pgfpointanchor{pgf@mixi}{out}}
+    \pgfpathlineto{\pgfpoint{\pgf@circ@res@right}{0.5\pgf@circ@res@down}}
+    \pgfpathmoveto{\pgfpointanchor{pgf@mixq}{out}}
+    \pgfpathlineto{\pgfpoint{\pgf@circ@res@right}{0.5\pgf@circ@res@up}}
+    \pgfpathmoveto{\pgfpoint{0pt}{\pgf@circ@res@down}}
+    \pgfpathlineto{\pgfpointanchor{pgf@phase}{south}}
+    \pgfpathmoveto{\pgfpointanchor{pgf@phase}{north}}
+    \pgfpathlineto{\pgfpointanchor{pgf@mixq}{in 2}}
+    \pgfpathmoveto{\pgfpoint{0pt}{0.8\pgf@circ@res@down}}
+    \pgfpathlineto{\pgfpoint{0.5\pgf@circ@res@right}{0.8\pgf@circ@res@down}}
+    \pgfpathlineto{\pgfpointanchor{pgf@mixi}{in 2}}
+    \pgfusepath{draw}
+    \pgfpathcircle{\pgfpoint{0pt}{0.8\pgf@circ@res@down}}{1pt}
+    \pgfpathcircle{\pgfpoint{0.6\pgf@circ@res@left}{0pt}}{1pt}
+    \pgfusepath{fill}
+
+}{
+    \anchor{A1}{
+        \northwest
+        \pgf@y=0pt
+    }
+    \anchor{B1}{
+        \northwest
+        \pgf@y=0.5\pgf@y
+        \pgf@x=-\pgf@x
+    }
+    \anchor{B2}{
+        \northwest
+        \pgf@y=-0.5\pgf@y
+        \pgf@x=-\pgf@x
+    }
+    \anchor{C1}{
+        \northwest
+        \pgf@x=0pt
+        \pgf@y=-\pgf@y
+    }
+}
+
+\pgfrfdeclarebipole{pll}{
+    \pgftext{PLL}
+}
+
+\pgfrfdeclarebipole{dut}{
+    \pgftext{DUT}
+}
+
+\long\def\pgfrfdeclarecoupler#1#2{
+    \pgfrfdeclaredoublenode{#1}{
+        \pgfpathmoveto{\pgfpoint{\pgf@circ@res@left}{0pt}}
+        \pgfpathlineto{\pgfpoint{\pgf@circ@res@right}{0pt}}
+        \pgfusepath{draw}
+        \pgf@xa = 0.75\pgf@circ@res@left
+        \pgfscope
+            \pgfsetlinewidth{1pt}
+            \advance \pgf@xa by 4pt
+            \pgfpathmoveto{\pgfpoint{\pgf@xa}{0pt}}
+            \pgfpathlineto{\pgfpoint{-\pgf@xa}{0pt}}
+            \pgfpathmoveto{\pgfpoint{\pgf@xa}{0.15\pgf@circ@res@up}}
+            \pgfpathlineto{\pgfpoint{-\pgf@xa}{0.15\pgf@circ@res@up}}
+            \pgfusepath{draw}
+        \endpgfscope
+        \pgfscope
+            \pgfsetcornersarced{\pgfpoint{4pt}{4pt}}
+            #2
+            \pgfusepath{draw}
+        \endpgfscope
+    }{
+        \anchor{A1}{
+            \northwest
+            \pgf@y=0pt
+        }
+        \anchor{A2}{
+            \northwest
+            \pgf@x=0.75\pgf@x
+        }
+        \anchor{B1}{
+            \northwest
+            \pgf@x=-\pgf@x
+            \pgf@y=0pt
+        }
+        \anchor{B2}{
+            \northwest
+            \pgf@x=-0.75\pgf@x
+        }
+    }
+}
+
+\pgfrfdeclarecoupler{dircoupler}{
+    \pgfpathmoveto{\pgfpoint{0.75\pgf@circ@res@left}{\pgf@circ@res@up}}
+    \pgfpathlineto{\pgfpoint{0.75\pgf@circ@res@left}{0.15\pgf@circ@res@up}}
+    \pgfpathlineto{\pgfpoint{0.75\pgf@circ@res@right}{0.15\pgf@circ@res@up}}
+    \pgfpathlineto{\pgfpoint{0.75\pgf@circ@res@right}{\pgf@circ@res@up}}
+}
+
+\pgfrfdeclarecoupler{dircouplera}{
+    \pgfpathmoveto{\pgfpoint{0.75\pgf@circ@res@left}{\pgf@circ@res@up}}
+    \pgfpathlineto{\pgfpoint{0.75\pgf@circ@res@left}{0.15\pgf@circ@res@up}}
+    \pgfpathlineto{\pgfpoint{0pt}{0.15\pgf@circ@res@up}}
+}
+
+\pgfrfdeclarecoupler{dircouplerb}{
+    \pgfpathmoveto{\pgfpoint{0.75\pgf@circ@res@left}{0.15\pgf@circ@res@up}}
+    \pgfpathlineto{\pgfpoint{0.75\pgf@circ@res@right}{0.15\pgf@circ@res@up}}
+    \pgfpathlineto{\pgfpoint{0pt}{0.15\pgf@circ@res@up}}
+}
+
+\pgfrfdeclaremonopole{generator}{
+    \pgfscope             
+        \pgftransformscale{.5}
+        \pgftransformrotate{90}
+        \pgfnode{vsourcesinshape}{center}{}{pgf@att}{\pgfusepath{stroke}}
+    \endpgfscope
+}
+
+\pgfrfdeclaremonopole{powermeter}{
+    \pgfscope             
+        \pgftransformscale{.5}
+        \pgftransformrotate{-90}
+        \pgfnode{fulldiodeshape}{center}{}{pgf@att}{\pgfusepath{stroke}}
+    \endpgfscope
+    \pgfpathmoveto{\pgfpoint{0pt}{0.7\pgf@circ@res@up}}
+    \pgfpathlineto{\pgfpoint{0pt}{0.7\pgf@circ@res@down}}
+    \pgfusepath{draw}
+}
+
+\pgfrfdeclaremonopole{spectrum analyzer}{
+    \pgfpathmoveto{\pgfpoint{0.7\pgf@circ@res@down}{0.8\pgf@circ@res@left}}
+    \pgfpathlineto{\pgfpoint{0.7\pgf@circ@res@down}{0.7\pgf@circ@res@right}}
+    \pgfpathmoveto{\pgfpoint{0.8\pgf@circ@res@down}{0.7\pgf@circ@res@left}}
+    \pgfpathlineto{\pgfpoint{0.7\pgf@circ@res@up}{0.7\pgf@circ@res@left}}
+    \pgfusepath{draw}
+
+    \pgfsetcornersarced{\pgfpoint{2pt}{1pt}}
+    \pgfpathmoveto{\pgfpoint{0.7\pgf@circ@res@left}{0.6\pgf@circ@res@down}}
+    \pgfpathlineto{\pgfpoint{0.55\pgf@circ@res@left}{0.6\pgf@circ@res@down}}
+    \pgfpathlineto{\pgfpoint{0.5\pgf@circ@res@left}{0.4\pgf@circ@res@up}}
+    \pgfpathlineto{\pgfpoint{0.45\pgf@circ@res@left}{0.6\pgf@circ@res@down}}
+    \pgfpathlineto{\pgfpoint{0.05\pgf@circ@res@left}{0.6\pgf@circ@res@down}}
+    \pgfpathlineto{\pgfpoint{0}{0.6\pgf@circ@res@up}}
+    \pgfpathlineto{\pgfpoint{0.05\pgf@circ@res@right}{0.6\pgf@circ@res@down}}
+    \pgfpathlineto{\pgfpoint{0.45\pgf@circ@res@right}{0.6\pgf@circ@res@down}}
+    \pgfpathlineto{\pgfpoint{0.5\pgf@circ@res@right}{0.4\pgf@circ@res@up}}
+    \pgfpathlineto{\pgfpoint{0.55\pgf@circ@res@right}{0.6\pgf@circ@res@down}}
+    \pgfpathlineto{\pgfpoint{0.7\pgf@circ@res@right}{0.6\pgf@circ@res@down}}
+    \pgfusepath{draw}
+}
+
+\pgfrfdeclaretripole{splitter}{
+    \pgfscope             
+        \pgftransformshift{\pgfpoint{0.5\pgf@circ@res@right}{0}}
+        \pgftransformscale{.2}
+        \pgftransformrotate{-90}
+        \pgfnode{resistorshape}{center}{}{pgf@att}{\pgfusepath{stroke}}
+    \endpgfscope
+    \pgfpathmoveto{\pgfpoint{\pgf@circ@res@left}{0}}
+    \pgfpathlineto{\pgfpoint{.5\pgf@circ@res@left}{0}}
+    \pgfpathlineto{\pgfpoint{.5\pgf@circ@res@right}{.5\pgf@circ@res@up}}
+    \pgfpathlineto{\pgfpoint{\pgf@circ@res@right}{.5\pgf@circ@res@up}}
+    \pgfpathmoveto{\pgfpoint{.5\pgf@circ@res@left}{0}}
+    \pgfpathlineto{\pgfpoint{.5\pgf@circ@res@right}{.5\pgf@circ@res@down}}
+    \pgfpathlineto{\pgfpoint{\pgf@circ@res@right}{.5\pgf@circ@res@down}}
+    \pgfpathmoveto{\pgfpointanchor{pgf@att}{east}}
+    \pgfpathlineto{\pgfpoint{.5\pgf@circ@res@right}{.5\pgf@circ@res@down}}
+    \pgfpathmoveto{\pgfpointanchor{pgf@att}{west}}
+    \pgfpathlineto{\pgfpoint{.5\pgf@circ@res@right}{.5\pgf@circ@res@up}}
+    \pgfusepath{draw}
+}
+
+\pgfrfdeclarebipole{dc block}{
+    \pgfscope             
+        \pgftransformscale{.5}
+        \pgfnode{capacitorshape}{center}{}{pgf@att}{\pgfusepath{stroke}}
+    \endpgfscope
+    \pgfpathmoveto{\pgfpoint{\pgf@circ@res@left}{0}}
+    \pgfpathlineto{\pgfpointanchor{pgf@att}{b}}
+    \pgfpathmoveto{\pgfpoint{\pgf@circ@res@right}{0}}
+    \pgfpathlineto{\pgfpointanchor{pgf@att}{a}}
+    \pgfusepath{draw}
+
+}
+
+\pgfrfdeclaredoublenode{oscilloscope}{
+    \pgfscope
+        \pgfsetcornersarced{\pgfpoint{2pt}{2pt}}
+        \pgfpathrectanglecorners{\pgfpoint{0.9\pgf@circ@res@left}{0.4\pgf@circ@res@down}}{\pgfpoint{0.1\pgf@circ@res@left}{0.75\pgf@circ@res@up}}
+        \pgfusepath{draw}
+    \endpgfscope
+    \foreach \posc/\post/\i in {0.2/0.15/4,0.4/0.35/3,0.6/0.55/2,0.8/0.75/1}{
+        \pgfscope
+            \pgftransformshift{\pgfpoint{\post\pgf@circ@res@left}{0.6\pgf@circ@res@down}}
+            \pgftransformscale{.4}
+            \pgftext{\i}
+            \pgfusepath{draw}
+        \endpgfscope
+        \pgfpathcircle{\pgfpoint{\posc\pgf@circ@res@left}{0.8\pgf@circ@res@down}}{1pt}
+        \pgfusepath{draw}
+    }
+    \foreach \x in {0,0.2,0.4}{
+        \foreach \y in {0.55,0.25,-0.05,-0.35}{
+            \pgfpathrectangle{\pgfpoint{\x\pgf@circ@res@right}{\y\pgf@circ@res@up}}{\pgfpoint{2pt}{2pt}}
+        }
+    }
+    \pgfpathrectangle{\pgfpoint{0.6\pgf@circ@res@right}{0\pgf@circ@res@up}}{\pgfpoint{2pt}{2pt}}
+    \pgfpathrectangle{\pgfpoint{0.8\pgf@circ@res@right}{0\pgf@circ@res@up}}{\pgfpoint{2pt}{2pt}}
+    \pgfpathcircle{\pgfpoint{0.75\pgf@circ@res@right}{0.45\pgf@circ@res@up}}{0.15\pgf@circ@res@right}
+    \pgfpathmoveto{\pgfpoint{0.9\pgf@circ@res@left}{0pt}}
+    \pgfpathsine{\pgfpoint{0.2\pgf@circ@res@right}{0.2\pgf@circ@res@up}}
+    \pgfpathcosine{\pgfpoint{0.2\pgf@circ@res@right}{-0.2\pgf@circ@res@up}}
+    \pgfpathsine{\pgfpoint{0.2\pgf@circ@res@right}{-0.2\pgf@circ@res@up}}
+    \pgfpathcosine{\pgfpoint{0.2\pgf@circ@res@right}{0.2\pgf@circ@res@up}}
+    \pgfpathmoveto{\pgfpoint{0.9\pgf@circ@res@left}{0.4\pgf@circ@res@up}}
+    \pgfpathsine{\pgfpoint{0.1\pgf@circ@res@right}{0.1\pgf@circ@res@up}}
+    \pgfpathcosine{\pgfpoint{0.1\pgf@circ@res@right}{-0.1\pgf@circ@res@up}}
+    \pgfpathsine{\pgfpoint{0.1\pgf@circ@res@right}{-0.1\pgf@circ@res@up}}
+    \pgfpathcosine{\pgfpoint{0.1\pgf@circ@res@right}{0.1\pgf@circ@res@up}}
+    \pgfpathsine{\pgfpoint{0.1\pgf@circ@res@right}{0.1\pgf@circ@res@up}}
+    \pgfpathcosine{\pgfpoint{0.1\pgf@circ@res@right}{-0.1\pgf@circ@res@up}}
+    \pgfpathsine{\pgfpoint{0.1\pgf@circ@res@right}{-0.1\pgf@circ@res@up}}
+    \pgfpathcosine{\pgfpoint{0.1\pgf@circ@res@right}{0.1\pgf@circ@res@up}}
+    \pgfusepath{draw}
+
+}{
+    \anchor{A1}{
+        \northwest
+        \pgf@y=-0.8\pgf@y
+        \pgf@x=0.8\pgf@x
+    }
+    \anchor{A2}{
+        \northwest
+        \pgf@y=-0.8\pgf@y
+        \pgf@x=0.6\pgf@x
+    }
+    \anchor{A3}{
+        \northwest
+        \pgf@y=-0.8\pgf@y
+        \pgf@x=0.4\pgf@x
+    }
+    \anchor{A4}{
+        \northwest
+        \pgf@y=-0.8\pgf@y
+        \pgf@x=0.2\pgf@x
+    }
+}
+
+\pgfdeclareshape{circulator}
+{
+    \anchor{center}{
+        \pgfpointorigin
+    }
+    \savedanchor\northwest{%
+        \pgf@y=\pgfkeysvalueof{/tikz/circuitikz/bipoles/length}
+        \pgf@y=\pgfkeysvalueof{/tikz/circuitikz/tripoles/mixer/height}\pgf@y
+        \pgf@y=.5\pgf@y
+        \pgf@x=\pgfkeysvalueof{/tikz/circuitikz/bipoles/length}
+        \pgf@x=.5\pgf@x
+        \pgf@x=-\pgfkeysvalueof{/tikz/circuitikz/tripoles/mixer/width}\pgf@x
+    }
+    \anchor{A}{
+        \northwest
+        \pgf@y=0pt
+    }
+    \anchor{B}{
+        \northwest
+        \pgfpointpolar{45}{\pgf@y}
+    }
+    \anchor{C}{
+        \northwest
+        \pgfpointpolar{-45}{\pgf@y}
+    }
+    \anchor{north}{
+        \northwest
+        \pgf@x=0pt
+    }
+    \anchor{south}{
+        \northwest
+        \pgf@x=0pt
+        \pgf@y=-\pgf@y
+    }
+    \anchor{west}{
+        \northwest
+        \pgf@y=0pt
+    }
+    \anchor{east}{
+        \northwest
+        \pgf@y=0pt
+        \pgf@x=-\pgf@x
+    }
+    \anchor{south west}{
+        \northwest
+        \pgf@y=-\pgf@y
+    }
+    \anchor{north east}{
+        \northwest
+        \pgf@x=-\pgf@x
+    }
+    \anchor{north west}{
+        \northwest
+    }
+    \anchor{south east}{
+        \northwest
+        \pgf@x=-\pgf@x
+        \pgf@y=-\pgf@y
+    }	  
+    \anchor{base}{
+        \northwest
+        \pgf@x=0pt	  	
+    }
+    \backgroundpath{			
+        \pgfsetcolor{\pgfkeysvalueof{/tikz/circuitikz/color}}	
+
+        \northwest
+        \pgf@circ@res@up = \pgf@y 
+        \pgf@circ@res@down = -\pgf@y
+        \pgf@circ@res@right = -\pgf@x
+        \pgf@circ@res@left = \pgf@x
+        \pgf@circ@res@other = \pgfkeysvalueof{/tikz/circuitikz/tripoles/mixer/margin}\pgf@circ@res@up
+
+        \pgfscope
+            \pgfsetlinewidth{\pgfkeysvalueof{/tikz/circuitikz/bipoles/thickness}\pgflinewidth}
+            \pgfpathcircle{\pgfpoint{0}{0}}{\pgf@circ@res@other}
+            \pgfusepath{draw}
+        \endpgfscope
+        \pgfscope
+            \pgfsetarrowsend{Latex[length=2pt]}
+            \pgfpathmoveto{\pgfpoint{-0.65\pgf@circ@res@other}{0}}
+            \pgfpatharc{180}{0} {0.65\pgf@circ@res@other}
+            \pgfusepath{draw}
+        \endpgfscope
+        \pgfpathmoveto{\pgfpoint{\pgf@circ@res@left}{0pt}}
+        \pgfpathlineto{\pgfpoint{-\pgf@circ@res@other}{0pt}}
+        \pgfpathmoveto{\pgfpointpolar{45}{\pgf@circ@res@other}}
+        \pgfpathlineto{\pgfpointpolar{45}{\pgf@circ@res@up}}
+        \pgfpathmoveto{\pgfpointpolar{-45}{\pgf@circ@res@other}}
+        \pgfpathlineto{\pgfpointpolar{-45}{\pgf@circ@res@up}}
+        \pgfusepath{draw}
+    }
+}
+
+\pgfdeclareshape{vectorgenerator}
+{
+    \anchor{center}{
+        \pgfpointorigin
+    }
+    \savedanchor\northwest{%
+        \pgf@y=\pgfkeysvalueof{/tikz/circuitikz/bipoles/length}
+        \pgf@y=\pgfkeysvalueof{/tikz/circuitikz/rf/height}\pgf@y
+        \pgf@y=0.75\pgf@y
+        \pgf@x=\pgfkeysvalueof{/tikz/circuitikz/bipoles/length}
+        \pgf@x=\pgf@x
+        \pgf@x=-\pgfkeysvalueof{/tikz/circuitikz/rf/width}\pgf@x
+    }
+    \anchor{north}{
+        \northwest
+        \pgf@x=0pt
+    }
+    \anchor{south}{
+        \northwest
+        \pgf@x=0pt
+        \pgf@y=-\pgf@y
+    }
+    \anchor{out}{
+        \northwest
+        \pgf@y=0.33\pgf@y
+    }
+    \anchor{in}{
+        \northwest
+        \pgf@x=-\pgf@x
+        \pgf@y=-0.33\pgf@y
+    }
+    \anchor{west}{
+        \northwest
+        \pgf@y=0pt
+    }
+    \anchor{east}{
+        \northwest
+        \pgf@y=0pt
+        \pgf@x=-\pgf@x
+    }
+    \anchor{south west}{
+        \northwest
+        \pgf@y=-\pgf@y
+    }
+    \anchor{north east}{
+        \northwest
+        \pgf@x=-\pgf@x
+    }
+    \anchor{north west}{
+        \northwest
+    }
+    \anchor{south east}{
+        \northwest
+        \pgf@x=-\pgf@x
+        \pgf@y=-\pgf@y
+    }	  
+    \anchor{base}{
+        \northwest
+        \pgf@x=0pt	  	
+    }
+    \anchorborder{
+        \@tempdima=\pgf@x
+        \@tempdimb=\pgf@y
+        \northwest
+        \pgf@xa=-\pgf@x
+        \pgf@ya=\pgf@y
+        \pgfpointborderrectangle{\pgfpoint{\@tempdima}{\@tempdimb}}{\pgfpoint{\pgf@xa}{\pgf@ya}}
+    }
+    \backgroundpath{			
+        \pgfsetcolor{\pgfkeysvalueof{/tikz/circuitikz/color}}	
+
+        \northwest
+        \pgf@circ@res@up = \pgf@y 
+        \pgf@circ@res@down = -\pgf@y
+        \pgf@circ@res@right = -\pgf@x
+        \pgf@circ@res@left = \pgf@x
+        \pgf@circ@res@other = 0.33\pgf@circ@res@up
+
+        \pgfscope
+            \pgfsetcornersarced{\pgfpoint{4pt}{4pt}}
+            \pgfpathrectanglecorners{\pgfpoint{\pgf@circ@res@left}{\pgf@circ@res@down}}{\pgfpoint{\pgf@circ@res@right}{\pgf@circ@res@up}}
+            \pgfstroke
+        \endpgfscope
+        \pgfscope             
+            \pgftransformshift{\pgfpoint{0.66\pgf@circ@res@left}{\pgf@circ@res@other}}
+            \pgftransformscale{.4}
+            \pgftransformrotate{180}
+            \pgfnode{buffer}{center}{}{pgf@amp}{\pgfusepath{stroke}}
+        \endpgfscope
+        \pgfscope
+            \pgftransformshift{\pgfpoint{0}{\pgf@circ@res@other}}
+            \pgftransformscale{.5}
+            \pgfnode{mixer}{center}{}{pgf@mix}{\pgfusepath{stroke}}
+        \endpgfscope
+        \pgfscope
+            \pgftransformshift{\pgfpoint{0.66\pgf@circ@res@right}{\pgf@circ@res@other}}
+            \pgftransformscale{.5}
+            \pgftransformrotate{90}
+            \pgfnode{vsourcesinshape}{center}{}{pgf@att}{\pgfusepath{stroke}}
+        \endpgfscope
+        \pgfscope
+            \pgfpathmoveto{\pgfpoint{0.77\pgf@circ@res@left}{0.17\pgf@circ@res@down}}
+            \pgfpathlineto{\pgfpoint{0.55\pgf@circ@res@left}{0.83\pgf@circ@res@up}}
+            \pgfsetarrowsend{stealth}
+            \pgfusepath{draw}
+        \endpgfscope
+        \pgfscope
+            \pgfsetlinewidth{\pgfkeysvalueof{/tikz/circuitikz/bipoles/thickness}\pgflinewidth}
+            \pgftransformshift{\pgfpoint{0.66\pgf@circ@res@right}{-\pgf@circ@res@other}}
+            \pgftransformscale{.3}
+            \pgftransformrotate{180}
+            \pgfnode{dac}{center}{}{pgf@dac}{\pgfusepath{stroke}}
+        \endpgfscope
+        \pgfpathmoveto{\pgfpoint{\pgf@circ@res@left}{\pgf@circ@res@other}}
+        \pgfpathlineto{\pgfpointanchor{pgf@amp}{out}}
+        \pgfpathmoveto{\pgfpointanchor{pgf@amp}{in}}
+        \pgfpathlineto{\pgfpointanchor{pgf@mix}{in}}
+        \pgfpathmoveto{\pgfpointanchor{pgf@mix}{out}}
+        \pgfpathlineto{\pgfpointanchor{pgf@att}{north}}
+        \pgfpathmoveto{\pgfpointanchor{pgf@mix}{in 2}}
+        \pgfpathlineto{\pgfpoint{0pt}{-\pgf@circ@res@other}}
+        \pgfpathlineto{\pgfpointanchor{pgf@dac}{B}}
+        \pgfpathmoveto{\pgfpointanchor{pgf@dac}{A}}
+        \pgfpathlineto{\pgfpoint{\pgf@circ@res@right}{-\pgf@circ@res@other}}
+        \pgfusepath{draw}
+    }
+}
+
+\makeatother
