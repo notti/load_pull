@@ -8,7 +8,7 @@ sub mypdflatex {
     my @args = @_[0 .. $n - 2];
     my $base = $_[$n - 1];
 
-    system 'pdflatex', @args;
+    system 'lualatex', @args;
     if ($? != 0) {
         return $?
     }

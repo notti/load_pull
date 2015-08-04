@@ -6,3 +6,4 @@ main.pdf: FORCE_MAKE
 	
 clean:
 	latexmk -CA
+	rm -rf figures/*
