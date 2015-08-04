@@ -1,13 +1,30 @@
-\documentclass[12pt,a4paper,twoside,parskip=full]{scrreprt}
+\documentclass[12pt,a4paper,parskip=full,abstract=true]{scrreprt}
+\KOMAoption{bibliography}{totoc}
+\KOMAoption{listof}{totoc}
+
+\usepackage[ngerman,english]{babel}
+\usepackage[utf8]{inputenc}
+
+%drawings
+
+\usepackage[pdftex]{graphicx}
+\graphicspath{{graphics/}}
 \usepackage{tikz}
 \usepackage{circuitikz}
-\usepackage{gensymb}
 \usetikzlibrary{positioning,dsp,chains,fit,scopes,calc,backgrounds,arrows,decorations.pathmorphing,bending,arrows.meta}
-\usepackage{siunitx}
+
+\include{rfsymbols}
+
+%units
+
+\usepackage[binary-units,retain-explicit-plus]{siunitx}
 \DeclareSIUnit \belm {Bm}
 \DeclareSIUnit \belfs {BFS}
 \DeclareSIUnit \samples {S}
 \sisetup{per-mode = symbol}
+
+%plots
+
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.12}
 \pgfplotsset{every axis plot/.append style={smooth},every axis/.append style={grid=major,legend style={font=\footnotesize}}} 
@@ -18,9 +35,30 @@
 
 \usepgfplotslibrary{external}
 \tikzsetexternalprefix{figures/}
-\tikzexternalize
+\tikzexternalize[mode=list and make]
 
-\include{rfsymbols}
+%math
+
+\usepackage[cmex10]{amsmath}
+\usepackage{amssymb}
+\usepackage{gensymb}
+
+%source
+
+\usepackage{listings}
+\lstset{language=Python,numbers=left,numberstyle=\tiny,stepnumber=5,numbersep=5pt,frame=single,
+breaklines=true,postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\hookrightarrow\space}},
+captionpos=b,escapeinside={(*}{*)}}
+
+%stuff
+
+\usepackage{url}
+\usepackage{tocloft} %table of contents modification
+\usepackage{subcaption} %subfigures
+\usepackage[noabbrev]{cleveref}
+\usepackage{placeins} % keep floats in check (=sections where they belong)
+\usepackage{booktabs} % nicer tables
+
 
 \usepackage[colorlinks,hyperindex,plainpages=false,
 pdftitle={FPGA-based Load-Pull Measurement System},
@@ -29,12 +67,79 @@ pdfsubject={Diploma thesis},
 pdfpagelabels %,hidelinks
 ]{hyperref}
 
-\author{Gernot Vormayr}
-\title{FPGA-based Load-Pull Measurement System}
+% lots of acronyms
+\usepackage[acronym]{glossaries}
+
+\newacronym{fpga}{FPGA}{field programmable gate array}
+\newacronym{iq}{IQ}{in-phase/quadrature-phase}
+\newacronym[longplural={general-purpose inputs/outputs}]{gpio}{GPIO}{general-purpose input/output}
+\newacronym{fir}{FIR}{finite impulse response}
+\newacronym{gui}{GUI}{graphical user interface}
+\newacronym{ui}{UI}{user interface}
+\newacronym{rf}{RF}{radio frequency}
+\newacronym{if}{IF}{intermediate frequency}
+\newacronym{ram}{RAM}{random access memory}
+\makeglossaries
+
 
 \begin{document}
+\begin{titlepage}
+    \enlargethispage{1cm}
+    \centering
+    \vspace*{5cm}
+    {\Huge \textbf{Diploma thesis}}\\
+    \vspace*{1cm}
+    {\Large \Gls{fpga}-based Load-Pull Measurement System}
 
-\maketitle
+    \vspace*{2cm}
+    {\large Gernot ~\textsc{Vormayr} \\ 0425210 \\ } ~\\ 
+
+    \vspace*{2cm}
+    {\today } ~\\ 
+
+    \vfill
+    {Supervisors} ~\\\vspace*{0.1cm}
+    {Ass.Prof. Dipl.-Ing. Dr.techn. \large Holger ~\textsc{Arthaber}} ~\\
+    {Univ.Ass. Dipl.-Ing. Dr.techn. \large Thomas ~\textsc{Faseth}}
+    \vspace*{2cm}
+
+    \rule{\linewidth}{0.4pt}
+    \begin{minipage}[t]{0.55\linewidth}
+        \flushleft
+        \begin{large}
+            EMCE - Institute of Electrodynamics, Microwave and Circuit Engineering
+        \end{large}\\
+        Vienna University of Technology
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.27\linewidth}
+        \flushright
+        Gusshausstrasse 25\\
+        1040 Vienna\\
+        www.emce.tuwien.ac.at
+    \end{minipage}
+    \vspace*{-3pt}
+    \rule{\linewidth}{0.4pt}
+    \clearpage
+\end{titlepage}
+
+\begin{abstract}
+    %TODO
+    Todo
+\end{abstract}
+
+\begin{otherlanguage}{ngerman}
+\begin{abstract}
+    %TODO
+    Todo
+\end{abstract}
+\end{otherlanguage}
+
+\renewcommand{\abstractname}{Acknowledgements}
+\begin{abstract}
+Thanks to the team of the microwave lab even if they only have one microwave oven.
+\end{abstract}
+
 \tableofcontents
 
 \chapter{Introduction}
@@ -188,8 +293,26 @@ pdfpagelabels %,hidelinks
     \chapter{Build Instructions}
     \section{Hardware}
     \section{Software}
-\end{appendix}
 
+    \printglossary[type=\acronymtype]
+
+    \listoffigures
+
+    \bibliographystyle{IEEEtran}
+    \bibliography{IEEEabrv,literature}
+
+\begin{otherlanguage}{ngerman}
+    \chapter*{Code of Conduct}
+    Hiermit erkl\"are ich, dass die vorliegende Arbeit ohne unzul\"assige Hilfe Dritter und ohne Benutzung
+    anderer als der angegebenen Hilfsmittel angefertigt wurde. Die aus anderen Quellen oder indirekt
+    \"ubernommenen Daten und Konzepte sind unter Angabe der Quelle gekennzeichnet.
+    Die Arbeit wurde bisher weder im In- noch im Ausland in gleicher oder in \"ahnlicher Form in anderen
+    Pr\"ufungsverfahren vorgelegt.
+
+    \par\noindent\makebox[7cm]{\hrulefill}      \hfill\makebox[5cm]{\hrulefill}%
+    \par\noindent\makebox[7cm][l]{Unterschrift} \hfill\makebox[5cm][l]{Datum}%
+\end{otherlanguage}
+
+    \end{appendix}
 \end{document}
-
 

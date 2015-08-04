@@ -22,8 +22,9 @@
 *.mtc1
 *.out
 *.synctex.gz
-overall.ps
-overall.pdf
+main.pdf
 *.fls
 *.fdb_latexmk
 *.brf
+*.figlist
+*.makefile
