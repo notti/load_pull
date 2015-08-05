@@ -225,7 +225,7 @@ Thanks to the team of the microwave lab even if they only have one microwave ove
     \begin{smithchart}[width=7cm,clip=false]
         \foreach \i in {1,...,11}{
             \foreach \j in {1,...,11}{
-                \addplot[blue,is smithchart cs] file {{testdata/filter/-1+0i/\i,\j}};
+                \addplot[blue,is smithchart cs] file {testdata/filter/-1+0i/\i,\j.data};
             }
         }
         \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(-1,0)};
@@ -235,7 +235,7 @@ Thanks to the team of the microwave lab even if they only have one microwave ove
     \begin{smithchart}[width=7cm,clip=false]
         \foreach \i in {1,...,11}{
             \foreach \j in {1,...,11}{
-                \addplot[blue,is smithchart cs] file {{testdata/filter/+1+0i/\i,\j}};
+                \addplot[blue,is smithchart cs] file {testdata/filter/+1+0i/\i,\j.data};
             }
         }
         \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(+1,0)};
@@ -245,7 +245,7 @@ Thanks to the team of the microwave lab even if they only have one microwave ove
     \begin{smithchart}[width=7cm,clip=false]
         \foreach \i in {1,...,11}{
             \foreach \j in {1,...,11}{
-                \addplot[blue,is smithchart cs] file {{testdata/filter/mean1/\i,\j}};
+                \addplot[blue,is smithchart cs] file {testdata/filter/mean1/\i,\j.data};
             }
         }
         \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(-1,0) (+1,0)};
@@ -260,11 +260,11 @@ Thanks to the team of the microwave lab even if they only have one microwave ove
             x unit={\s},
             width=\linewidth
         ]
-        \addplot[blue] table {{testdata/phase/single}};
+        \addplot[blue] table {testdata/phase/single.data};
     \end{axis}
 \end{tikzpicture}
 
-\pgfplotstableread{{testdata/phase/all}}\phaseall
+\pgfplotstableread{testdata/phase/all.data}\phaseall
 
 \begin{tikzpicture}
     \begin{axis}[
