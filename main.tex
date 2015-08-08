@@ -1,4 +1,4 @@
-\documentclass[12pt,a4paper,parskip=full,abstract=true]{scrreprt}
+\documentclass[12pt,a4paper,parskip=full,abstract=true,BCOR=10mm,twoside,open=right]{scrreprt}
 \KOMAoption{bibliography}{totoc}
 \KOMAoption{listof}{totoc}
 
@@ -11,7 +11,7 @@
 \graphicspath{{graphics/}}
 \usepackage{tikz}
 \usepackage{circuitikz}
-\usetikzlibrary{positioning,dsp,chains,fit,scopes,calc,backgrounds,arrows,decorations.pathmorphing,bending,arrows.meta}
+\usetikzlibrary{positioning,dsp,chains,fit,scopes,calc,backgrounds,arrows,decorations.pathmorphing,bending,arrows.meta,shapes.misc,matrix,patterns}
 
 \include{rfsymbols}
 
@@ -43,6 +43,8 @@
 \usepackage{amssymb}
 \usepackage{gensymb}
 
+\providecommand{\abs}[1]{\lvert#1\rvert}
+
 %source
 
 \usepackage{listings}
@@ -55,10 +57,14 @@ captionpos=b,escapeinside={(*}{*)}}
 \usepackage{url}
 \usepackage{tocloft} %table of contents modification
 \usepackage{subcaption} %subfigures
-\usepackage[noabbrev]{cleveref}
 \usepackage{placeins} % keep floats in check (=sections where they belong)
 \usepackage{booktabs} % nicer tables
+\usepackage{lipsum} % TODO remove in final
 
+\usepackage{scrlayer-scrpage}
+\pagestyle{scrheadings}
+\automark[chapter]{chapter}
+\automark*[section]{}
 
 \usepackage[colorlinks,hyperindex,plainpages=false,
 pdftitle={FPGA-based Load-Pull Measurement System},
@@ -77,10 +83,17 @@ pdfpagelabels %,hidelinks
 \newacronym{gui}{GUI}{graphical user interface}
 \newacronym{ui}{UI}{user interface}
 \newacronym{rf}{RF}{radio frequency}
+\newacronym{pa}{PA}{power amplifier}
+\newacronym{mw}{MW}{microwave}
 \newacronym{if}{IF}{intermediate frequency}
 \newacronym{ram}{RAM}{random access memory}
+\newacronym{sparam}{S-parameter}{scattering parameter}
+\newacronym{dut}{DUT}{device under test}
+\newacronym{emt}{EMT}{electromechanical tuner}
+\newacronym{vna}{VNA}{vector network analyzer}
 \makeglossaries
 
+\usepackage[noabbrev]{cleveref} %needs to be last
 
 \begin{document}
 \begin{titlepage}
@@ -125,25 +138,306 @@ pdfpagelabels %,hidelinks
 
 \begin{abstract}
     %TODO
-    Todo
+    \lipsum[1-5]
 \end{abstract}
 
 \begin{otherlanguage}{ngerman}
 \begin{abstract}
     %TODO
-    Todo
+    \lipsum[1-5]
 \end{abstract}
 \end{otherlanguage}
 
 \renewcommand{\abstractname}{Acknowledgements}
 \begin{abstract}
-Thanks to the team of the microwave lab even if they only have one microwave oven.
+    %TODO
+    \lipsum[1]
 \end{abstract}
 
 \tableofcontents
 
 \chapter{Introduction}
-\chapter{Load-Pull Measurement System}
+
+At \gls{rf} and \gls{mw} frequencies the lumped element model is of limited
+value. The wavelength at these frequencies is on the order of the circuit
+element dimensions. This means that there are no planes of equal electromagnetic
+potential any more and the line integrals become dependent on the chosen path.
+Because of this Kirchoff's laws are not applicable at these frequencies. Although
+it is often possible to fix these shortcomings by adding parasitic capacitances,
+it is easier to use the concept of forward and backward traveling power waves.
+
+For this reason instead of impedance- and admittance matrices, \glspl{sparam}
+are commonly used in \gls{rf} and \gls{mw} circuit engineering to describe
+$N$-ports (see \cref{fig:sparam,eq:sparam} for a 2-port). $a_i$ denotes the incident and
+$b_i$ the reflected power wave. Complex valued $S_{ii}$ represents the
+part of $a_i$ that gets reflected at port $i$, where as $S_{ij}$ is the part of $a_j$ that
+is transmitted to $b_i$. A set of \glspl{sparam} are only valid for a specific frequency, a
+characteristic impedance $Z_0$, and a reference plane (port 1 and port 2 in \cref{fig:sparam}).
+
+\begin{figure}[htb]
+    \centering
+    \begin{tikzpicture}
+        \matrix (box)
+        [matrix of nodes,%
+         nodes in empty cells,
+         nodes={dspnodeopen},
+         column sep=1cm,
+         row sep=2cm]
+        {
+            |[coordinate]| & &[4cm] & |[coordinate]| \\
+            |[coordinate]| & & & |[coordinate]| \\
+        };
+        \draw[-latex] (box-1-1) node[anchor=east] {$a_1$} -- (box-1-2);
+        \draw[-latex] (box-1-2) -- node[above] {$S_{21}$} (box-1-3);
+        \draw[-latex] (box-1-3) -- (box-1-4) node[anchor=west] {$b_2$};
+
+        \draw[latex-] (box-2-1) node[anchor=east] {$b_1$} -- (box-2-2);
+        \draw[latex-] (box-2-2) -- node[above] {$S_{12}$} (box-2-3);
+        \draw[latex-] (box-2-3) -- (box-2-4) node[anchor=west] {$a_2$};
+
+        \draw[-latex] (box-1-2) to[bend left=30] node[right] {$S_{11}$} (box-2-2);
+        \draw[latex-] (box-1-3) to[bend right=30] node[left] {$S_{22}$} (box-2-3);
+
+        \draw ($(box-1-2) + (0,0.7cm)$) rectangle ($(box-2-3) - (0,0.7cm)$);
+        
+        \draw[dashed] (box-1-2) -- ++(0,1.5cm) node[anchor=south] {Port 1};
+        \draw[dashed] (box-1-3) -- ++(0,1.5cm) node[anchor=south] {Port 2};
+
+        \draw[dashed] (box-2-2) -- ++(0,-1cm);
+        \draw[dashed] (box-2-3) -- ++(0,-1cm);
+    \end{tikzpicture}
+    \caption{\Glspl{sparam} of a 2-port}
+    \label{fig:sparam}
+\end{figure}
+
+\begin{equation}
+    \label{eq:sparam}
+    \begin{pmatrix} b_1 \\ b_2 \end{pmatrix} = \begin{pmatrix} S_{11} & S_{12} \\ S_{21} & S_{22} \end{pmatrix} \begin{pmatrix} a_1 \\ a_2 \end{pmatrix}
+\end{equation}
+
+In a 1-port there is only $S_{11}$. This parameter is equivalent with the reflection
+coefficient $\Gamma$ and can be also expressed by the input impedance $Z_{in}$ (see
+\cref{eq:s11ref}). This does not necessarily hold for 2-ports, since for a fully
+connected 2-port, also reflections from the device connected at the other port
+can be seen.
+\begin{equation}
+    \label{eq:s11ref} \Gamma = S_{11} = \frac{Z_{in}-Z_0}{Z_{in}+Z_0}
+\end{equation}
+
+One way to measure \glspl{sparam} at a specific frequency would be with connecting
+a matching impedance $Z_0$. To measure e.g. $S_{11}$ a matching impedance has to
+be connected to port 2. According to \cref{eq:s11ref} the reflected wave $b_2$
+at port 2 is zero in this case. This means that measurements at port 1 can only see the
+reflections caused by $S_{11}$. $S_{11}$ can now be calculated by measuring the incident
+and reflected wave at port 1 (see \cref{eq:s11}).
+\begin{align}
+    \label{eq:s11} S_{11} & = \left.\frac{b_1}{a_1} \right\rvert_{a_2 = 0}\\
+    \label{eq:s21} S_{21} & = \left.\frac{b_2}{a_1} \right\rvert_{a_2 = 0}
+\end{align}
+Because of connectors and cabling it is often impossible to connect exact matches. Therefor
+\glspl{sparam} are measured by sending a power wave into port 1 of the \gls{dut}, measuring
+$a_n$ and $b_n$. After that the measurement is repeated with port 2. With measurements from
+both ports and calibration measurements (to account for errors caused by connectors and
+cabling) it is possible to determine every \gls{sparam}. \Glspl{vna} use this method
+and can make automated measurements at various frequencies.
+
+As long as a network behaves linearly with incident small signals, the \glspl{sparam}
+fully describe this network at a specific frequency. Thus they can also be used
+to model amplifiers, as long as they exhibit controlled and linear behaviour. Since
+class-A \glspl{pa} are nearly linear, \glspl{sparam} can be used to describe the small
+signal behaviour. But those \glspl{pa} exhibit a very low efficiency of \SI{50}{\percent}.
+In modern \gls{rf} and \gls{mw} application the efficiency is increased with input and
+output matching networks, that improve the performance. This comes at the cost of non
+linear behaviour of the \gls{pa} \cite{ghannouchi_load-pull_2013}.
+
+Because of this non linearities more complex models and verification systems are
+needed. One way to measure the characteristics of a non linear system is the
+{\it load-pull} (see \cref{fig:load_coeff}). This measurement system presents a
+controllable load impedance (output tuner) the \gls{dut}. The fixed input tuner is
+needed to match the input of the \gls{dut} to the source. Load-pull can be used for obtaining the
+\gls{dut} characteristics, and for verifying an implementation. This system also
+allows to test the \gls{dut} under realistic working conditions.
+
+\begin{figure}[htb]
+    \centering
+    \begin{tikzpicture}
+        \draw node[source] (source) {}
+              node[tuner,right=of source,label=above:{fixed input tuner}] (ituner) {} 
+              node[dut,right=of ituner] (dut) {}
+              node[tuner,right=2 of dut,label=above:{output tuner}] (otuner) {}
+              node[match,right=of otuner,label=above:{$Z_0$}] (match) {}
+              node[rground,right=0.3 of match,rotate=90,anchor=center] (ground) {};
+        \draw ($(dut)!.5!(otuner)$) node[coordinate] (plane) {};
+
+        \draw (source) -- (ituner) -- (dut) -- (otuner) -- (match) -- (ground);
+
+        \draw [dashed] ($(plane) + (0,2)$) node[anchor=south] {Load Reference Plane} -- ($(plane) - (0,2.5)$);
+
+        \draw [latex-] ($(plane) + (0,1.5)$) -- ++(-0.5,0) node[anchor=east] {$Z_L$};
+
+        \draw [-latex] ($(plane) + (0.25,-1)$) node[anchor=west] {$a_2$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0.25,-1.5)$) node[anchor=west] {$b_2$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0,-2)$) -- ++(-0.5,0) node[anchor=east] {$\Gamma_L$};
+        
+    \end{tikzpicture}
+    \caption{Load reflection coefficient}
+    \label{fig:load_coeff}
+\end{figure}
+
+The \cref{eq:gl,eq:zl} show the relations between the load reflection coefficient $\Gamma_L$,
+the incident wave $a_2$, the reflected
+wave $b_2$, and the load impedance $Z_L$ at port 2 of \cref{fig:sparam,fig:load_coeff}. $Z_0$
+is the characteristic impedance of the system \cite{hashmi_highly_2011}.
+\begin{align}
+    \label{eq:gl} \Gamma_L & = \frac{a_2}{b_2} \\
+    \label{eq:zl} \Gamma_L & = \frac{Z_L-Z_0}{Z_L+Z_0}
+\end{align}
+The output tuner in \cref{fig:load_coeff} synthesizes an appropriate $\Gamma_L$
+either by varying the phase and magnitude of the reflected wave $a_2$ or by varying
+the load impedance $Z_L$. This means, that it is possible to build a load-pull
+setup by either using a passive tuner, or feeding a modified wave back to the
+\gls{dut}.
+
+There are various types of load-pull measurement setups, which have different
+characteristics. One important features is the repeatability of reflection
+coefficients. The repeatability is needed to ensure acurate application
+specific device models. Another important factor is the tuning range and
+distribution (e.g. \cref{fig:range_passive}). Usually passive load-pull
+systems have a more limited tuning range than active ones, but provide a
+better repeatability \cite{ghannouchi_load-pull_2013}. Tuner speed and tuner
+resolution is an additional tradoff. High resolution is needed, because \glspl{pa} are
+highly sensitive to impedance variations, but a high resolution incurs
+a slow tuner speed (an exemplary resolution can be seen in \cref{fig:generic_emt}).
+Power handling capability is another extremely important factor. The load-pull
+setup has to be capable to sustain the power presented to the tuner without
+damage. Which load-pull setup to choose for a specific \gls{dut} depends on
+these requirements.
+
+\begin{figure}[htb]
+    \begin{subfigure}[b]{.5\linewidth}
+        \centering
+        \begin{tikzpicture}
+            \begin{smithchart}[width=.9\linewidth]
+                \addplot[blue,is smithchart cs,mark=o,only marks] file {testdata/generic_emt.data};
+            \end{smithchart}
+        \end{tikzpicture}
+        \caption{\Gls{emt}}
+        \label{fig:generic_emt}
+    \end{subfigure}%
+    \begin{subfigure}[b]{.5\linewidth}
+        \centering
+        \begin{tikzpicture}
+            \begin{smithchart}[width=.9\linewidth]
+                \node [circle,draw,pattern=crosshatch,minimum size=.6\linewidth] (0,0) {};
+            \end{smithchart}
+        \end{tikzpicture}
+        \caption{Passive load-pull system}
+        \label{fig:range_passive}
+    \end{subfigure}
+    \caption{Generic representation of achievable tuning range/points passive load-pull}
+\end{figure}
+
+Passive load-pull systems are based on the block diagram in \cref{fig:load_coeff}. Depending on
+the desired measurements, additional needed circuit elements like directional couplers,
+power meters, and oscilloscopes are needed. For higher power measurements additional
+amplifiers and attenuators, to reduce the output power to acceptable levels, might also
+be needed. These additional components, the cabling and connectors add additional loss
+on the reflection path, leading to achievable reflection levels $\abs{\Gamma_L} < 1$ with
+a maximum usually around 0.75 \cite{de_groote_introduction_2008} (see \cref{fig:range_passive}).
+
+Typical tuners used consist of a transmission line and a probe, that introduces a mismatch
+by adding a parallel susceptance. Varying the position of the probe along the transmission
+line changes the phase of the impedance mismatch and the distance the magnitude \cite{hashmi_highly_2011}.
+Automated positioning can be achieved by adding motors. These tuners are called \glspl{emt}.
+These tuners have to be calibrated before use and achieve reflection levels like in
+\cref{fig:generic_emt} with up to 10000 points \cite{ghannouchi_load-pull_2013}.
+
+If higher $\abs{\Gamma_L}$-levels  are needed (even levels $> 1$), active load-pull setups
+can be used. There are two categories: closed- and open loop. 
+
+\begin{figure}[htb]
+    \centering
+    \begin{tikzpicture}
+        \draw node[dut] (dut) {}
+              node[circulator,right=2 of dut] (circ) {}
+              node[vmatch,right=of circ,label=above:{Attenuator},yshift=1cm] (att) {}
+              node[vphase,right=1.5 of att,label=above:{Phase shift}] (phase) {}
+              node[amplifier,right=of circ,label=below:{Amplifier},yshift=-1cm,rotate=180,scale=0.6,anchor=east] (amp) {};
+
+        \draw ($(dut)!.5!(circ)$) node[coordinate] (plane) {};
+
+        \draw (dut) -- (circ.A);
+        \draw (circ.B) -- ($(circ.B |- att)!.5!(att)$) node[coordinate] (upper) {} -- (att) -- (phase) -- ++(1,0) |- (amp) -- ($(circ.C |- amp)!.5!(amp)$) node[coordinate] (lower) {} -- (circ.C);
+
+        \draw [-latex] ($(circ.B) + (-0.2,0.2)$) -- node[sloped,above] {$b_2$} ($(upper) + (-0.2,0.2)$);
+        \draw [latex-] ($(circ.C) + (-0.2,-0.2)$) -- node[sloped,below] {$a_2$} ($(lower) + (-0.2,-0.2)$);
+
+        \draw [dashed] ($(plane) + (0,2)$) node[anchor=south] {Load Reference Plane} -- ($(plane) - (0,2.5)$);
+
+        \draw [latex-] ($(plane) + (0,1.5)$) -- ++(-0.5,0) node[anchor=east] {$Z_L$};
+
+        \draw [-latex] ($(plane) + (0.25,-1)$) node[anchor=west] {$a_2$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0.25,-1.5)$) node[anchor=west] {$b_2$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0,-2)$) -- ++(-0.5,0) node[anchor=east] {$\Gamma_L$};
+    \end{tikzpicture}
+    \caption{Active closed loop load-pull block diagram}
+    \label{fig:active_closed_loop}
+\end{figure}
+
+Closed loop active load-pull setups generate a modified reflected wave $a_2$ by
+modifying the phase and magnitude of $b_2$ and feeding it back to the \gls{dut}.
+The functional block diagram which can be seen in \Cref{fig:active_closed_loop}
+is an example of such a closed loop active load-pull setup. With the circulator
+the power wave $b_2$ is fed to a variable attenuator, a phase shifter and a
+amplifier. Those elements enable modifying the phase and the magnitude of $b_2$,
+which is again fed back to the \gls{dut} with the circulator. Because of limited
+isolation provided by real world circulators this system is able to oscillate. This
+can be compensated by introducing a bandpass filter into the loop and further improved
+with an isolator after the amplifier \cite{ghannouchi_load-pull_2013}.
+
+\begin{figure}[htb]
+    \centering
+    \begin{tikzpicture}
+        \draw node[dut] (dut) {}
+              node[isolator,right=2 of dut,rotate=180,anchor=east] (iso) {}
+              node[amplifier,rotate=180,scale=0.6,right=of iso.west,anchor=east,label=below:Amplifier] (amp) {}
+              node[vphase,right=of amp.west,label=below:{Phase Shift}] (shift) {}
+              node[vmatch,right=of shift,label=above:{Attenuator}] (att) {}
+              node[source,right=of att,label=below:{Phase Locked Source}] (source) {};
+
+        \draw ($(dut)!.5!(iso)$) node[coordinate] (plane) {};
+
+        \draw (dut) -- (iso) -- (amp) -- (shift) -- (att) -- (source);
+
+        \draw [dashed] ($(plane) + (0,2)$) node[anchor=south] {Load Reference Plane} -- ($(plane) - (0,2.5)$);
+
+        \draw [latex-] ($(plane) + (0,1.5)$) -- ++(-0.5,0) node[anchor=east] {$Z_L$};
+
+        \draw [-latex] ($(plane) + (0.25,-1)$) node[anchor=west] {$a_2$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0.25,-1.5)$) node[anchor=west] {$b_2$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0,-2)$) -- ++(-0.5,0) node[anchor=east] {$\Gamma_L$};
+    \end{tikzpicture}
+    \caption{Active open loop load-pull block diagram}
+    \label{fig:active_open_loop}
+\end{figure}
+
+Open loop active load-pull setups work by generating a phase coherent wave with
+an external signal generator (see \cref{fig:active_open_loop}). The open loop
+approach has the advantage, that it can't oscillate, since there is no closed loop.
+It works by generating a signal with a source, that is locked to the generator driving the
+source port of the \gls{dut}. Phase and Magnitude can be adjusted with the attenuator and
+phase shifter. A disadvantage of the closed loop system is that the generated wave at
+the load generator is equivalent to the one on the source side. This implies that the reflection coefficient
+$\Gamma_L$ depends on the large-signal \glspl{sparam} $S_{21}$ and $S_{22}$ of the \gls{dut}.
+Therefor an iterative approach is needed to be able to achieve specific $\Gamma_L$ \cite{muller_comparison_1994}.
+
+The following chapters introduce an active closed loop load-pull system, which
+is built with a digital attenuator, phase shifter, and loop filter implemented
+in a \gls{fpga}.
+
+% ===========================================================================
+
+\chapter{FPGA-based Load-Pull Measurement System}
 \section{One Port Vector Network Analyzer}
 \section{Reflection Generation}
 \chapter{FPGA Implementation}
@@ -299,7 +593,7 @@ Thanks to the team of the microwave lab even if they only have one microwave ove
     \listoffigures
 
     \bibliographystyle{IEEEtran}
-    \bibliography{IEEEabrv,literature}
+    \bibliography{main}
 
 \begin{otherlanguage}{ngerman}
     \chapter*{Code of Conduct}
