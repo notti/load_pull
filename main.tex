@@ -158,14 +158,14 @@ pdfpagelabels %,hidelinks
 
 \chapter{Introduction}
 
-At \gls{rf} and \gls{mw} frequencies the circuit theory with lumped elements, where
-voltage and current do not vary over the physical dimension of the elemnts is of limited
-value. The wavelength at these frequencies is on the order of the circuit
+At \gls{rf} and \gls{mw} frequencies, the circuit theory with lumped elements, where
+voltage and current do not vary over the physical dimension of the elements, is of limited
+value. The wavelength at these frequencies is of the order of the circuit
 element dimensions. This means that transmission line theory has to be used instead \cite{pozar_mw_engineering_2011}.
 This theory applies circuit theory to infinitesimal small pieces of the lumped elements
 and introduces the concept of forward and backward traveling power waves.
 
-For this reason instead of impedance- and admittance matrices, \glspl{sparam}
+For this reason, instead of impedance- and admittance matrices, \glspl{sparam}
 are commonly used in \gls{rf} and \gls{mw} circuit engineering to describe
 $N$-ports (see \cref{fig:sparam,eq:sparam} for a 2-port). $a_i$ denotes the incident and
 $b_i$ the reflected power wave. Complex valued $S_{ii}$ represents the
@@ -214,18 +214,18 @@ characteristic impedance $Z_0$, and a reference plane (port 1 and port 2 in \cre
     \begin{pmatrix} b_1 \\ b_2 \end{pmatrix} = \begin{pmatrix} S_{11} & S_{12} \\ S_{21} & S_{22} \end{pmatrix} \begin{pmatrix} a_1 \\ a_2 \end{pmatrix}
 \end{equation}
 
-In a 1-port there is only $S_{11}$. This parameter is equivalent with the reflection
+In a 1-port there is only $S_{11}$. This parameter is equivalent to the reflection
 coefficient $\Gamma$ and can be also expressed by the input impedance $Z_{in}$ (see
-\cref{eq:s11ref}). This does not necessarily hold for 2-ports, since for a fully
+\cref{eq:s11ref} as shown in \cite{pozar_mw_engineering_2011}). This does not necessarily hold for 2-ports, since for a fully
 connected 2-port, also reflections from the device connected at the other port
 can be seen.
 \begin{equation}
-    \label{eq:s11ref} \Gamma = S_{11} = \frac{Z_{in}-Z_0}{Z_{in}+Z_0} \cite{pozar_mw_engineering_2011}
+    \label{eq:s11ref} \Gamma = S_{11} = \frac{Z_{in}-Z_0}{Z_{in}+Z_0}
 \end{equation}
 
 One way to measure \glspl{sparam} at a specific frequency would be with connecting
 a matching impedance $Z_0$. To measure e.g. $S_{11}$ a matching impedance has to
-be connected to port 2. According to \cref{eq:s11ref} the reflected wave $b_2$
+be connected to port 2. According to \cref{eq:s11ref} the reflected wave $a_2$
 at port 2 is zero in this case. This means that measurements at port 1 can only see the
 reflections caused by $S_{11}$. $S_{11}$ can now be calculated by measuring the incident
 and reflected wave at port 1 (see \cref{eq:s11}) \cite{agilent_an_154}.
@@ -249,10 +249,10 @@ In modern \gls{rf} and \gls{mw} application the efficiency is increased with inp
 output matching networks, that improve the performance. This comes at the cost of non
 linear behaviour of the \gls{pa} \cite{ghannouchi_load-pull_2013}.
 
-Because of this non linearities more complex models and verification systems are
+Because of these non linearities more complex models and verification systems are
 needed. One way to measure the characteristics of a non linear system is the
 {\it load-pull} (see \cref{fig:load_coeff}). This measurement system presents a
-controllable load impedance (output tuner) the \gls{dut}. The fixed input tuner is
+controllable load impedance (output tuner) to the \gls{dut}. The fixed input tuner is
 needed to match the input of the \gls{dut} to the source. Load-pull can be used for obtaining the
 \gls{dut} characteristics, and for verifying an implementation. This system also
 allows to test the \gls{dut} under realistic working conditions.
@@ -299,14 +299,14 @@ setup by either using a passive tuner, or feeding a modified wave back to the
 
 There are various types of load-pull measurement setups, which have different
 characteristics. One important features is the repeatability of reflection
-coefficients. The repeatability is needed to ensure acurate application
+coefficients. The repeatability is needed to ensure accurate application
 specific device models. Another important factor is the tuning range and
 distribution (e.g. \cref{fig:range_passive}). Usually passive load-pull
 systems have a more limited tuning range than active ones, but provide a
 better repeatability \cite{ghannouchi_load-pull_2013}. Tuner speed and tuner
-resolution is an additional tradoff. High resolution is needed, because \glspl{pa} are
-highly sensitive to impedance variations, but a high resolution incurs
-a slow tuner speed (an exemplary resolution can be seen in \cref{fig:generic_emt}).
+resolution is an additional trade off. High resolution is needed since \glspl{pa} are
+highly sensitive to impedance variations. However a high resolution incurs
+a slow tuner speed. An exemplary resolution can be seen in \cref{fig:generic_emt}.
 Power handling capability is another extremely important factor. The load-pull
 setup has to be capable to sustain the power presented to the tuner without
 damage. Which load-pull setup to choose for a specific \gls{dut} depends on
@@ -337,18 +337,18 @@ these requirements.
 \end{figure}
 
 Passive load-pull systems are based on the block diagram in \cref{fig:load_coeff}. Depending on
-the desired measurements, additional needed circuit elements like directional couplers,
+the desired measurements, additional circuit elements like directional couplers,
 power meters, and oscilloscopes are needed. For higher power measurements additional
 amplifiers and attenuators, to reduce the output power to acceptable levels, might also
-be needed. These additional components, the cabling and connectors add additional loss
+be needed. These additional components, the cabling, and connectors add additional loss
 on the reflection path, leading to achievable reflection levels $\abs{\Gamma_L} < 1$ with
 a maximum usually around 0.75 \cite{de_groote_introduction_2008} (see \cref{fig:range_passive}).
 
-Typical tuners used consist of a transmission line and a probe, that introduces a mismatch
+Typical tuners used, consist of a transmission line and a probe, that introduces a mismatch
 by adding a parallel susceptance. Varying the position of the probe along the transmission
 line changes the phase of the impedance mismatch and the distance the magnitude \cite{hashmi_highly_2011}.
 Automated positioning can be achieved by adding motors. These tuners are called \glspl{emt}.
-These tuners have to be calibrated before use and achieve reflection levels like in
+Those have to be calibrated before use and achieve reflection levels like in
 \cref{fig:generic_emt} with up to 10000 points \cite{ghannouchi_load-pull_2013}.
 
 If higher $\abs{\Gamma_L}$-levels  are needed (even levels $> 1$), active load-pull setups
@@ -383,16 +383,17 @@ can be used. There are two categories: closed- and open loop.
     \label{fig:active_closed_loop}
 \end{figure}
 
-Closed loop active load-pull setups generate a modified reflected wave $a_2$ by
+Active closed loop load-pull setups generate a modified reflected wave $a_2$ by
 modifying the phase and magnitude of $b_2$ and feeding it back to the \gls{dut}.
 The functional block diagram which can be seen in \Cref{fig:active_closed_loop}
-is an example of such a closed loop active load-pull setup. With the circulator
+is an example of such an active closed loop load-pull setup. With the circulator
 the power wave $b_2$ is fed to a variable attenuator, a phase shifter and a
-amplifier. Those elements enable modifying the phase and the magnitude of $b_2$,
+amplifier. These elements enable modifying the phase and the magnitude of $b_2$,
 which is again fed back to the \gls{dut} with the circulator. Because of limited
-isolation provided by real world circulators this system is able to oscillate. This
-can be compensated by introducing a bandpass filter into the loop and further improved
-with an isolator after the amplifier \cite{ghannouchi_load-pull_2013}.
+isolation provided by real world circulators this system will oscillate if the loop gain
+exceeds the isolation \cite{ghannouchi_load-pull_2013}. This can be circumvented with
+an isolator after the amplifier. Another way to improve the stability of the system
+is to introduce a bandpass filter into the loop.
 
 \begin{figure}[htb]
     \centering
@@ -421,15 +422,15 @@ with an isolator after the amplifier \cite{ghannouchi_load-pull_2013}.
     \label{fig:active_open_loop}
 \end{figure}
 
-Open loop active load-pull setups work by generating a phase coherent wave with
+Active open loop load-pull setups work by generating a phase coherent wave with
 an external signal generator (see \cref{fig:active_open_loop}). The open loop
 approach has the advantage, that it can't oscillate, since there is no closed loop.
 It works by generating a signal with a source, that is locked to the generator driving the
-source port of the \gls{dut}. Phase and Magnitude can be adjusted with the attenuator and
-phase shifter. A disadvantage of the closed loop system is that the generated wave at
+source port of the \gls{dut}. Phase and magnitude can be adjusted with the attenuator and
+phase shifter. A disadvantage of the open loop system is that the generated wave at
 the load generator is equivalent to the one on the source side. This implies that the reflection coefficient
 $\Gamma_L$ depends on the large-signal \glspl{sparam} $S_{21}$ and $S_{22}$ of the \gls{dut}.
-Therefor an iterative approach is needed to be able to achieve specific $\Gamma_L$ \cite{muller_comparison_1994}.
+Therefore, an iterative approach is needed to be able to achieve specific $\Gamma_L$ \cite{muller_comparison_1994}.
 
 The following chapters introduce an active closed loop load-pull system, which
 is built with a digital attenuator, phase shifter, and loop filter implemented
