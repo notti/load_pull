@@ -5,7 +5,6 @@
 \ctikzset{rf/filter/sinewidth/.initial=0.8}
 \ctikzset{rf/filter/sineheight/.initial=0.2}
 \ctikzset{rf/switch/length/.initial=0.6}
-\ctikzset{rf/adc/width/.initial=1}
 
 
 \long\def\pgfrfdeclarenode#1#2#3{
@@ -249,6 +248,17 @@
     }
 }
 
+\long\def\pgfrfdeclarebipoleslash#1#2{
+    \pgfrfdeclarebipole{#1}{
+        \pgf@circ@res@step = \pgf@circ@res@left
+        \pgfmathaddtolength{\pgf@circ@res@step}{4pt - 4pt*cos(-45)}
+        \pgfpathmoveto{\pgfpoint{\pgf@circ@res@step}{\pgf@circ@res@step}}
+        \pgfpathlineto{\pgfpoint{-\pgf@circ@res@step}{-\pgf@circ@res@step}}
+        \pgfusepath{draw}
+        #2
+    }
+}
+
 \long\def\pgfrfdeclaretripole#1#2{
     \pgfrfdeclarenode{#1}{#2}{
         \anchor{A1}{
@@ -287,90 +297,6 @@
             \northwest
             \pgf@y=-0.5\pgf@y
             \pgf@x=-\pgf@x
-        }
-    }
-}
-
-\long\def\pgfrfdeclaredadc#1#2{
-    \pgfdeclareshape{#1}
-    {
-        \anchor{center}{
-            \pgfpointorigin
-        }
-        \savedanchor\northwest{%
-            \pgf@y=\pgfkeysvalueof{/tikz/circuitikz/bipoles/length}
-            \pgf@y=\pgfkeysvalueof{/tikz/circuitikz/rf/height}\pgf@y
-            \pgf@y=.5\pgf@y
-            \pgf@x=\pgfkeysvalueof{/tikz/circuitikz/bipoles/length}
-            \pgf@x=.5\pgf@x
-            \pgf@x=-\pgfkeysvalueof{/tikz/circuitikz/rf/adc/width}\pgf@x
-        }
-        \anchor{north}{
-            \northwest
-            \pgf@x=0pt
-        }
-        \anchor{south}{
-            \northwest
-            \pgf@x=0pt
-            \pgf@y=-\pgf@y
-        }
-        \anchor{west}{
-            \northwest
-            \pgf@y=0pt
-        }
-        \anchor{east}{
-            \northwest
-            \pgf@y=0pt
-            \pgf@x=-\pgf@x
-        }
-        \anchor{south west}{
-            \northwest
-            \pgf@y=-\pgf@y
-        }
-        \anchor{north east}{
-            \northwest
-            \pgf@x=-\pgf@x
-        }
-        \anchor{north west}{
-            \northwest
-        }
-        \anchor{south east}{
-            \northwest
-            \pgf@x=-\pgf@x
-            \pgf@y=-\pgf@y
-        }	  
-        \anchor{base}{
-            \northwest
-            \pgf@x=0pt	  	
-        }
-        \anchor{A}{
-            \northwest
-            \pgf@y=0pt
-        }
-        \anchor{B}{
-            \northwest
-            \pgf@y=0pt
-            \pgf@x=-\pgf@x
-        }
-        \anchorborder{
-            \@tempdima=\pgf@x
-            \@tempdimb=\pgf@y
-            \northwest
-            \pgf@xa=-\pgf@x
-            \pgf@ya=\pgf@y
-            \pgfpointborderrectangle{\pgfpoint{\@tempdima}{\@tempdimb}}{\pgfpoint{\pgf@xa}{\pgf@ya}}
-        }
-        \backgroundpath{			
-            \pgfsetcolor{\pgfkeysvalueof{/tikz/circuitikz/color}}	
-
-            \northwest
-            \pgf@circ@res@up = \pgf@y 
-            \pgf@circ@res@down = -\pgf@y
-            \pgf@circ@res@right = -\pgf@x
-            \pgf@circ@res@left = \pgf@x
-
-            #2
-
         }
     }
 }
@@ -507,28 +433,26 @@
     \pgfusepath{draw,fill}
 }
 
-\pgfrfdeclaredadc{adc}{
-    \pgf@xa=\pgf@circ@res@left
-    \divide \pgf@xa by 3
-    \pgfpathmoveto{\pgfpoint{\pgf@circ@res@left}{0pt}}
-    \pgfpathlineto{\pgfpoint{\pgf@xa}{\pgf@circ@res@up}}
-    \pgfpathlineto{\pgfpoint{\pgf@circ@res@right}{\pgf@circ@res@up}}
-    \pgfpathlineto{\pgfpoint{\pgf@circ@res@right}{\pgf@circ@res@down}}
-    \pgfpathlineto{\pgfpoint{\pgf@xa}{\pgf@circ@res@down}}
-    \pgfclosepath
-    \pgfusepath{draw}
+\pgfrfdeclarebipoleslash{adc}{
+    \pgfscope
+        \pgftransformshift{\pgfpoint{0.5\pgf@circ@res@left}{0.5\pgf@circ@res@up}}
+        \pgftext{A}
+    \endpgfscope
+    \pgfscope
+        \pgftransformshift{\pgfpoint{0.5\pgf@circ@res@right}{0.5\pgf@circ@res@down}}
+        \pgftext{D}
+    \endpgfscope
 }
 
-\pgfrfdeclaredadc{dac}{
-    \pgf@xa=\pgf@circ@res@right
-    \divide \pgf@xa by 3
-    \pgfpathmoveto{\pgfpoint{\pgf@circ@res@right}{0pt}}
-    \pgfpathlineto{\pgfpoint{\pgf@xa}{\pgf@circ@res@up}}
-    \pgfpathlineto{\pgfpoint{\pgf@circ@res@left}{\pgf@circ@res@up}}
-    \pgfpathlineto{\pgfpoint{\pgf@circ@res@left}{\pgf@circ@res@down}}
-    \pgfpathlineto{\pgfpoint{\pgf@xa}{\pgf@circ@res@down}}
-    \pgfclosepath
-    \pgfusepath{draw}
+\pgfrfdeclarebipoleslash{dac}{
+    \pgfscope
+        \pgftransformshift{\pgfpoint{0.5\pgf@circ@res@left}{0.5\pgf@circ@res@up}}
+        \pgftext{D}
+    \endpgfscope
+    \pgfscope
+        \pgftransformshift{\pgfpoint{0.5\pgf@circ@res@right}{0.5\pgf@circ@res@down}}
+        \pgftext{A}
+    \endpgfscope
 }
 
 \pgfrfdeclarebipole{amp}{
@@ -1178,7 +1102,7 @@
             \pgfusepath{draw}
         \endpgfscope
         \pgfscope
-            \pgfsetarrowsend{Latex[length=2pt]}
+            \pgfsetarrows{-{latex[length=5mm]}}
             \pgfpathmoveto{\pgfpoint{-0.65\pgf@circ@res@up}{0}}
             \pgfpatharc{180}{0} {0.65\pgf@circ@res@up}
             \pgfusepath{draw}
@@ -1295,9 +1219,8 @@
         \pgfscope
             \pgfsetlinewidth{\pgfkeysvalueof{/tikz/circuitikz/bipoles/thickness}\pgflinewidth}
             \pgftransformshift{\pgfpoint{0.66\pgf@circ@res@right}{-\pgf@circ@res@other}}
-            \pgftransformscale{.3}
-            \pgftransformrotate{180}
-            \pgfnode{dac}{center}{}{pgf@dac}{\pgfusepath{stroke}}
+            \pgftransformscale{.5}
+            \pgfnode{adc}{center}{}{pgf@dac}{\pgfusepath{stroke}}
         \endpgfscope
         \pgfpathmoveto{\pgfpoint{\pgf@circ@res@left}{\pgf@circ@res@other}}
         \pgfpathlineto{\pgfpointanchor{pgf@amp}{out}}

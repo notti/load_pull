@@ -439,8 +439,107 @@ in a \gls{fpga}.
 % ===========================================================================
 
 \chapter{FPGA-based Load-Pull Measurement System}
+
+
+\begin{figure}[htb]
+    \centering
+    \begin{tikzpicture}
+        \draw node[dut] (dut) {}
+              node[dircoupler,right=2 of dut] (dirvna) {}
+              node[oscilloscope,above=of dirvna.A2,anchor=A1] (oszivna) {}
+              node[circulator,right=of dirvna] (circ) {}
+              node[adc,right=of circ,yshift=1cm] (att) {}
+              node[vphase,right=1.5 of att] (phase) {}
+              node[amplifier,right=of circ,label=below:{Amplifier},yshift=-1cm,rotate=180,scale=0.6,anchor=east] (amp) {};
+
+        \draw ($(dut)!.5!(dirvna)$) node[coordinate] (plane) {};
+
+        \draw [rounded corners=2pt]
+              (dut) -- (dirvna) -- (circ.A)
+              (circ.B) -- ($(circ.B |- att)!.5!(att)$) node[coordinate] (upper) {} -- (att) -- (phase) -- ++(1,0) |- (amp) -- ($(circ.C |- amp)!.5!(amp)$) node[coordinate] (lower) {} -- (circ.C)
+
+              (dirvna.A2) -- (oszivna.A1)
+              (dirvna.B2) |- ($(dirvna.B2)!.7!(oszivna.A2)$) node[coordinate] (oszimiddle) {} -| (oszivna.A2);
+
+        \draw [-latex] ($(dirvna.A2) + (-0.2,0.1)$) -- node[base left] {$b_{2,e}$} ($(oszivna.A1 |- oszimiddle) - (0.2,0.1)$);
+        \draw [-latex] ($(dirvna.B2) + (0.2,0.1)$) -- node[base right] {$a_{2,e}$} ($(oszimiddle -| dirvna.B2) + (0.2,-0.1)$);
+
+        \draw [dashed] ($(plane) + (0,3)$) node[anchor=south] {Load Reference Plane} -- ($(plane) - (0,2.5)$);
+
+        \draw [latex-] ($(plane) + (0,1.5)$) -- ++(-0.5,0) node[anchor=east] {$Z_L$};
+
+        \draw [-latex] ($(plane) + (0.25,-1)$) node[anchor=west] {$a_{2,dut}$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0.25,-1.5)$) node[anchor=west] {$b_{2,dut}$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0,-2)$) -- ++(-0.5,0) node[anchor=east] {$\Gamma_L$};
+    \end{tikzpicture}
+    \caption{System overview}
+    \label{fig:overall_hf}
+\end{figure}
+
 \section{One Port Vector Network Analyzer}
+\begin{figure}[htb]
+    \centering
+    \begin{tikzpicture}
+        \matrix (box)
+        [matrix of nodes,%
+         nodes in empty cells,
+         nodes={dspnodeopen},
+         column sep=1cm,
+         row sep=2cm]
+        {
+            |[coordinate]| & &[1.5cm] &[4cm] & |[coordinate]| \\
+            |[coordinate]| & & & & |[coordinate]| \\
+        };
+        \draw[-latex] (box-1-2) -- node[above] {$b_{2,dut}=a_{1,e}$}  (box-1-3);
+        \draw[-latex] (box-1-3) -- node[above] {$1$} (box-1-4);
+        \draw[-latex] (box-1-4) -- (box-1-5) node[anchor=west] {$b_{2,e}$};
+
+        \draw[latex-] (box-2-2) -- node[above] {$a_{2,dut}=b_{1,e}$} (box-2-3);
+        \draw[latex-] (box-2-3) -- node[above] {$S_{12}$} (box-2-4);
+        \draw[latex-] (box-2-4) -- (box-2-5) node[anchor=west] {$a_{2,e}$};
+
+        \draw[-latex] (box-1-3) to[bend left=30] node[right] {$S_{11}$} (box-2-3);
+        \draw[latex-] (box-1-4) to[bend right=30] node[left] {$S_{22}$} (box-2-4);
+
+        \draw[-latex] (box-1-2) to[bend right=30] node[left] {$\Gamma_L$} (box-2-2);
+
+        \draw ($(box-1-3) + (0,0.7cm)$) rectangle ($(box-2-4) - (0,0.7cm)$);
+        \draw ($(box-1-1) + (0,0.7cm)$) rectangle ($(box-2-2) - (0,0.7cm)$);
+        
+        \draw[dashed] (box-1-3) -- ++(0,1.5cm) node[anchor=south] {Load Reference Plane};
+        \draw[dashed] (box-1-4) -- ++(0,1.5cm) node[anchor=south] {Oscilloscope};
+
+        \draw[dashed] (box-2-3) -- ++(0,-1cm);
+        \draw[dashed] (box-2-4) -- ++(0,-1cm);
+    \end{tikzpicture}
+    \caption{Errorbox for the one port vector network analyzer}
+    \label{fig:errorbox}
+\end{figure}
+
+\begin{align}
+    b_2 & = a_1 + S_{22} a_2\\
+    b_1 & = S_{11} a_1 + S_{12} a_2 \\
+    a_2 & = \Gamma_L b_2
+\end{align}
+
+\begin{equation}
+    \Gamma_L = \frac{S_{11} - \frac{b_1}{a_1}}{S_{11} S_{22} - S_{22}\frac{b_1}{a_1} - S_{12}} 
+\end{equation}
+
+\begin{align}
+\Gamma_1 & = \frac{a_1}{b_1} \\
+\begin{split}
+g & = (\Gamma_{1_O} - \Gamma_{1_S}) \Gamma_{1_M} \Gamma_{L_O} \Gamma_{L_S} + \Gamma_{L_M} ((\Gamma_{1_M} - \Gamma_{1_O}) \Gamma_{1_S} \Gamma_{L_O} + (\Gamma_{1_S} - \Gamma_{1_M}) \Gamma_{1_O} \Gamma_{L_S})
+\end{split}\\
+S_{11} & = \frac{(\Gamma_{1_O} - \Gamma_{1_S}) \Gamma_{L_O} \Gamma_{L_S} + \Gamma_{L_M} ((\Gamma_{1_M} - \Gamma_{1_O}) \Gamma_{L_O} + (\Gamma _{1_S} - \Gamma _{1_M}) \Gamma_{L_S})}{g} \\
+S_{12} & = \frac{(\Gamma_{1_O} - \Gamma_{1_M}) (\Gamma_{1_M} - \Gamma_{1_S}) (\Gamma_{1_O} - \Gamma_{1_S}) (\Gamma_{L_M} - \Gamma_{L_O}) (\Gamma_{L_M} - \Gamma_{L_S}) (\Gamma_{L_O} - \Gamma_{L_S})}{g^2} \\
+S_{22} & = \frac{(\Gamma_{1_S} - \Gamma_{1_O}) \Gamma_{1_M} \Gamma_{L_M} + (\Gamma_{1_M} - \Gamma_{1_S}) \Gamma_{1_O} \Gamma_{L_O} + (\Gamma_{1_O} - \Gamma_{1_M}) \Gamma_{1_S} \Gamma_{L_S}}{g}
+\end{align}
+
 \section{Reflection Generation}
+
+% ===========================================================================
+
 \chapter{FPGA Implementation}
 \section{Data Acquisition}
 \section{Overlap Add}
@@ -569,9 +668,13 @@ in a \gls{fpga}.
             width=\linewidth
         ]
         \addplot[blue] table {\phaseall};
+        \addlegendentry{\gls{vna}}
         \addplot[green] table[x index=0,y index=2] {\phaseall};
+        \addlegendentry{R\&S SMIQ}
         \addplot[red] table[y index=3] {\phaseall};
+        \addlegendentry{R\&S SMGU}
         \addplot[black] table[y index=4] {\phaseall};
+        \addlegendentry{R\&S SMBV}
     \end{axis}
 \end{tikzpicture}
 \chapter{Conclusions and Outlook}
