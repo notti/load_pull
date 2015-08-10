@@ -158,13 +158,12 @@ pdfpagelabels %,hidelinks
 
 \chapter{Introduction}
 
-At \gls{rf} and \gls{mw} frequencies the lumped element model is of limited
+At \gls{rf} and \gls{mw} frequencies the circuit theory with lumped elements, where
+voltage and current do not vary over the physical dimension of the elemnts is of limited
 value. The wavelength at these frequencies is on the order of the circuit
-element dimensions. This means that there are no planes of equal electromagnetic
-potential any more and the line integrals become dependent on the chosen path.
-Because of this Kirchoff's laws are not applicable at these frequencies. Although
-it is often possible to fix these shortcomings by adding parasitic capacitances,
-it is easier to use the concept of forward and backward traveling power waves.
+element dimensions. This means that transmission line theory has to be used instead \cite{pozar_mw_engineering_2011}.
+This theory applies circuit theory to infinitesimal small pieces of the lumped elements
+and introduces the concept of forward and backward traveling power waves.
 
 For this reason instead of impedance- and admittance matrices, \glspl{sparam}
 are commonly used in \gls{rf} and \gls{mw} circuit engineering to describe
@@ -221,7 +220,7 @@ coefficient $\Gamma$ and can be also expressed by the input impedance $Z_{in}$ (
 connected 2-port, also reflections from the device connected at the other port
 can be seen.
 \begin{equation}
-    \label{eq:s11ref} \Gamma = S_{11} = \frac{Z_{in}-Z_0}{Z_{in}+Z_0}
+    \label{eq:s11ref} \Gamma = S_{11} = \frac{Z_{in}-Z_0}{Z_{in}+Z_0} \cite{pozar_mw_engineering_2011}
 \end{equation}
 
 One way to measure \glspl{sparam} at a specific frequency would be with connecting
@@ -229,7 +228,7 @@ a matching impedance $Z_0$. To measure e.g. $S_{11}$ a matching impedance has to
 be connected to port 2. According to \cref{eq:s11ref} the reflected wave $b_2$
 at port 2 is zero in this case. This means that measurements at port 1 can only see the
 reflections caused by $S_{11}$. $S_{11}$ can now be calculated by measuring the incident
-and reflected wave at port 1 (see \cref{eq:s11}).
+and reflected wave at port 1 (see \cref{eq:s11}) \cite{agilent_an_154}.
 \begin{align}
     \label{eq:s11} S_{11} & = \left.\frac{b_1}{a_1} \right\rvert_{a_2 = 0}\\
     \label{eq:s21} S_{21} & = \left.\frac{b_2}{a_1} \right\rvert_{a_2 = 0}
@@ -408,6 +407,7 @@ with an isolator after the amplifier \cite{ghannouchi_load-pull_2013}.
         \draw ($(dut)!.5!(iso)$) node[coordinate] (plane) {};
 
         \draw (dut) -- (iso) -- (amp) -- (shift) -- (att) -- (source);
+        \draw [latex-] ($(iso.west) + (0.2,-0.2)$) -- node[below] {$a_2$} ($(amp.east) + (-0.2,-0.2)$);
 
         \draw [dashed] ($(plane) + (0,2)$) node[anchor=south] {Load Reference Plane} -- ($(plane) - (0,2.5)$);
 
