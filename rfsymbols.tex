@@ -467,6 +467,47 @@
     \pgfusepath{draw}
 }
 
+\pgfrfdeclaresimplenode{mixer}
+{
+    \pgf@y=\pgfkeysvalueof{/tikz/circuitikz/bipoles/length}
+    \pgf@y=\pgfkeysvalueof{/tikz/circuitikz/tripoles/mixer/height}\pgf@y
+    \pgf@y=.4\pgf@y
+    \pgf@y=.5\pgf@y
+    \pgf@x=\pgfkeysvalueof{/tikz/circuitikz/bipoles/length}
+    \pgf@x=.5\pgf@x
+    \pgf@x=.4\pgf@x
+    \pgf@x=-\pgfkeysvalueof{/tikz/circuitikz/tripoles/mixer/width}\pgf@x
+}
+{
+    \anchorborder{
+        \@tempdima=\pgf@x
+        \@tempdimb=\pgf@y
+        \northwest
+        \pgf@xa=-\pgf@x
+        \pgf@ya=\pgf@y
+        \pgfpointborderellipse{\pgfpoint{\@tempdima}{\@tempdimb}}{\pgfpoint{\pgf@xa}{\pgf@ya}}
+    }
+}
+{
+    \northwest
+    \pgf@circ@res@up = \pgf@y 
+    \pgf@circ@res@down = -\pgf@y
+    \pgf@circ@res@right = -\pgf@x
+    \pgf@circ@res@left = \pgf@x
+    \pgfscope
+        \pgfsetlinewidth{\pgfkeysvalueof{/tikz/circuitikz/bipoles/thickness}\pgflinewidth}
+        \pgfpathcircle{\pgfpoint{0}{0}}{\pgf@circ@res@up}
+        \pgfusepath{draw}
+    \endpgfscope
+    \pgfmathsetlength{\pgf@circ@res@step}{\the\pgf@circ@res@right*cos(45)}
+    \pgfpathmoveto{\pgfpoint{\pgf@circ@res@step}{\pgf@circ@res@step}}
+    \pgfpathlineto{\pgfpoint{-\pgf@circ@res@step}{-\pgf@circ@res@step}}
+    \pgfpathmoveto{\pgfpoint{-\pgf@circ@res@step}{\pgf@circ@res@step}}
+    \pgfpathlineto{\pgfpoint{\pgf@circ@res@step}{-\pgf@circ@res@step}}
+    \pgfusepath{draw}
+}
+
+
 \pgfrfdeclarenode{iqmix}{
     \pgfscope             
         \pgftransformshift{\pgfpoint{0.5\pgf@circ@res@right}{0.5\pgf@circ@res@up}}
@@ -739,8 +780,10 @@
     \pgf@y=\pgfkeysvalueof{/tikz/circuitikz/bipoles/length}
     \pgf@y=\pgfkeysvalueof{/tikz/circuitikz/bipoles/buffer/height}\pgf@y
     \pgf@y=.5\pgf@y
+    \pgf@y=.6\pgf@y
     \pgf@x=\pgfkeysvalueof{/tikz/circuitikz/bipoles/length}
     \pgf@x=.5\pgf@x
+    \pgf@x=.4\pgf@x
     \pgf@x=-\pgfkeysvalueof{/tikz/circuitikz/bipoles/buffer/width}\pgf@x
 }
 {
@@ -759,8 +802,13 @@
     \pgf@circ@res@down = -\pgf@y
     \pgf@circ@res@right = -\pgf@x
     \pgf@circ@res@left = \pgf@x
-    \pgfscope             
-        \pgfnode{buffer}{center}{}{pgf@att}{\pgfusepath{stroke}}
+    \pgfscope
+        \pgfsetlinewidth{\pgfkeysvalueof{/tikz/circuitikz/bipoles/thickness}\pgflinewidth}
+        \pgfpathmoveto{\pgfpoint{\pgf@circ@res@left}{0pt}}
+        \pgfpathlineto{\pgfpoint{\pgf@circ@res@right}{\pgf@circ@res@up}}
+        \pgfpathlineto{\pgfpoint{\pgf@circ@res@right}{\pgf@circ@res@down}}
+        \pgfpathclose
+        \pgfusepath{stroke}
     \endpgfscope
 }
 
@@ -1022,21 +1070,18 @@
     }
 }
 
-\pgfdeclareshape{circulator}
+\pgfrfdeclaresimplenode{circulator}
 {
-    \anchor{center}{
-        \pgfpointorigin
-    }
-    \savedanchor\northwest{%
-        \pgf@y=\pgfkeysvalueof{/tikz/circuitikz/bipoles/length}
-        \pgf@y=\pgfkeysvalueof{/tikz/circuitikz/tripoles/mixer/height}\pgf@y
-        \pgf@y=.5\pgf@y
-        \pgf@y=\pgfkeysvalueof{/tikz/circuitikz/tripoles/mixer/margin}\pgf@y
-        \pgf@x=\pgfkeysvalueof{/tikz/circuitikz/bipoles/length}
-        \pgf@x=.5\pgf@x
-        \pgf@x=-\pgfkeysvalueof{/tikz/circuitikz/tripoles/mixer/width}\pgf@x
-        \pgf@x=\pgfkeysvalueof{/tikz/circuitikz/tripoles/mixer/margin}\pgf@x
-    }
+    \pgf@y=\pgfkeysvalueof{/tikz/circuitikz/bipoles/length}
+    \pgf@y=\pgfkeysvalueof{/tikz/circuitikz/tripoles/mixer/height}\pgf@y
+    \pgf@y=.5\pgf@y
+    \pgf@y=\pgfkeysvalueof{/tikz/circuitikz/tripoles/mixer/margin}\pgf@y
+    \pgf@x=\pgfkeysvalueof{/tikz/circuitikz/bipoles/length}
+    \pgf@x=.5\pgf@x
+    \pgf@x=-\pgfkeysvalueof{/tikz/circuitikz/tripoles/mixer/width}\pgf@x
+    \pgf@x=\pgfkeysvalueof{/tikz/circuitikz/tripoles/mixer/margin}\pgf@x
+}
+{
     \anchor{A}{
         \northwest
         \pgf@y=0pt
@@ -1049,65 +1094,33 @@
         \northwest
         \pgfpointpolar{-45}{\pgf@y}
     }
-    \anchor{north}{
+    \anchorborder{
+        \@tempdima=\pgf@x
+        \@tempdimb=\pgf@y
         \northwest
-        \pgf@x=0pt
+        \pgf@xa=-\pgf@x
+        \pgf@ya=\pgf@y
+        \pgfpointborderellipse{\pgfpoint{\@tempdima}{\@tempdimb}}{\pgfpoint{\pgf@xa}{\pgf@ya}}
     }
-    \anchor{south}{
-        \northwest
-        \pgf@x=0pt
-        \pgf@y=-\pgf@y
-    }
-    \anchor{west}{
-        \northwest
-        \pgf@y=0pt
-    }
-    \anchor{east}{
-        \northwest
-        \pgf@y=0pt
-        \pgf@x=-\pgf@x
-    }
-    \anchor{south west}{
-        \northwest
-        \pgf@y=-\pgf@y
-    }
-    \anchor{north east}{
-        \northwest
-        \pgf@x=-\pgf@x
-    }
-    \anchor{north west}{
-        \northwest
-    }
-    \anchor{south east}{
-        \northwest
-        \pgf@x=-\pgf@x
-        \pgf@y=-\pgf@y
-    }	  
-    \anchor{base}{
-        \northwest
-        \pgf@x=0pt	  	
-    }
-    \backgroundpath{			
-        \pgfsetcolor{\pgfkeysvalueof{/tikz/circuitikz/color}}	
+}
+{
+    \northwest
+    \pgf@circ@res@up = \pgf@y 
+    \pgf@circ@res@down = -\pgf@y
+    \pgf@circ@res@right = -\pgf@x
+    \pgf@circ@res@left = \pgf@x
 
-        \northwest
-        \pgf@circ@res@up = \pgf@y 
-        \pgf@circ@res@down = -\pgf@y
-        \pgf@circ@res@right = -\pgf@x
-        \pgf@circ@res@left = \pgf@x
-
-        \pgfscope
-            \pgfsetlinewidth{\pgfkeysvalueof{/tikz/circuitikz/bipoles/thickness}\pgflinewidth}
-            \pgfpathcircle{\pgfpoint{0}{0}}{\pgf@circ@res@up}
-            \pgfusepath{draw}
-        \endpgfscope
-        \pgfscope
-            \pgfsetarrows{-{latex[length=5mm]}}
-            \pgfpathmoveto{\pgfpoint{-0.65\pgf@circ@res@up}{0}}
-            \pgfpatharc{180}{0} {0.65\pgf@circ@res@up}
-            \pgfusepath{draw}
-        \endpgfscope
-    }
+    \pgfscope
+        \pgfsetlinewidth{\pgfkeysvalueof{/tikz/circuitikz/bipoles/thickness}\pgflinewidth}
+        \pgfpathcircle{\pgfpoint{0}{0}}{\pgf@circ@res@up}
+        \pgfusepath{draw}
+    \endpgfscope
+    \pgfscope
+        \pgfsetarrows{-{latex[length=5mm]}}
+        \pgfpathmoveto{\pgfpoint{-0.65\pgf@circ@res@up}{0}}
+        \pgfpatharc{180}{0} {0.65\pgf@circ@res@up}
+        \pgfusepath{draw}
+    \endpgfscope
 }
 
 \pgfdeclareshape{vectorgenerator}
