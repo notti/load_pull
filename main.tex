@@ -36,6 +36,9 @@
 \usepgfplotslibrary{external}
 \tikzsetexternalprefix{figures/}
 \tikzexternalize[mode=list and make]
+\tikzexternalwritetomakefile{}
+\tikzexternalwritetomakefile{.DELETE_ON_ERROR:}
+\tikzexternalwritetomakefile{}
 
 %math
 
@@ -260,6 +263,7 @@ allows to test the \gls{dut} under realistic working conditions.
 \begin{figure}[htb]
     \centering
     \begin{tikzpicture}
+        \tikzpicturedependsonfile{rfsymbols.tex}
         \draw node[source] (source) {}
               node[tuner,right=of source,label=above:{fixed input tuner}] (ituner) {} 
               node[dut,right=of ituner] (dut) {}
@@ -357,6 +361,7 @@ can be used. There are two categories: closed- and open loop.
 \begin{figure}[htb]
     \centering
     \begin{tikzpicture}
+        \tikzpicturedependsonfile{rfsymbols.tex}
         \draw node[dut] (dut) {}
               node[circulator,right=2 of dut] (circ) {}
               node[vmatch,right=of circ,label=above:{Attenuator},yshift=1cm] (att) {}
@@ -398,6 +403,7 @@ is to introduce a bandpass filter into the loop.
 \begin{figure}[htb]
     \centering
     \begin{tikzpicture}
+        \tikzpicturedependsonfile{rfsymbols.tex}
         \draw node[dut] (dut) {}
               node[isolator,right=2 of dut,rotate=180,anchor=east] (iso) {}
               node[amplifier,rotate=180,scale=0.6,right=of iso.west,anchor=east,label=below:Amplifier] (amp) {}
@@ -444,6 +450,7 @@ in a \gls{fpga}.
 \begin{figure}[htb]
     \centering
     \begin{tikzpicture}
+        \tikzpicturedependsonfile{rfsymbols.tex}
         \draw node[dut] (dut) {}
               node[dircoupler,right=2 of dut] (dirvna) {}
               node[oscilloscope,above=of dirvna.A2,anchor=A1] (oszivna) {}
@@ -551,6 +558,7 @@ S_{22} & = \frac{(\Gamma_{1_S} - \Gamma_{1_O}) \Gamma_{1_M} \Gamma_{L_M} + (\Gam
 \section{Matlab Driver}
 \chapter{Verification of the Measurement System}
 \begin{tikzpicture}[node distance=0.6]
+    \tikzpicturedependsonfile{rfsymbols.tex}
     \tikzstyle{every node}=[font=\footnotesize]
     \draw node[dut] (dut) {}
           node[dircoupler,right=1 of dut] (dirvna) {}
@@ -658,9 +666,8 @@ S_{22} & = \frac{(\Gamma_{1_S} - \Gamma_{1_O}) \Gamma_{1_M} \Gamma_{L_M} + (\Gam
     \end{axis}
 \end{tikzpicture}
 
-\pgfplotstableread{testdata/phase/all.data}\phaseall
-
 \begin{tikzpicture}
+    \pgfplotstableread{testdata/phase/all.data}\phaseall
     \begin{axis}[
             ylabel={angle},
             xlabel={seconds},
