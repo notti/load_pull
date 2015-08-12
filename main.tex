@@ -84,6 +84,7 @@ pdfpagelabels %,hidelinks
 \newacronym[longplural={general-purpose inputs/outputs}]{gpio}{GPIO}{general-purpose input/output}
 \newacronym{fir}{FIR}{finite impulse response}
 \newacronym{gui}{GUI}{graphical user interface}
+\newacronym{dc}{DC}{direct current}
 \newacronym{ui}{UI}{user interface}
 \newacronym{rf}{RF}{radio frequency}
 \newacronym{pa}{PA}{power amplifier}
@@ -94,6 +95,11 @@ pdfpagelabels %,hidelinks
 \newacronym{dut}{DUT}{device under test}
 \newacronym{emt}{EMT}{electromechanical tuner}
 \newacronym{vna}{VNA}{vector network analyzer}
+\newacronym{elp}{ELP}{envelope load-pull}
+\newacronym{pc}{PC}{personal computer}
+\newacronym{adc}{ADC}{analog-to-digital converter}
+\newacronym{dac}{DAC}{digital-to-analog converter}
+
 \makeglossaries
 
 \usepackage[noabbrev]{cleveref} %needs to be last
@@ -160,6 +166,7 @@ pdfpagelabels %,hidelinks
 \tableofcontents
 
 \chapter{Introduction}
+\label{chap:introduction}
 
 At \gls{rf} and \gls{mw} frequencies, the circuit theory with lumped elements, where
 voltage and current do not vary over the physical dimension of the elements, is of limited
@@ -170,10 +177,10 @@ and introduces the concept of forward and backward traveling power waves.
 
 For this reason, instead of impedance- and admittance matrices, \glspl{sparam}
 are commonly used in \gls{rf} and \gls{mw} circuit engineering to describe
-$N$-ports (see \cref{fig:sparam,eq:sparam} for a 2-port). $a_i$ denotes the incident and
-$b_i$ the reflected power wave. Complex valued $S_{ii}$ represents the
-part of $a_i$ that gets reflected at port $i$, where as $S_{ij}$ is the part of $a_j$ that
-is transmitted to $b_i$. A set of \glspl{sparam} are only valid for a specific frequency, a
+$N$-ports (see \cref{fig:sparam,eq:sparam} for a 2-port). $a_n$ denotes the incident and
+$b_n$ the reflected power wave. Complex valued $S_{nn}$ represents the
+part of $a_n$ that gets reflected at port $n$, where as $S_{nm}$ is the part of $a_m$ that
+is transmitted to $b_n$. A set of \glspl{sparam} are only valid for a specific frequency, a
 characteristic impedance $Z_0$, and a reference plane (port 1 and port 2 in \cref{fig:sparam}).
 
 \begin{figure}[htb]
@@ -446,6 +453,86 @@ in a \gls{fpga}.
 
 \chapter{FPGA-based Load-Pull Measurement System}
 
+The active closed loop load-pull measurement system mentioned in
+\cref{chap:introduction} can't synthesize harmonically independent
+reflection coefficients, which are needed in the design of high-efficiency
+\glspl{pa}. Furthermore it depicts a strong interdependency of magnitude
+and phase of the reflection coefficient $\Gamma_L$ on both phase shifter
+and attenuator settings \cite{pozar_mw_engineering_2011}. To overcome these
+limitations an \gls{elp} was designed.
+
+\begin{figure}[htb]
+    \centering
+    \begin{tikzpicture}
+        \tikzpicturedependsonfile{rfsymbols.tex}
+        \tikzstyle{every node}=[font=\footnotesize]
+        \draw node[dut] (dut) {}
+              node[circulator,right=2 of dut,label=below:circ] (circ) {}
+
+              node[coordinate,right=of circ,yshift=1.5cm] (uppernode) {}
+              node[coordinate,right=of circ,yshift=-1.5cm] (lowernode) {}
+
+              node[amplifier,right=0.5 of lowernode,label=above:amp] (amp) {}
+              node[mixer,right=of amp,label=below:mix2] (upmix) {}
+
+              (uppernode -| upmix) node[mixer,label=above:mix1] (downmix) {}
+
+              ($(upmix)!.5!(downmix)$) node[mixer] (mul) {}
+              node[rotate=90,anchor=south] at (mul.west) {mul}
+              
+              node[right=0.5 of mul] (gamma) {$\Gamma_{set} = X + j Y$}
+              node[source,right=0.5 of gamma,scale=0.7,label=right:$f_0$] (lo) {};
+
+        \draw ($(dut)!.5!(circ)$) node[coordinate] (plane) {};
+
+        \draw [latex-] ($(amp.west |- uppernode) + (-0.2,0.2)$) -- node[sloped,above] {$b_2$} ($(uppernode) + (-0.4,0.2)$);
+        \draw [-latex] ($(amp.west) + (-0.2,-0.2)$) -- node[below] {$a_2$} ($(lowernode) + (-0.4,-0.2)$);
+
+        { [rounded corners=2pt]
+            \draw (dut) -- (circ.A);
+            \draw [-latex] (circ.B) -- ($(circ.B |- uppernode)!.5!(uppernode)$) node[coordinate] (upper) {} -- (downmix);
+            \draw [-latex] (amp) -- ($(circ.C |- amp)!.5!(lowernode)$) node[coordinate] (lower) {} -- (circ.C);
+            \draw [-latex] (lo) |- (downmix);
+            \draw [-latex] (lo) |- (upmix);
+        }
+        \draw [-latex] (gamma) -- (mul);
+        { [start chain,every on chain/.style={join=by -latex}]
+            \chainin (downmix);
+            { [every on chain/.style={join=by {double,-latex}}]
+                \chainin (mul);
+                \chainin (upmix);
+            }
+            \chainin (amp);
+        }
+
+        \draw [dashed] ($(plane) + (0,2)$) node[anchor=south] {Load Reference Plane} -- ($(plane) - (0,3)$);
+
+        \draw [latex-] ($(plane) + (0,1.5)$) -- ++(-0.5,0) node[anchor=east] {$Z_L$};
+
+        \draw [-latex] ($(plane) + (0.25,-1.5)$) node[anchor=west] {$a_{2}$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0.25,-2)$) node[anchor=west] {$b_{2}$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0,-2.5)$) -- ++(-0.5,0) node[anchor=east] {$\Gamma_L$};
+    \end{tikzpicture}
+    \caption{Generic block diagram \gls{elp}}
+    \label{fig:elp}
+\end{figure}
+
+Instead of traditional active closed loop load-pull, this system generates the
+load coefficient at baseband or \gls{if}. The basic principle of this system
+can be seen in \cref{fig:elp}. A circulator is used to split the incident and
+reflected wave. The mixer \textit{mix1} is used for shifting the spectrum to 
+the baseband and for \gls{iq} demodulation. This \gls{iq} signal is then
+multiplied by the complex valued $\Gamma_{set}$ (\textit{mul}), thus creating a specific
+reflection coefficient $\Gamma_L$. Mixer \textit{mix2} is used for modulating
+the \gls{iq} signal and shifting the signal back to the desired \gls{rf} \cite{williams_experimental_2005}.
+
+The multiplication can be done in the analog domain, as has been described
+by \cite{williams_experimental_2005}. This has the disadvantage, that
+an additional image will be generated by the multiplicator \textit{mul},
+if there are amplitude imbalances in the output
+of the demodulator \textit{mix1}. Since this image is very close to the
+carrier signal, it can't be filtered away \cite{hashmi_agile_2010}.
+
 \begin{figure}[htb]
     \centering
     \resizebox{\linewidth}{!}{
@@ -484,7 +571,7 @@ in a \gls{fpga}.
               node[source,above=of adc.center,scale=0.7,label={[fill=white]right:$\SI{100}{\mega\hertz}$}] (sample) {}
               node[source,above=of shift.center,scale=0.7,label=right:$\SI{30}{\mega\hertz}$] (shiftsource) {}
               node[source,below=of upmix.center,scale=0.7,label=right:$f_0$] (upsource) {}
-              node[below=of mul.center] (gamma) {$\Gamma_d$};
+              node[below=of mul.center] (gamma) {$\Gamma_{set} = X + jY$};
 
         \draw ($(dut)!.5!(dirvna)$) node[coordinate] (plane) {};
 
@@ -531,7 +618,7 @@ in a \gls{fpga}.
 
         \draw (leftsplit) node[anchor=base east] {One Port \gls{vna}}
               (leftsplit) node[anchor=base west] {Analog}
-              (rightsplit) node[anchor=base west] {\gls{fpga}}
+              (rightsplit) node[anchor=base west] {Digital}
               (rightsplit) node[anchor=base east] {Analog};
 
         \draw [-latex] ($(dirvna.A2) + (-0.2,0.1)$) -- node[base left] {$b_{2,e}$} ($(oszivna.A1 |- oszimiddle) - (0.2,0.1)$);
@@ -540,7 +627,7 @@ in a \gls{fpga}.
         \end{pgfonlayer}
         \draw ($(oszimiddle -| dirvna.B2) + (0.2,-0.1)$) node[base right,fill=white] {$a_{2,e}$};
 
-        \draw [dashed] ($(plane) + (0,4)$) node[anchor=south] {Load Reference Plane} -- ($(plane) - (0,3)$);
+        \draw [dashed] ($(plane) + (0,4)$) node[anchor=south] {Load Reference Plane} -- ($(plane) - (0,4.5)$);
 
         \draw [latex-] ($(plane) + (0,1.5)$) -- ++(-0.5,0) node[anchor=east] {$Z_L$};
 
@@ -553,7 +640,43 @@ in a \gls{fpga}.
     \label{fig:overall_hf}
 \end{figure}
 
-\section{One Port Vector Network Analyzer}
+To overcome these limitations, a digital \gls{elp} similar to the one in
+\cite{hashim_active_2008} was developed. The design in \cite{hashim_active_2008}
+uses direct conversion, which creates additional \gls{dc} components in the \gls{iq}
+signals. Since these have to be removed by filters, the band around \SI{0}{\hertz} is
+not usable for reflection generation. Additionally it used a variable delay line in
+the \gls{fpga}, to compensates the phase difference of multiple carriers. The design in
+\cref{fig:overall_hf} was developed with these limitations in mind. Instead of direct
+conversion a superheterodyne design is used. Furthermore the delay line is replaced by
+a fully configurable filter \textit{f2}. It consists of three distinct parts:
+
+\begin{enumerate}
+    \item A one port \gls{vna}, to be able to measure the current $\Gamma_L$. This part is
+needed, to be able to reach a specific $\Gamma_{L,target}$ iteratively. It is
+described in detail in \cref{sec:vna}, whereas the iterative algorithm can be found
+in \cref{sec:matlab}.
+
+    \item The analog part, which contains the mixers for the frequency shifting, necessary
+        filters, \gls{dac}, \gls{adc}, and an amplifier. A detailed description can be found
+        in \cref{sec:analog}.
+
+    \item A digital processing chain implemented in a \gls{fpga}, which is controlled with
+a \gls{pc} running Matlab. The \gls{fpga} implementation is described in \cref{chap:fpga},
+the software running on the processor contained in the \gls{fpga}, as well as the Matlab
+code, in \cref{chap:software}.
+\end{enumerate}
+
+% ---------------------------------------------------------------------------
+
+\section{One Port \glsentryshort{vna}}
+\label{sec:vna}
+
+\begin{itemize}
+    \item describe network analyzer part
+    \item describe error box
+    \item describe calibration
+\end{itemize}
+
 \begin{figure}[htb]
     \centering
     \begin{tikzpicture}
@@ -593,6 +716,8 @@ in a \gls{fpga}.
     \label{fig:errorbox}
 \end{figure}
 
+%TODO fix equations according to errorbox
+
 \begin{align}
     b_2 & = a_1 + S_{22} a_2\\
     b_1 & = S_{11} a_1 + S_{12} a_2 \\
@@ -613,19 +738,38 @@ S_{12} & = \frac{(\Gamma_{1_O} - \Gamma_{1_M}) (\Gamma_{1_M} - \Gamma_{1_S}) (\G
 S_{22} & = \frac{(\Gamma_{1_S} - \Gamma_{1_O}) \Gamma_{1_M} \Gamma_{L_M} + (\Gamma_{1_M} - \Gamma_{1_S}) \Gamma_{1_O} \Gamma_{L_O} + (\Gamma_{1_O} - \Gamma_{1_M}) \Gamma_{1_S} \Gamma_{L_S}}{g}
 \end{align}
 
+% ---------------------------------------------------------------------------
+
 \section{Analog Part}
+\label{sec:analog}
+
+\begin{itemize}
+    \item describe spectra
+    \item why 70
+    \item why lower part
+\end{itemize}
 
 % ===========================================================================
 
 \chapter{FPGA Implementation}
+\label{chap:fpga}
+
+\begin{itemize}
+    \item describe paper \cite{hashim_active_2008}
+    \item improvements done
+\end{itemize}
+
 \section{Data Acquisition}
 \section{Overlap Add}
 \section{SMBV Interface}
 \section{Processor Interface}
 \chapter{Software Implementation}
+\label{chap:software}
 \section{Kernel Module}
 \section{Network Server and Web-Interface}
 \section{Matlab Driver}
+\label{sec:matlab}
+
 \chapter{Verification of the Measurement System}
 \begin{tikzpicture}[node distance=0.6]
     \tikzpicturedependsonfile{rfsymbols.tex}
