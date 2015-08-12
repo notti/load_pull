@@ -27,7 +27,7 @@
 
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.12}
-\pgfplotsset{every axis plot/.append style={smooth},every axis/.append style={grid=major,legend style={font=\footnotesize}}} 
+\pgfplotsset{every axis plot/.append style={smooth},every axis/.append style={grid=major,legend style={font=\footnotesize}}}
 \usepgfplotslibrary{smithchart}
 \usepgfplotslibrary{units}
 \usepgfplotslibrary{fillbetween}
@@ -114,10 +114,10 @@ pdfpagelabels %,hidelinks
     {\Large \Gls{fpga}-based Load-Pull Measurement System}
 
     \vspace*{2cm}
-    {\large Gernot ~\textsc{Vormayr} \\ 0425210 \\ } ~\\ 
+    {\large Gernot ~\textsc{Vormayr} \\ 0425210 \\ } ~\\
 
     \vspace*{2cm}
-    {\today } ~\\ 
+    {\today } ~\\
 
     \vfill
     {Supervisors} ~\\\vspace*{0.1cm}
@@ -208,7 +208,7 @@ characteristic impedance $Z_0$, and a reference plane (port 1 and port 2 in \cre
         \draw[latex-] (box-1-3) to[bend right=30] node[left] {$S_{22}$} (box-2-3);
 
         \draw ($(box-1-2) + (0,0.7cm)$) rectangle ($(box-2-3) - (0,0.7cm)$);
-        
+
         \draw[dashed] (box-1-2) -- ++(0,1.5cm) node[anchor=south] {Port 1};
         \draw[dashed] (box-1-3) -- ++(0,1.5cm) node[anchor=south] {Port 2};
 
@@ -272,7 +272,7 @@ allows to test the \gls{dut} under realistic working conditions.
     \begin{tikzpicture}
         \tikzpicturedependsonfile{rfsymbols.tex}
         \draw node[source] (source) {}
-              node[tuner,right=of source,label=above:{fixed input tuner}] (ituner) {} 
+              node[tuner,right=of source,label=above:{fixed input tuner}] (ituner) {}
               node[dut,right=of ituner] (dut) {}
               node[tuner,right=2 of dut,label=above:{output tuner}] (otuner) {}
               node[match,right=of otuner,label=above:{$Z_0$}] (match) {}
@@ -288,7 +288,7 @@ allows to test the \gls{dut} under realistic working conditions.
         \draw [-latex] ($(plane) + (0.25,-1)$) node[anchor=west] {$a_2$}-- ++(-0.5,0);
         \draw [latex-] ($(plane) + (0.25,-1.5)$) node[anchor=west] {$b_2$}-- ++(-0.5,0);
         \draw [latex-] ($(plane) + (0,-2)$) -- ++(-0.5,0) node[anchor=east] {$\Gamma_L$};
-        
+
     \end{tikzpicture}
     \caption{Load reflection coefficient}
     \label{fig:load_coeff}
@@ -363,7 +363,7 @@ Those have to be calibrated before use and achieve reflection levels like in
 \cref{fig:generic_emt} with up to 10000 points \cite{ghannouchi_load-pull_2013}.
 
 If higher $\abs{\Gamma_L}$-levels  are needed (even levels $> 1$), active load-pull setups
-can be used. There are two categories: closed- and open loop. 
+can be used. There are two categories: closed- and open loop.
 
 \begin{figure}[htb]
     \centering
@@ -479,7 +479,7 @@ limitations an \gls{elp} was designed.
 
               ($(upmix)!.5!(downmix)$) node[mixer] (mul) {}
               node[rotate=90,anchor=south] at (mul.west) {mul}
-              
+
               node[right=0.5 of mul] (gamma) {$\Gamma_{set} = X + j Y$}
               node[source,right=0.5 of gamma,scale=0.7,label=right:$f_0$] (lo) {};
 
@@ -520,7 +520,7 @@ limitations an \gls{elp} was designed.
 Instead of traditional active closed loop load-pull, this system generates the
 load coefficient at baseband or \gls{if}. The basic principle of this system
 can be seen in \cref{fig:elp}. A circulator is used to split the incident and
-reflected wave. The mixer \textit{mix1} is used for shifting the spectrum to 
+reflected wave. The mixer \textit{mix1} is used for shifting the spectrum to
 the baseband and for \gls{iq} demodulation. This \gls{iq} signal is then
 multiplied by the complex valued $\Gamma_{set}$ (\textit{mul}), thus creating a specific
 reflection coefficient $\Gamma_L$. Mixer \textit{mix2} is used for modulating
@@ -563,10 +563,10 @@ carrier signal, it can't be filtered away \cite{hashmi_agile_2010}.
               node[empty,right=of adc,label=below:buffer1] (inbuf) {}
               node[mixer,right=of inbuf] (shift) {}
               node[rotate=90,anchor=north] at (shift.east) {mix2}
-              
+
               ($(shift)!.5!(mul)$) node[allpass,rotate=90] (H) {}
               node[rotate=90,anchor=north] at (H.south) {f2}
-              
+
               node[source,above=of downmix.center,scale=0.7,label=right:$f_0 - \SI{70}{\mega\hertz}$] (downsource) {}
               node[source,above=of adc.center,scale=0.7,label={[fill=white]right:$\SI{100}{\mega\hertz}$}] (sample) {}
               node[source,above=of shift.center,scale=0.7,label=right:$\SI{30}{\mega\hertz}$] (shiftsource) {}
@@ -705,7 +705,7 @@ code, in \cref{chap:software}.
 
         \draw ($(box-1-3) + (0,0.7cm)$) rectangle ($(box-2-4) - (0,0.7cm)$);
         \draw ($(box-1-1) + (0,0.7cm)$) rectangle ($(box-2-2) - (0,0.7cm)$);
-        
+
         \draw[dashed] (box-1-3) -- ++(0,1.5cm) node[anchor=south] {Load Reference Plane};
         \draw[dashed] (box-1-4) -- ++(0,1.5cm) node[anchor=south] {Oscilloscope};
 
@@ -725,7 +725,7 @@ code, in \cref{chap:software}.
 \end{align}
 
 \begin{equation}
-    \Gamma_L = \frac{S_{11} - \frac{b_1}{a_1}}{S_{11} S_{22} - S_{22}\frac{b_1}{a_1} - S_{12}} 
+    \Gamma_L = \frac{S_{11} - \frac{b_1}{a_1}}{S_{11} S_{22} - S_{22}\frac{b_1}{a_1} - S_{12}}
 \end{equation}
 
 \begin{align}
@@ -790,12 +790,12 @@ S_{22} & = \frac{(\Gamma_{1_S} - \Gamma_{1_O}) \Gamma_{1_M} \Gamma_{L_M} + (\Gam
           node[rotate=90,anchor=north] at (sample.east) {\scriptsize\SI{100}{\mega\hertz}}
 
           node[oscilloscope,above=of dirvna.A2,anchor=A1] (oszivna) {}
-          
+
           node[mixer,right=1 of gen.in,scale=0.4,rotate=180,anchor=out] (mult) {}
           (mult |- adc) node[mixer,scale=0.4] (iqdemod) {}
           ($(mult)!.5!(iqdemod)$) node[allpass,rotate=-90,scale=0.7] (filter) {}
           node[rotate=90,anchor=north] at (filter.north) {H}
-          
+
           node[vsourcesinshape,scale=.5,rotate=90,right=of iqdemod.out,anchor=center] (diglo) {}
           node[rotate=90,anchor=north] at (diglo.south) {\scriptsize\SI{30}{\mega\hertz}}
           (mult -| diglo) node (gamma) {$\Gamma$};
@@ -818,7 +818,7 @@ S_{22} & = \frac{(\Gamma_{1_S} - \Gamma_{1_O}) \Gamma_{1_M} \Gamma_{L_M} + (\Gam
           (sample) -- (adc) -- (iqdemod.in)
           (iqdemod.in 2) -- (filter) -- (mult.in 2)
           (mult.out) -- (gen.in)
-          
+
           (diglo) -- (iqdemod.out)
           (gamma) -- (mult.in);
 
