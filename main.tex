@@ -51,9 +51,22 @@
 %source
 
 \usepackage{listings}
-\lstset{language=Python,numbers=left,numberstyle=\tiny,stepnumber=5,numbersep=5pt,frame=single,
+\lstset{language=Matlab,numbers=left,numberstyle=\tiny,stepnumber=5,numbersep=5pt,frame=single,
 breaklines=true,postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\hookrightarrow\space}},
-captionpos=b,escapeinside={(*}{*)}}
+captionpos=b,escapeinside={(*}{*)},mathescape=true}
+\usepackage{letltxmacro}
+\newcommand*{\SavedLstInline}{}
+\LetLtxMacro\SavedLstInline\lstinline
+\DeclareRobustCommand*{\lstinline}{%
+  \ifmmode
+    \let\SavedBGroup\bgroup
+    \def\bgroup{%
+      \let\bgroup\SavedBGroup
+      \hbox\bgroup
+    }%
+  \fi
+  \SavedLstInline
+}
 
 %stuff
 
@@ -621,18 +634,18 @@ carrier signal, it can't be filtered away \cite{hashmi_agile_2010}.
               (rightsplit) node[anchor=base west] {Digital}
               (rightsplit) node[anchor=base east] {Analog};
 
-        \draw [-latex] ($(dirvna.A2) + (-0.2,0.1)$) -- node[base left] {$b_{2,e}$} ($(oszivna.A1 |- oszimiddle) - (0.2,0.1)$);
+        \draw [-latex] ($(dirvna.A2) + (-0.2,0.1)$) -- node[base left] {$b_1$} ($(oszivna.A1 |- oszimiddle) - (0.2,0.1)$);
         \begin{pgfonlayer}{foreground}
             \draw [-latex] ($(dirvna.B2) + (0.2,0.1)$) -- ($(oszimiddle -| dirvna.B2) + (0.2,-0.1)$);
         \end{pgfonlayer}
-        \draw ($(oszimiddle -| dirvna.B2) + (0.2,-0.1)$) node[base right,fill=white] {$a_{2,e}$};
+        \draw ($(oszimiddle -| dirvna.B2) + (0.2,-0.1)$) node[base right,fill=white] {$a_1$};
 
         \draw [dashed] ($(plane) + (0,4)$) node[anchor=south] {Load Reference Plane} -- ($(plane) - (0,4.5)$);
 
         \draw [latex-] ($(plane) + (0,1.5)$) -- ++(-0.5,0) node[anchor=east] {$Z_L$};
 
-        \draw [-latex] ($(plane) + (0.25,-1.5)$) node[anchor=west] {$a_{2,dut}$}-- ++(-0.5,0);
-        \draw [latex-] ($(plane) + (0.25,-2)$) node[anchor=west] {$b_{2,dut}$}-- ++(-0.5,0);
+        \draw [-latex] ($(plane) + (0.25,-1.5)$) node[anchor=west] {$a_2$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0.25,-2)$) node[anchor=west] {$b_2$}-- ++(-0.5,0);
         \draw [latex-] ($(plane) + (0,-2.5)$) -- ++(-0.5,0) node[anchor=east] {$\Gamma_L$};
     \end{tikzpicture}
     }
@@ -671,11 +684,121 @@ code, in \cref{chap:software}.
 \section{One Port \glsentryshort{vna}}
 \label{sec:vna}
 
-\begin{itemize}
-    \item describe network analyzer part
-    \item describe error box
-    \item describe calibration
-\end{itemize}
+The one port \gls{vna} in \cref{fig:vna_part} consists of a directional coupler
+\textit{dir} and a oscilloscope. The directional coupler is needed to split up
+the signal into the incident power wave $b_{2,dut}$ and the reflected power
+wave $a_{2,dut}$. With the oscilloscope both signals can be measured in the
+time domain. Additionally a \gls{pc} connected to the oscilloscope is needed
+for the necessary calculations.
+
+\begin{figure}[htb]
+    \centering
+    \begin{tikzpicture}
+        \pgfdeclarelayer{foreground}
+        \pgfsetlayers{background,main,foreground}
+        \tikzpicturedependsonfile{rfsymbols.tex}
+        \tikzstyle{every node}=[font=\footnotesize]
+        \draw node[dut] (dut) {}
+              node[dircoupler,right=2 of dut,label=below:dir] (dirvna) {}
+              node[oscilloscope,above=of dirvna.A2,anchor=A1] (oszivna) {}
+              node[coordinate,right=of dirvna] (rest) {}
+              node[coordinate,right=of rest] (resta) {};
+
+        \draw ($(dut)!.5!(dirvna)$) node[coordinate] (plane) {};
+
+        \draw [dashed] (rest) -- (resta);
+
+        { [rounded corners=2pt]
+            \draw (dut) -- (dirvna) -- (rest);
+            \draw (dirvna.A2) -- (oszivna.A1);
+            \draw (dirvna.B2) |- ($(dirvna.B2)!.7!(oszivna.A2)$) node[coordinate] (oszimiddle) {} -| (oszivna.A2);
+        }
+        { [latex-,dashed,every node/.style={font=\footnotesize}]
+            \draw (oszivna) -- ++(0,1) node[anchor=south] {ref};
+        }
+        { [on background layer,every path/.style={dotted,decorate,decoration=random steps,segment length=2mm}]
+            \draw ($(dirvna.B1)!.5!(rest) + (0,4)$) -- ++(0,-7) node[coordinate] (leftsplit) {};
+        }
+
+        \draw (leftsplit) node[anchor=base east] {One Port \gls{vna}}
+              (leftsplit) node[anchor=base west] {Analog};
+
+        \draw [-latex] ($(dirvna.A2) + (-0.2,0.1)$) -- node[base left] {$b_1$} ($(oszivna.A1 |- oszimiddle) - (0.2,0.1)$);
+        \begin{pgfonlayer}{foreground}
+            \draw [-latex] ($(dirvna.B2) + (0.2,0.1)$) -- ($(oszimiddle -| dirvna.B2) + (0.2,-0.1)$);
+        \end{pgfonlayer}
+        \draw ($(oszimiddle -| dirvna.B2) + (0.2,-0.1)$) node[base right,fill=white] {$a_1$};
+
+        \draw [dashed] ($(plane) + (0,4)$) node[anchor=south] {Load Reference Plane} -- ($(plane) - (0,3)$);
+
+        \draw [latex-] ($(plane) + (0,1.5)$) -- ++(-0.5,0) node[anchor=east] {$Z_L$};
+
+        \draw [-latex] ($(plane) + (0.25,-1.5)$) node[anchor=west] {$a_2$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0.25,-2)$) node[anchor=west] {$b_2$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0,-2.5)$) -- ++(-0.5,0) node[anchor=east] {$\Gamma_L$};
+    \end{tikzpicture}
+    \caption{One port \gls{vna} part}
+    \label{fig:vna_part}
+\end{figure}
+
+According to \cref{eq:gl_phase} only $\frac{a_2}{b_2}$ is
+of interest for calculating $\Gamma$. Since only the fraction of the magnitudes
+and the phase difference is needed, the exact point in time, when the signals are
+taken does not matter, as long as both are measured at the same time. Therefore
+no special triggering is necessary.
+
+\begin{equation}\label{eq:gl_phase}
+    \begin{split}
+        \Gamma_L & = \frac{a_2}{b_2} \\
+                 & = \frac{\abs{a_2}}{\abs{b_2}} e^{j(\arg{a_2}-\arg{b_2})}
+    \end{split}
+\end{equation}
+
+Magnitude and Phase of the measured waves can be calculated by using
+the discrete Fourier transform, if only a single frequency is of
+interest. If multiple frequency components are of interest, the computational
+power needed can be lowered by using the fast Fourier transform. With both methods
+spectral leakage will occur if an arbitrary number of samples are used \cite{harris_use_1978}.
+Another problem is that the frequency resolution $\Delta{}f$ is limited by the sampling
+frequency and the number of recorded samples (see \cref{eq:fres}). Higher resolutions
+can be achieved with a higher sample rate and more samples. Since both are oscilloscope
+dependent and potentially increase the time needed for transferring the data to the
+\gls{pc} a better way to improve the results is applying a window function to the
+measured samples.
+
+\begin{equation}
+    \label{eq:fres} \Delta{}f = \frac{f_{sample}}{n_{sample}}
+\end{equation}
+
+The window function used in this work (see \cref{sec:matlab}) is the flat top window.
+This window function has a very high amplitude accuracy \cite{heinzel_spectrum_2002}.
+Since it's frequency response is very flat in a small frequency range around the selected $\Delta{}f$-bin
+it also enables acquiring frequency components, that are not $\Delta{}f$-aligned \cite{heinzel_spectrum_2002}.
+In this work, the periodic version of the built in Matlab flat top window \lstinline$flattopwin$
+was used (see \cref{sec:matlab} and \cite{matlab_flattop}).
+
+\begin{align}
+    \label{eq:k} k & = \left\lfloor \frac{f}{\Delta{}f} \right\rfloor \\
+    \label{eq:X} X & = \mathcal{DFT} \left(x\,\lstinline|flattopwin($n_{sample}$, 'periodic')|\right) \\
+    \label{eq:gamma_lf} \Gamma_{L,f} & = \frac{X_{a}\{k\}}{X_{b}\{k\}}
+\end{align}
+
+Using \cref{eq:fres,eq:k,eq:X,eq:gamma_lf} the reflection coefficient $\Gamma_L$ at
+frequency $f$ can be calculated. First, the frequency resolution $\Delta{}f$ is needed, to be able
+to calculate the index $k$ of the frequency bin. Since the following calculations are the same
+for $a$ and $b$, $x$ is used instead. The spectrum of the window function has to be convoluted with the
+spectrum of the samples. This is done with element-wise multiplication in \Cref{eq:X} before applying
+the discrete Fourier transform. Because of the linearity of the discrete Fourier transform
+\cite{pearson_discrete}, the value at index $k$ can be directly used in \Cref{eq:gl} leading to \cref{eq:gamma_lf}.
+
+The measurements taken with this method contain systematic errors. These are caused by mismatches and
+imperfections in the equipment (e.g. limited directivity of the coupler and imperfect connectors).
+Additional reflections caused by these imperfections distort the measurements. Furthermore cabling
+needed causes the reference plane to be at another place, than depicted in \cref{fig:vna_part}.
+Those errors can be corrected with vector error correction. This works by measuring the systematic
+errors with known calibration standards, using those measurements to calculate the error model and
+using this model, to remove the systematic errors from the subsequent measurements
+\cite{agilent_an_1287-3}.
 
 \begin{figure}[htb]
     \centering
@@ -687,42 +810,56 @@ code, in \cref{chap:software}.
          column sep=1cm,
          row sep=2cm]
         {
-            |[coordinate]| & &[1.5cm] &[4cm] & |[coordinate]| \\
+            |[coordinate]| & &[4cm] & & |[coordinate]| \\
             |[coordinate]| & & & & |[coordinate]| \\
         };
-        \draw[-latex] (box-1-2) -- node[above] {$b_{2,dut}=a_{1,e}$}  (box-1-3);
-        \draw[-latex] (box-1-3) -- node[above] {$1$} (box-1-4);
-        \draw[-latex] (box-1-4) -- (box-1-5) node[anchor=west] {$b_{2,e}$};
+        \draw[-latex] (box-1-1) node[anchor=east] {$a_{1}$} -- (box-1-2);
+        \draw[-latex] (box-1-2) -- node[above] {$1$} (box-1-3);
+        \draw[-latex] (box-1-3) -- node[above] {$b_{2}$} (box-1-4);
 
-        \draw[latex-] (box-2-2) -- node[above] {$a_{2,dut}=b_{1,e}$} (box-2-3);
-        \draw[latex-] (box-2-3) -- node[above] {$S_{12}$} (box-2-4);
-        \draw[latex-] (box-2-4) -- (box-2-5) node[anchor=west] {$a_{2,e}$};
+        \draw[latex-] (box-2-1) node[anchor=east] {$b_{1}$} -- (box-2-2);
+        \draw[latex-] (box-2-2) -- node[above] {$S_{12}$} (box-2-3);
+        \draw[latex-] (box-2-3) -- node[above] {$a_{2}$} (box-2-4);
 
-        \draw[-latex] (box-1-3) to[bend left=30] node[right] {$S_{11}$} (box-2-3);
-        \draw[latex-] (box-1-4) to[bend right=30] node[left] {$S_{22}$} (box-2-4);
+        \draw[-latex] (box-1-2) to[bend left=30] node[right] {$S_{11}$} (box-2-2);
+        \draw[latex-] (box-1-3) to[bend right=30] node[left] {$S_{22}$} (box-2-3);
 
-        \draw[-latex] (box-1-2) to[bend right=30] node[left] {$\Gamma_L$} (box-2-2);
+        \draw[-latex] (box-1-4) to[bend left=30] node[right] {$\Gamma_L$} (box-2-4);
 
-        \draw ($(box-1-3) + (0,0.7cm)$) rectangle ($(box-2-4) - (0,0.7cm)$);
-        \draw ($(box-1-1) + (0,0.7cm)$) rectangle ($(box-2-2) - (0,0.7cm)$);
+        \draw ($(box-1-2) + (0,0.7cm)$) rectangle ($(box-2-3) - (0,0.7cm)$);
+        \draw ($(box-1-4) + (0,0.7cm)$) rectangle ($(box-2-5) - (0,0.7cm)$);
 
-        \draw[dashed] (box-1-3) -- ++(0,1.5cm) node[anchor=south] {Load Reference Plane};
-        \draw[dashed] (box-1-4) -- ++(0,1.5cm) node[anchor=south] {Oscilloscope};
+        \draw[dashed] (box-1-2) -- ++(0,1.5cm) node[anchor=south] {Load Reference Plane};
+        \draw[dashed] (box-1-3) -- ++(0,1.5cm) node[anchor=south] {Oscilloscope};
 
+        \draw[dashed] (box-2-2) -- ++(0,-1cm);
         \draw[dashed] (box-2-3) -- ++(0,-1cm);
-        \draw[dashed] (box-2-4) -- ++(0,-1cm);
+
+        \draw ($(box-2-4)!.5!(box-2-5) - (0,0.7cm)$) node[anchor=north] {\gls{dut}};
+        \draw ($(box-2-2)!.5!(box-2-3) - (0,0.7cm)$) node[anchor=north] {Error box};
     \end{tikzpicture}
-    \caption{Errorbox for the one port vector network analyzer}
+    \caption{Error box for the one port \gls{vna}}
     \label{fig:errorbox}
 \end{figure}
 
-%TODO fix equations according to errorbox
+\Cref{fig:errorbox} depicts the error model for the measurement system in \cref{fig:vna_part}. It
+consits of the \gls{dut} and an error box, containing all the systematic errors of the measurement
+system. This error model can cancel out three different errors:
+\begin{enumerate}
+    \item Source match $S_{22}$, the mismatch between the measurement system and the \gls{dut}.
+    \item Directivity $S_{11}$, caused by reflections received by the oscilloscope that are
+        not caused by the \gls{dut}.
+    \item Reflection tracking $S_{12}$, which characterizes the difference in the frequency response
+        between the two oscilloscope ports.
+\end{enumerate}
 
+From the error model in \cref{fig:errorbox} the following equations can be derived:
 \begin{align}
-    b_2 & = a_1 + S_{22} a_2\\
-    b_1 & = S_{11} a_1 + S_{12} a_2 \\
-    a_2 & = \Gamma_L b_2
+    b_{2} & = a_{1} + S_{22} a_{2}\\
+    b_{1} & = S_{11} a_{1} + S_{12} a_{2} \\
+    a_{2} & = \Gamma_L b_{2}
 \end{align}
+
 
 \begin{equation}
     \Gamma_L = \frac{S_{11} - \frac{b_1}{a_1}}{S_{11} S_{22} - S_{22}\frac{b_1}{a_1} - S_{12}}
