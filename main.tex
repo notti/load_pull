@@ -843,36 +843,97 @@ using this model, to remove the systematic errors from the subsequent measuremen
 \end{figure}
 
 \Cref{fig:errorbox} depicts the error model for the measurement system in \cref{fig:vna_part}. It
-consits of the \gls{dut} and an error box, containing all the systematic errors of the measurement
+consists of the \gls{dut} and an error box, containing all the systematic errors of the measurement
 system. This error model can cancel out three different errors:
 \begin{enumerate}
     \item Source match $S_{22}$, the mismatch between the measurement system and the \gls{dut}.
     \item Directivity $S_{11}$, caused by reflections received by the oscilloscope that are
         not caused by the \gls{dut}.
     \item Reflection tracking $S_{12}$, which characterizes the difference in the frequency response
-        between the two oscilloscope ports.
+        between the two oscilloscope ports, including loss in the couplers, transmission lines, and
+        other components.
 \end{enumerate}
 
 From the error model in \cref{fig:errorbox} the following equations can be derived:
 \begin{align}
-    b_{2} & = a_{1} + S_{22} a_{2}\\
-    b_{1} & = S_{11} a_{1} + S_{12} a_{2} \\
-    a_{2} & = \Gamma_L b_{2}
+    \label{eq:b2} b_{2} & = a_{1} + S_{22} a_{2}\\
+    \label{eq:b1} b_{1} & = S_{11} a_{1} + S_{12} a_{2} \\
+    \label{eq:a2} a_{2} & = \Gamma_L b_{2}
 \end{align}
-
-
-\begin{equation}
-    \Gamma_L = \frac{S_{11} - \frac{b_1}{a_1}}{S_{11} S_{22} - S_{22}\frac{b_1}{a_1} - S_{12}}
+\Cref{eq:b2,eq:b1,eq:a2,eq:gamma_lf} can be combined into the single \cref{eq:gamma_err}.
+With this equation the corrected reflection coefficient $\Gamma_L$ can be calculated.
+$\Gamma_{L,f}$ is the measured value from the oscilloscope and $S$ denote different the
+error terms, that have to be measured and calculated.
+\begin{equation}\label{eq:gamma_err}
+    \begin{split}
+        \Gamma_{L,corr} & = \frac{S_{11} - \frac{b_1}{a_1}}{S_{11} S_{22} - S_{22}\frac{b_1}{a_1} - S_{12}} \\
+                        & = \frac{S_{11} - \Gamma_{L,f}^{-1}}{S_{11} S_{22}\Gamma_{L,f}^{-1} - S_{22} - S_{12}}
+    \end{split}
 \end{equation}
 
+Since there are three error terms, at least three different measurements have
+to be taken. These measurements are usually conducted with short, open, and load,
+where load is normally the characteristic impedance of the system \cite{agilent_an_1287-3}.
+Other impedances could also be used, which is done for example at higher frequencies
+with different shorts, because it is more difficult to characterize open and
+loads at these frequencies \cite{anritsu_cal}. Another way commonly used in
+commercial \gls{vna} is the electronic calibration, where different impedances
+are available via a semiconductor switch trough the same connector. With this
+technique it isn't necessary to change the connections between the different
+targets, therefore minimizing calibration time and risk for operator error.
+The calibration used in this work was carried out with short, open, and load (see
+\Cref{sec:vna_verify}).
+
+Open targets are usually specified by a frequency-dependent capacitance (see
+\cref{eq:cref}) and a transmission line length. Short targets use the same
+specification, but instead of a capacitance a frequency-dependent inductance is
+needed (see \cref{eq:lref}). For loads a shunt capacitance, a series inductance,
+a resistance and the transmission line length is needed.
 \begin{align}
-\Gamma_1 & = \frac{a_1}{b_1} \\
-\begin{split}
-g & = (\Gamma_{1_O} - \Gamma_{1_S}) \Gamma_{1_M} \Gamma_{L_O} \Gamma_{L_S} + \Gamma_{L_M} ((\Gamma_{1_M} - \Gamma_{1_O}) \Gamma_{1_S} \Gamma_{L_O} + (\Gamma_{1_S} - \Gamma_{1_M}) \Gamma_{1_O} \Gamma_{L_S})
-\end{split}\\
-S_{11} & = \frac{(\Gamma_{1_O} - \Gamma_{1_S}) \Gamma_{L_O} \Gamma_{L_S} + \Gamma_{L_M} ((\Gamma_{1_M} - \Gamma_{1_O}) \Gamma_{L_O} + (\Gamma _{1_S} - \Gamma _{1_M}) \Gamma_{L_S})}{g} \\
-S_{12} & = \frac{(\Gamma_{1_O} - \Gamma_{1_M}) (\Gamma_{1_M} - \Gamma_{1_S}) (\Gamma_{1_O} - \Gamma_{1_S}) (\Gamma_{L_M} - \Gamma_{L_O}) (\Gamma_{L_M} - \Gamma_{L_S}) (\Gamma_{L_O} - \Gamma_{L_S})}{g^2} \\
-S_{22} & = \frac{(\Gamma_{1_S} - \Gamma_{1_O}) \Gamma_{1_M} \Gamma_{L_M} + (\Gamma_{1_M} - \Gamma_{1_S}) \Gamma_{1_O} \Gamma_{L_O} + (\Gamma_{1_O} - \Gamma_{1_M}) \Gamma_{1_S} \Gamma_{L_S}}{g}
+    \label{eq:cref} C & = C_0 + C_1 f + C_2 f^2 + C_3 f^3 \\
+    \label{eq:lref} L & = L_0 + L_1 f + L_2 f^2 + L_3 f^3
+\end{align}
+Because of the inherent transmission line, the impedance on the input of this
+line has to be calculated. As shown in \cite{pozar_mw_engineering_2011} this
+can be achieved with \cref{eq:beta,eq:move}. In these equations the impedances
+calculated from the capacitance/inductance provided by \cref{eq:cref,eq:lref},
+the material dependent speed $c$, the frequency $f$ and the transmission line
+length $l$ is needed. Therefore the actual frequency dependent impedances can
+be calculated with the values from the data sheet.
+\begin{align}
+    \label{eq:beta} \beta & = \frac{2 \pi}{\lambda} = \frac{2 \pi f}{c}\\
+    \label{eq:move} Z_{in} & = Z_0 \frac{Z_L + j Z_0 \tan(\beta l)}{Z_0 + j Z_L \tan(\beta l)}
+\end{align}
+
+These values don't incorporated eventual adapters needed for the measurements.
+Hence it is important to use the calibration kit with the right connectors, or
+the connectors have to be accounted for in the error corrections.
+
+By using the three different targets and applying them to \cref{eq:gamma_err},
+system of three \cref{eq:gls,eq:glo,eq:glm} can be set up. The
+three different $\Gamma_L$ and $\Gamma_{L,f}$ represent the short ($\Gamma_S$),
+the open ($\Gamma_O$) and the match ($\Gamma_M$) target.
+\begin{align}
+    \label{eq:gls} \Gamma_{L_S} & = \frac{S_{11} - \Gamma_{L,f_S}^{-1}}{S_{11} S_{22}\Gamma_{L,f_S}^{-1} - S_{22} - S_{12}} \\
+    \label{eq:glo} \Gamma_{L_O} & = \frac{S_{11} - \Gamma_{L,f_O}^{-1}}{S_{11} S_{22}\Gamma_{L,f_O}^{-1} - S_{22} - S_{12}} \\
+    \label{eq:glm} \Gamma_{L_M} & = \frac{S_{11} - \Gamma_{L,f_M}^{-1}}{S_{11} S_{22}\Gamma_{L,f_M}^{-1} - S_{22} - S_{12}}
+\end{align}
+
+Solving these equations for the error terms $S_{11}$, $S_{12}$ and $S_{22}$
+leads to \cref{eq:S11err,eq:S12err,eq:S22err} with the common term $g$ from
+\cref{eq:g_replace} and $\Gamma_1$ from \cref{eq:gamma_replace}. Those terms
+were used to enable a more compact representation. These equations were
+generated with Mathematica and are implemented in a Mathematica generated
+Matlab module (see \cref{sec:matlab}).
+
+\begin{align}
+    \label{eq:gamma_replace} \Gamma_1 & = \frac{a_1}{b_1} = \Gamma_{L,f} \\
+    \begin{split}
+    \label{eq:g_replace} g & = (\Gamma_{1_O} - \Gamma_{1_S}) \Gamma_{1_M} \Gamma_{L_O} \Gamma_{L_S} + \Gamma_{L_M} ((\Gamma_{1_M} - \Gamma_{1_O}) \Gamma_{1_S} \Gamma_{L_O} + (\Gamma_{1_S} - \Gamma_{1_M}) \Gamma_{1_O} \Gamma_{L_S})
+    \end{split}\\
+    \label{eq:S11err} S_{11} & = \frac{(\Gamma_{1_O} - \Gamma_{1_S}) \Gamma_{L_O} \Gamma_{L_S} + \Gamma_{L_M} ((\Gamma_{1_M} - \Gamma_{1_O}) \Gamma_{L_O} + (\Gamma _{1_S} - \Gamma _{1_M}) \Gamma_{L_S})}{g} \\
+    \label{eq:S12err} S_{12} & = \frac{(\Gamma_{1_O} - \Gamma_{1_M}) (\Gamma_{1_M} - \Gamma_{1_S}) (\Gamma_{1_O} - \Gamma_{1_S}) (\Gamma_{L_M} - \Gamma_{L_O}) (\Gamma_{L_M} - \Gamma_{L_S}) (\Gamma_{L_O} - \Gamma_{L_S})}{g^2} \\
+    \label{eq:S22err} S_{22} & = \frac{(\Gamma_{1_S} - \Gamma_{1_O}) \Gamma_{1_M} \Gamma_{L_M} + (\Gamma_{1_M} - \Gamma_{1_S}) \Gamma_{1_O} \Gamma_{L_O} + (\Gamma_{1_O} - \Gamma_{1_M}) \Gamma_{1_S} \Gamma_{L_S}}{g}
 \end{align}
 
 % ---------------------------------------------------------------------------
@@ -973,6 +1034,7 @@ S_{22} & = \frac{(\Gamma_{1_S} - \Gamma_{1_O}) \Gamma_{1_M} \Gamma_{L_M} + (\Gam
 
 \end{tikzpicture}
 \section{One Port \glsentryshort{vna}}
+\label{sec:vna_verify}
 \section{Reflection Measurements}
 \begin{tikzpicture}
     \begin{smithchart}[width=7cm,clip=false]
