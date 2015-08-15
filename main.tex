@@ -76,6 +76,7 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
 \usepackage{placeins} % keep floats in check (=sections where they belong)
 \usepackage{booktabs} % nicer tables
 \usepackage{lipsum} % TODO remove in final
+\usepackage{cite}
 
 \usepackage{scrlayer-scrpage}
 \pagestyle{scrheadings}
@@ -634,11 +635,11 @@ carrier signal, it can't be filtered away \cite{hashmi_agile_2010}.
               (rightsplit) node[anchor=base west] {Digital}
               (rightsplit) node[anchor=base east] {Analog};
 
-        \draw [-latex] ($(dirvna.A2) + (-0.2,0.1)$) -- node[base left] {$b_1$} ($(oszivna.A1 |- oszimiddle) - (0.2,0.1)$);
-        \begin{pgfonlayer}{foreground}
-            \draw [-latex] ($(dirvna.B2) + (0.2,0.1)$) -- ($(oszimiddle -| dirvna.B2) + (0.2,-0.1)$);
-        \end{pgfonlayer}
-        \draw ($(oszimiddle -| dirvna.B2) + (0.2,-0.1)$) node[base right,fill=white] {$a_1$};
+%        \draw [-latex] ($(dirvna.A2) + (-0.2,0.1)$) -- node[base left] {$b_1$} ($(oszivna.A1 |- oszimiddle) - (0.2,0.1)$);
+%        \begin{pgfonlayer}{foreground}
+%            \draw [-latex] ($(dirvna.B2) + (0.2,0.1)$) -- ($(oszimiddle -| dirvna.B2) + (0.2,-0.1)$);
+%        \end{pgfonlayer}
+%        \draw ($(oszimiddle -| dirvna.B2) + (0.2,-0.1)$) node[base right,fill=white] {$a_1$};
 
         \draw [dashed] ($(plane) + (0,4)$) node[anchor=south] {Load Reference Plane} -- ($(plane) - (0,4.5)$);
 
@@ -923,8 +924,8 @@ Solving these equations for the error terms $S_{11}$, $S_{12}$ and $S_{22}$
 leads to \cref{eq:S11err,eq:S12err,eq:S22err} with the common term $g$ from
 \cref{eq:g_replace} and $\Gamma_1$ from \cref{eq:gamma_replace}. Those terms
 were used to enable a more compact representation. These equations were
-generated with Mathematica and are implemented in a Mathematica generated
-Matlab module (see \cref{sec:matlab}).
+generated with Mathematica and are implemented in a Wolfram Mathematica generated
+Mathworks Matlab module (see \cref{sec:matlab}).
 
 \begin{align}
     \label{eq:gamma_replace} \Gamma_1 & = \frac{a_1}{b_1} = \Gamma_{L,f} \\
@@ -941,11 +942,190 @@ Matlab module (see \cref{sec:matlab}).
 \section{Analog Part}
 \label{sec:analog}
 
+\begin{figure}[htb]
+    \centering
+    \begin{tikzpicture}
+        \pgfdeclarelayer{foreground}
+        \pgfsetlayers{background,main,foreground}
+        \tikzpicturedependsonfile{rfsymbols.tex}
+        \tikzstyle{every node}=[font=\footnotesize]
+        \draw node[dut] (dut) {}
+              node[circulator,right=2 of dut,label=below:circ] (circ) {}
+              node[coordinate,right=of circ,yshift=1.5cm] (uppernode) {}
+              node[coordinate,right=of circ,yshift=-1.5cm] (lowernode) {}
+
+              (lowernode) node[amplifier,label=above:amp] (amp) {}
+              node[mixer,right=of amp,label=above:mix3] (upmix) {}
+              node[lowpass,right=of upmix,label=above:f3] (antialias) {}
+              node[adc,right=of antialias,label=above:dac] (dac) {}
+              node[coordinate,right=of dac] (outbuf) {}
+
+              (uppernode -| upmix) node[mixer,label=below:mix1] (downmix) {}
+              node[bandpass,right=of downmix,label=below:f1] (bp) {}
+              node[adc,right=of bp,label=below:adc] (adc) {}
+              node[coordinate,right=of adc] (inbuf) {}
+
+              node[source,above=of downmix.center,scale=0.7,label=right:$f_0 - \SI{70}{\mega\hertz}$] (downsource) {}
+              node[source,above=of adc.center,scale=0.7,label={[fill=white]right:$\SI{100}{\mega\hertz}$}] (sample) {}
+              node[source,below=of upmix.center,scale=0.7,label=right:$f_0$] (upsource) {};
+
+        \draw ($(dut)!.4!(circ.A)$) node[coordinate] (plane) {};
+
+        { [on background layer,every path/.style={dotted,decorate,decoration=random steps,segment length=2mm}]
+            \draw ($(dut)!.75!(circ.A) + (0,4)$) -- ++(0,-8.5) node[coordinate] (leftsplit) {};
+            \draw ($(adc.east)!.5!(outbuf.west) + (0,4)$) -- ++(0,-8.5) node[coordinate] (rightsplit) {};
+        }
+        { [rounded corners=2pt]
+            \draw (dut) -- (plane);
+            \draw [dashed] (plane) -- (plane -| leftsplit);
+            \draw (plane -| leftsplit) -- (circ.A);
+            \draw [-latex] (circ.B) -- ($(circ.B |- uppernode)!.5!(uppernode)$) node[coordinate] (upper) {} -- (downmix);
+            \draw [-latex] (amp) -- ($(circ.C |- amp)!.5!(lowernode)$) node[coordinate] (lower) {} -- (circ.C);
+        }
+        { [-latex]
+            \draw (downsource) -- (downmix);
+            \draw (sample) -- (adc);
+            \draw (upsource) -- (upmix);
+        }
+        { [latex-,dashed,every node/.style={font=\footnotesize}]
+            \foreach \device in {downsource,sample} {
+                \draw (\device) -- ++(0,1) node[anchor=south] {ref};
+            }
+            \draw (upsource) -- ++(0,-1) node[anchor=north] {ref};
+        }
+        { [start chain,every on chain/.style={join=by -latex}]
+            \chainin (downmix);
+            \chainin (bp);
+            \chainin (adc);
+            \chainin (inbuf);
+        }
+        { [start chain,every on chain/.style={join=by -latex}]
+            { [every on chain/.style={join=by {double,-latex}}]
+                \chainin (outbuf);
+                \chainin (dac);
+                \chainin (antialias);
+                \chainin (upmix);
+            }
+            \chainin (amp);
+        }
+
+        \draw (leftsplit) node[anchor=south west,rotate=90] {One Port \gls{vna}}
+              (leftsplit) node[anchor=base west] {Analog}
+              (rightsplit) node[anchor=base west] {Digital}
+              (rightsplit) node[anchor=base east] {Analog};
+
+        \draw [dashed] ($(plane) + (0,4)$) node[anchor=south] {Load Reference Plane} -- ($(plane) - (0,4.5)$);
+
+        \draw [latex-] ($(plane) + (0,1.5)$) -- ++(-0.5,0) node[anchor=east] {$Z_L$};
+
+        \draw [-latex] ($(plane) + (0.25,-.5)$) node[anchor=west] {$a_2$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0.25,-1)$) node[anchor=west] {$b_2$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0,-1.5)$) -- ++(-0.5,0) node[anchor=east] {$\Gamma_L$};
+
+        \node [draw,fit=(amp) (dac) (upsource),rounded corners=4pt,inner xsep=6pt,inner ysep=14pt,label={above:Vector Signal Generator}] {};
+    \end{tikzpicture}
+    \caption{Analog part}
+    \label{fig:analog}
+\end{figure}
+
+The analog part, which was designed for the \gls{elp} system can be seen in
+\cref{fig:analog}. It consists of everything needed, to prepare the signal
+for analog-to-digital conversion and back. Furthermore it contains a
+circulator (\textit{circ}), which is needed for uncoupling the
+incident power wave $b_2$ and reflected power wave $a_2$. Instead of a
+circulator a directional coupler could be used (see
+\cref{chap:verification} for an example) \cite{ghannouchi_load-pull_2013}.
+
+The upper analog processing chain in \cref{fig:analog} handles the
+incident power wave $b_2$. It is responsible for shifting the frequency spectrum
+of the power wave from \gls{rf} to \SI{70}{\mega\hertz} \gls{if}. This
+superheterodyn design, with baseband mixing implemented in the digital
+part (see \cref{sec:digital}), was chosen, because it exhibits no amplitude
+imbalances between I and Q. This setup has the additional feature, that
+the \gls{dc}-component caused by the analog mixer \textit{mix1} is outside the
+band of interest at \gls{if}. Therefore there is no gap around \SI{0}{\hertz}
+and the whole bandwidth is usable. \SI{70}{\mega\hertz} was chosen for \gls{if},
+because it is a widely used \gls{if} in radar and microwave applications
+\cite{tozer_broadcast_2004,ahamed_design_1997,whitaker_rf_2002,penttinen_telecommunications_2015}
+leading to widely available parts for this frequency and in microwave
+laboratory equipment like \glspl{vna} \cite{agilent_h70}.
+
 \begin{itemize}
     \item describe spectra
-    \item why 70
     \item why lower part
+    \item adc
 \end{itemize}
+
+\begin{figure}[htb]
+    \centering
+    \begin{tikzpicture}[every node/.style={font=\tiny},every path/.style={decoration={name=zigzag,segment length=2pt}}]
+        \def\bpspec#1#2{%
+            \begin{scope}[shift={#1}]
+                \draw [#2] (-0.2,0) -- (-0.2,0.5) -- (0.2,0.8) -- (0.2,0);
+            \end{scope}
+        }
+        \begin{scope}[shift={(0,4.5)}]
+            \draw [latex-latex] (-5,0) -- (3,0) decorate { -- (3.1,0) } -- (5,0) node[anchor= west] {frequency};
+            \draw [-latex] (0,-0.2) -- (0,1) node[anchor=south] {amplitude};
+            \bpspec{(3.5,0)}{solid}
+            \draw (3.5,0.1) -- (3.5,-0.1) node[anchor=north] {$f_0$};
+            \draw (-5,0.5) node[anchor=east,font={}] {\gls{rf}};
+            \draw [-latex] (3.5,0) to[bend left=30] ($0.7*(2,0)$);
+            \draw ($0.7*(2,0) + (0,0.1)$) -- ($0.7*(2,0) - (0,0.1)$) node[anchor=north] {$\SI{70}{\mega\hertz}$};
+        \end{scope}
+        \begin{scope}[shift={(0,3)}]
+            \draw [latex-latex] (-5,0) -- (4,0) decorate { -- (4.1,0) } -- (5,0) node[anchor=west] {frequency};
+            \draw [-latex] (0,-0.2) -- (0,1);
+            \bpspec{(4.5,0)}{solid}
+            \draw (4.5,0.1) -- (4.5,-0.1) node[anchor=north] {$2f_0 + \SI{70}{\mega\hertz}$};
+            \bpspec{($0.7*(2,0)$)}{solid}
+            \draw ($0.7*(2,0) + (0,0.1)$) -- ($0.7*(2,0) - (0,0.1)$) node[anchor=north] {$\SI{70}{\mega\hertz}$};
+            \draw (-5,0.5) node[anchor=east,font={}] {\gls{if}};
+        \end{scope}
+        \begin{scope}[shift={(0,1.5)}]
+            \draw [latex-latex] (-5,0) -- (5,0) node[anchor=west] {frequency};
+            \draw [-latex] (0,-0.2) -- (0,1);
+            \foreach \x in {-2,-1,1,2} {
+                \draw ($\x*(2,0) + (0,0.1)$) -- ($\x*(2,0) - (0,0.1)$) node[anchor=north] {$\x f_s$};
+                \draw [dotted] ($\x*(2,0)$) -- ($\x*(2,0) + (0,1)$);
+            }
+            \foreach \x in {-3,-2,0,1} {
+                \bpspec{($0.7*(2,0) + \x*(2,0)$)}{dashed}
+            }
+            \begin{scope}[xscale=-1]
+                \foreach \x in {-3,...,1} {
+                    \bpspec{($0.7*(2,0) + \x*(2,0)$)}{dashed}
+                }
+            \end{scope}
+            \bpspec{($0.7*(2,0) + -1*(2,0)$)}{solid}
+            \draw [-latex] ($0.7*(2,0) - (2,0)$) to[bend right=45] (0,0);
+            \draw ($0.7*(2,0) + -1*(2,0) + (0,0.1)$) -- ($0.7*(2,0) + -1*(2,0) + (0,-0.1)$) node[anchor=north] {$\SI{-30}{\mega\hertz}$};
+            \draw (-5,0.5) node[anchor=east,font={}] {sampling};
+        \end{scope}
+        \draw [latex-latex] (-5,0) -- (5,0) node[anchor=west] {frequency};
+        \draw [-latex] (0,-0.2) -- (0,1);
+        \foreach \x in {-2,-1,1,2} {
+            \draw ($\x*(2,0) + (0,0.1)$) -- ($\x*(2,0) - (0,0.1)$) node[anchor=north] {$\x f_s$};
+            \draw [dotted] ($\x*(2,0)$) -- ($\x*(2,0) + (0,1)$);
+        }
+        \bpspec{(0,0)}{solid}
+        \draw (-5,0.5) node[anchor=east,font={}] {digital mixer};
+    \end{tikzpicture}
+    \caption{Down conversion frequency spectra}
+    \label{fig:downconversion}
+\end{figure}
+
+% ---------------------------------------------------------------------------
+
+\section{Digital Part}
+\label{sec:digital}
+
+\begin{enumerate}
+    \item mixer
+    \item buffers
+    \item circular convolution
+    \item mul
+\end{enumerate}
 
 % ===========================================================================
 
@@ -969,6 +1149,7 @@ Matlab module (see \cref{sec:matlab}).
 \label{sec:matlab}
 
 \chapter{Verification of the Measurement System}
+\label{chap:verification}
 \begin{tikzpicture}[node distance=0.6]
     \tikzpicturedependsonfile{rfsymbols.tex}
     \tikzstyle{every node}=[font=\footnotesize]
