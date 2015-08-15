@@ -47,6 +47,12 @@
 \usepackage{gensymb}
 
 \providecommand{\abs}[1]{\lvert#1\rvert}
+\makeatletter
+\newcommand\xleftrightarrow[2][]{%
+  \ext@arrow 9999{\longleftrightarrowfill@}{#1}{#2}}
+\newcommand\longleftrightarrowfill@{%
+  \arrowfill@\leftarrow\relbar\rightarrow}
+\makeatother
 
 %source
 
@@ -473,7 +479,7 @@ reflection coefficients, which are needed in the design of high-efficiency
 \glspl{pa}. Furthermore it depicts a strong interdependency of magnitude
 and phase of the reflection coefficient $\Gamma_L$ on both phase shifter
 and attenuator settings \cite{pozar_mw_engineering_2011}. To overcome these
-limitations an \gls{elp} was designed.
+limitations an \gls{elp} measurement system was designed.
 
 \begin{figure}[htb]
     \centering
@@ -780,7 +786,7 @@ was used (see \cref{sec:matlab} and \cite{matlab_flattop}).
 
 \begin{align}
     \label{eq:k} k & = \left\lfloor \frac{f}{\Delta{}f} \right\rfloor \\
-    \label{eq:X} X & = \mathcal{DFT} \left(x\,\lstinline|flattopwin($n_{sample}$, 'periodic')|\right) \\
+    \label{eq:X} X & \xleftrightarrow{\mathcal{DFT}} x\,\lstinline|flattopwin($n_{sample}$, 'periodic')| \\
     \label{eq:gamma_lf} \Gamma_{L,f} & = \frac{X_{a}\{k\}}{X_{b}\{k\}}
 \end{align}
 
@@ -1149,10 +1155,20 @@ the spectrum $\SI{30}{\mega\hertz}$ to the right. After that the band of interes
     \label{fig:downconversion}
 \end{figure}
 
-\begin{itemize}
-    \item adc
-    \item lower part
-\end{itemize}
+The \gls{adc} chosen for this work was an LTC2274. This \gls{adc}
+has an input bandwidth of \SI{700}{\mega\hertz} and is capable of
+\SI{105}{\mega\samples\per\second} \cite{ltc2274}. With this specifications it
+is suited for sampling the \gls{if} of \SI{70}{\mega\hertz} \gls{if} with the sample rate
+of \SI{100}{\mega\samples\per\second}. Any other \gls{adc} capable of handling
+these requirements and the same digital interface (see \cref{sec:digital}) can be used as a drop in
+replacement for this \gls{elp} system.
+
+Digital to analog conversion and up mixing is handled by the lower analog
+processing chain in \cref{fig:analog}. In this work a signal vector generator
+SMBV100a from Rhode \& Schwarz with digital \gls{iq} input support (R\&S SMBV-K18
+\cite{smbv_100a}) was used for these tasks. Like the \gls{adc} a different
+signal vector generator can be used as a drop in replacement, if it uses
+the same digital interface (see \cref{sec:digital}).
 
 % ---------------------------------------------------------------------------
 
