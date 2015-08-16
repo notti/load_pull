@@ -1273,7 +1273,7 @@ generation. This multiplier allows adjusting the phase and amplitude of the refl
 coefficient $\Gamma_L$ by varying $X$ and $Y$.
 
 The \gls{adc} LTC2274, has a JESD204 compliant high speed serial interface \cite{ltc2274}.
-This interface uses 8B/10B line coding over an LVDS connection \cite{jesd205B.01}. The line coding
+This interface uses 8B/10B line coding over a \gls{lvds} connection \cite{jesd205B.01}. The line coding
 is responsible for keeping a balanced number of ones and zeros on the line, therefore keeping a long term
 \gls{dc} balance on the line. This allows transmitting the data stream through a high pass
 channel. Clock recovery is also possible, because this protocol ensures frequent transitions
@@ -1380,10 +1380,19 @@ is the circular extension of the linear convolution, which is done by adding the
 $n_{fft} - L$ points after the sequence $y[n]$ to the beginning. The hardware implementation
 of this algorithms can be seen in \cref{sec:overlap_add}.
 
-
-\begin{itemize}
-    \item dig iq out \cite{fsq_b17} \cite{ds90cr485}
-\end{itemize}
+According to \cite{fsq_b17}, the digital \gls{iq} interface needed to communicate
+with the vector signal generator chosen for this \gls{elp} measurement
+system (see \cref{sec:analog}) is implemented according to \cite{ds90cr485}. This
+chip uses eight \gls{lvds} data lines and one \gls{lvds} clock line. Each of the lines
+is clocked at \SI{350}{\mega\hertz}. The translation from parallel to serial was implemented
+in the \gls{fpga} fabric according to the data sheet \cite{ds90cr485} and used
+the bit mapping from the manual \cite{fsq_b17}. This interface provides a bit resolution of \SI{20}{\bit}.
+Since the digital signal processing chain in this work is only able to process \SI{16}{\bit},
+the lower \SI{4}{\bit} were tied to zero. One missing detail from the documentation,
+which was found out empirically during this work, is that the S\_CLK pin of the connector
+has to be connected to ground, in order for the signal generator to recognize a connected
+device. Other vector signal generators with the same interface can be used as a drop in
+replacement. The detailed hardware implementation can be found in \cref{sec:smbv_interface}.
 
 % ===========================================================================
 
@@ -1404,6 +1413,7 @@ of this algorithms can be seen in \cref{sec:overlap_add}.
 \section{Overlap Add}
 \label{sec:overlap_add}
 \section{SMBV Interface}
+\label{sec:smbv_interface}
 \section{Processor Interface}
 \chapter{Software Implementation}
 \label{chap:software}
