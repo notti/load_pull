@@ -120,6 +120,8 @@ pdfpagelabels %,hidelinks
 \newacronym{adc}{ADC}{analog-to-digital converter}
 \newacronym{dac}{DAC}{digital-to-analog converter}
 \newacronym{lo}{LO}{local oscillator}
+\newacronym{lvds}{LVDS}{low voltage differential signalling}
+\newacronym{fft}{FFT}{fast Fourier transform}
 
 \makeglossaries
 
@@ -1270,24 +1272,19 @@ is the complex multiplier \textit{mul}, which is responsible for the actual refl
 generation. This multiplier allows adjusting the phase and amplitude of the reflection
 coefficient $\Gamma_L$ by varying $X$ and $Y$.
 
-\begin{itemize}
-    \item adc
-\end{itemize}
-
+The \gls{adc} LTC2274, has a JESD204 compliant high speed serial interface \cite{ltc2274}.
+This interface uses 8B/10B line coding over an LVDS connection \cite{jesd205B.01}. The line coding
+is responsible for keeping a balanced number of ones and zeros on the line, therefore keeping a long term
+\gls{dc} balance on the line. This allows transmitting the data stream through a high pass
+channel. Clock recovery is also possible, because this protocol ensures frequent transitions
+in the bit stream. The JESD204 also encourages using a scrambler on the raw data, in order to lessen the
+noise caused by the digital transmission in the analog part. The scrambler implemented for
+this project is based on the polynom in \cref{eq:poly} \cite{jesd205B.01}. This scrambler can
+be bypassed if a different \gls{adc} is used. A more detailed explanation of the input interface
+can be found in \cref{sec:acquisition}.
 \begin{equation}
-    1 + x^{14} + x^{15}
+    \label{eq:poly} 1 + x^{14} + x^{15}
 \end{equation}
-\begin{itemize}
-
-    \item scrambler: 32767 bit long, self synchronize 2 octets
-    \item 8B/10B
-    \item MSB \rightarrow LSB
-    \item K28.5 D5.6/D16.2 (not JESD204B conform\cite{ltc2274}) \cite{jesd205B.01}
-\end{itemize}
-
-\begin{itemize}
-    \item circular convolution
-\end{itemize}
 
 \begin{figure}[htb]
     \centering
@@ -1350,6 +1347,39 @@ coefficient $\Gamma_L$ by varying $X$ and $Y$.
     \caption{Overlap add algorithm (linear convolution, with circular in red). }
     \label{fig:overlap_add}
 \end{figure}
+The filter $f2$ is a causal \gls{fir} filter with length $n_{fft}$, that is
+implemented with convolution using the \gls{fft}:
+\begin{equation}
+    \begin{split}
+     \label{eq:circ} y[n] = h[n] * x[n] & = \sum_{k=0}^{n_{fft}-1} h[k]x[n-k]\\
+         & = \mathcal{DFT}^{-1}\left\{\mathcal{DFT}(x[n])\,\mathcal{DFT}(h[n])\right\}
+    \end{split}
+\end{equation}
+Since implementing the \gls{fft} in hardware uses up lot of resources, overlap add
+was used to allow for higher sample periods than $n_{fft}$. As shown by \cite{schaums_2011}
+this algorithm works by splitting the signal $x[n]$ into non overlapping
+subsequences of length $L$ (see \cref{fig:overlap_add}). Therefor $x[n]$ can
+be expressed by a sum of shifted finite-length sequences:
+\begin{equation}
+    \label{eq:sum_seq} x[n] = \sum_{i=0}^{\infty} x_i(n-Mi) \qquad x_i[n] =\begin{cases}
+        x[n+Mi] & n = 0, 1, \ldots, L-1\\
+        0 & \text{else} \end{cases}
+\end{equation}
+Applying the linear convolution to this sum leads to
+\begin{equation}
+    \begin{split}\label{eq:overlap_add_sum}
+        y[n] = h[n] * x[n] & = \sum_{i=0}^{\infty} x_i(n-Mi) * h[n] = \sum_{i=0}^{\infty} y_i(n-Mi)
+    \end{split}
+\end{equation}
+where $y_i[n]$ is the linear convolution of $x_i[n]$ with $h[n]$. Because every $y[n]$ is of length
+$N = L + n_{fft} -1$, the \cref{eq:circ} with n-point \glspl{fft} can be used to calculate them.
+Every convoluted subsequence $y_i[n]$ overlaps by $n_{fft} - L$. Since this overlapping
+points are summed up by equation \cref{eq:overlap_add_sum}, this method is called overlap
+add. A visualisation can be seen in \cref{fig:overlap_add}. The red part in this visualisation
+is the circular extension of the linear convolution, which is done by adding the
+$n_{fft} - L$ points after the sequence $y[n]$ to the beginning. The hardware implementation
+of this algorithms can be seen in \cref{sec:overlap_add}.
+
 
 \begin{itemize}
     \item dig iq out \cite{fsq_b17} \cite{ds90cr485}
@@ -1366,7 +1396,13 @@ coefficient $\Gamma_L$ by varying $X$ and $Y$.
 \end{itemize}
 
 \section{Data Acquisition}
+\label{sec:acquisition}
+\begin{itemize}
+    \item MSB \rightarrow LSB
+    \item K28.5 D5.6/D16.2 (not JESD204B conform\cite{ltc2274}) \cite{jesd205B.01}
+\end{itemize}
 \section{Overlap Add}
+\label{sec:overlap_add}
 \section{SMBV Interface}
 \section{Processor Interface}
 \chapter{Software Implementation}
