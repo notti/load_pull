@@ -119,6 +119,7 @@ pdfpagelabels %,hidelinks
 \newacronym{pc}{PC}{personal computer}
 \newacronym{adc}{ADC}{analog-to-digital converter}
 \newacronym{dac}{DAC}{digital-to-analog converter}
+\newacronym{lo}{LO}{local oscillator}
 
 \makeglossaries
 
@@ -573,9 +574,6 @@ carrier signal, it can't be filtered away \cite{hashmi_agile_2010}.
               node[mixer,right=of amp,label=above:mix3] (upmix) {}
               node[lowpass,right=of upmix,label=above:f3] (antialias) {}
               node[adc,right=of antialias,label=above:dac] (dac) {}
-              node[empty,right=of dac,label=above:buffer2] (outbuf) {}
-              node[mixer,right=of outbuf] (mul) {}
-              node[rotate=90,anchor=north] at (mul.east) {mul}
 
               (uppernode -| upmix) node[mixer,label=below:mix1] (downmix) {}
               node[bandpass,right=of downmix,label=below:f1] (bp) {}
@@ -584,14 +582,18 @@ carrier signal, it can't be filtered away \cite{hashmi_agile_2010}.
               node[mixer,right=of inbuf] (shift) {}
               node[rotate=90,anchor=north] at (shift.east) {mix2}
 
-              ($(shift)!.5!(mul)$) node[allpass,rotate=90] (H) {}
+              (dac -| inbuf) node[mixer,label=above:mul] (mul) {}
+              node[empty,right=of mul] (outbuf) {}
+              node[rotate=90,anchor=north] at (outbuf.east) {buffer2}
+
+              ($(shift)!.5!(outbuf)$) node[allpass,rotate=90] (H) {}
               node[rotate=90,anchor=north] at (H.south) {f2}
 
               node[source,above=of downmix.center,scale=0.7,label=right:$f_0 - \SI{70}{\mega\hertz}$] (downsource) {}
               node[source,above=of adc.center,scale=0.7,label={[fill=white]right:$\SI{100}{\mega\hertz}$}] (sample) {}
               node[source,above=of shift.center,scale=0.7,label=right:$\SI{30}{\mega\hertz}$] (shiftsource) {}
               node[source,below=of upmix.center,scale=0.7,label=right:$f_0$] (upsource) {}
-              node[below=of mul.center] (gamma) {$\Gamma_{set} = X + jY$};
+              node[below=of mul.center,fill=white] (gamma) {$\Gamma_{set} = X + jY$};
 
         \draw ($(dut)!.5!(dirvna)$) node[coordinate] (plane) {};
 
@@ -623,8 +625,8 @@ carrier signal, it can't be filtered away \cite{hashmi_agile_2010}.
             \chainin (shift);
             { [every on chain/.style={join=by {double,-latex}}]
                 \chainin (H);
-                \chainin (mul);
                 \chainin (outbuf);
+                \chainin (mul);
                 \chainin (dac);
                 \chainin (antialias);
                 \chainin (upmix);
@@ -633,7 +635,7 @@ carrier signal, it can't be filtered away \cite{hashmi_agile_2010}.
         }
         { [on background layer,every path/.style={dotted,decorate,decoration=random steps,segment length=2mm}]
             \draw ($(dirvna.B1)!.5!(circ.A) + (0,4)$) -- ++(0,-8.5) node[coordinate] (leftsplit) {};
-            \draw ($(adc.east)!.5!(outbuf.west) + (0,4)$) -- ++(0,-8.5) node[coordinate] (rightsplit) {};
+            \draw ($(adc.east)!.5!(mul.west) + (0,4)$) -- ++(0,-8.5) node[coordinate] (rightsplit) {};
         }
 
         \draw (leftsplit) node[anchor=base east] {One Port \gls{vna}}
@@ -1155,12 +1157,12 @@ the spectrum $\SI{30}{\mega\hertz}$ to the right. After that the band of interes
     \label{fig:downconversion}
 \end{figure}
 
-The \gls{adc} chosen for this work was an LTC2274. This \gls{adc}
+The \gls{adc} chosen for this work was an LTC2274. This \SI{16}{\bit} \gls{adc}
 has an input bandwidth of \SI{700}{\mega\hertz} and is capable of
 \SI{105}{\mega\samples\per\second} \cite{ltc2274}. With this specifications it
 is suited for sampling the \gls{if} of \SI{70}{\mega\hertz} \gls{if} with the sample rate
 of \SI{100}{\mega\samples\per\second}. Any other \gls{adc} capable of handling
-these requirements and the same digital interface (see \cref{sec:digital}) can be used as a drop in
+these requirements and a similar digital interface (see \cref{sec:digital}) can be used as a drop in
 replacement for this \gls{elp} system.
 
 Digital to analog conversion and up mixing is handled by the lower analog
@@ -1174,6 +1176,100 @@ the same digital interface (see \cref{sec:digital}).
 
 \section{Digital Part}
 \label{sec:digital}
+
+\begin{figure}[htb]
+    \centering
+    \begin{tikzpicture}
+        \tikzpicturedependsonfile{rfsymbols.tex}
+        \tikzstyle{every node}=[font=\footnotesize]
+        \draw node[dut] (dut) {}
+              node[coordinate,right=2 of dut] (circ) {}
+
+              node[coordinate,right=of circ,yshift=-1.5cm,label=left:$a_2$] (dac) {}
+
+              node[coordinate,right=of circ,yshift=1.5cm,label=left:$b_2$] (adc) {}
+              node[empty,right=of adc,label=below:buffer1] (inbuf) {}
+              node[mixer,right=of inbuf] (shift) {}
+              node[rotate=90,anchor=north] at (shift.east) {mix2}
+
+              (dac -| inbuf) node[mixer,label=above:mul] (mul) {}
+              node[empty,right=of mul] (outbuf) {}
+              node[rotate=90,anchor=north] at (outbuf.east) {buffer2}
+
+              ($(shift)!.5!(outbuf)$) node[allpass,rotate=90] (H) {}
+              node[rotate=90,anchor=north] at (H.south) {f2}
+
+              node[source,above=of shift.center,scale=0.7,label=right:$\SI{30}{\mega\hertz}$] (shiftsource) {}
+              node[below=of mul.center,fill=white] (gamma) {$\Gamma_{set} = X + jY$};
+
+        \draw ($(dut)!.4!(circ)$) node[coordinate] (plane) {};
+
+        { [on background layer,every path/.style={dotted,decorate,decoration=random steps,segment length=2mm}]
+            \draw ($(dut)!.75!(circ) + (0,4)$) -- ++(0,-8.5) node[coordinate] (leftsplit) {};
+            \draw ($(adc.east)!.5!(mul.west) + (0,4)$) -- ++(0,-8.5) node[coordinate] (rightsplit) {};
+        }
+        { [rounded corners=2pt]
+            \draw (dut) -- (plane);
+            \draw [dashed] (plane) -- (plane -| leftsplit) -- (circ);
+        }
+        { [-latex]
+            \draw (shiftsource) -- (shift);
+            \draw (gamma) -- (mul);
+        }
+        { [latex-,dashed,every node/.style={font=\footnotesize}]
+            \foreach \device in {shiftsource} {
+                \draw (\device) -- ++(0,1) node[anchor=south] {ref};
+            }
+        }
+        { [start chain,every on chain/.style={join=by -latex}]
+            \chainin (adc);
+            \chainin (inbuf);
+            \chainin (shift);
+            { [every on chain/.style={join=by {double,-latex}}]
+                \chainin (H);
+                \chainin (outbuf);
+                \chainin (mul);
+                \chainin (dac);
+            }
+        }
+
+        \draw (leftsplit) node[anchor=south west,rotate=90] {One Port \gls{vna}}
+              (rightsplit) node[anchor=base west] {Digital}
+              ($(leftsplit)!.5!(rightsplit)$) node[anchor=base] {Analog};
+
+        \draw [dashed] ($(plane) + (0,4)$) node[anchor=south] {Load Reference Plane} -- ($(plane) - (0,4.5)$);
+
+        \draw [latex-] ($(plane) + (0,1.5)$) -- ++(-0.5,0) node[anchor=east] {$Z_L$};
+
+        \draw [-latex] ($(plane) + (0.25,-.5)$) node[anchor=west] {$a_2$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0.25,-1)$) node[anchor=west] {$b_2$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0,-1.5)$) -- ++(-0.5,0) node[anchor=east] {$\Gamma_L$};
+    \end{tikzpicture}
+    \caption{Digital part}
+    \label{fig:digital}
+\end{figure}
+
+The digital part consists of a single \SI{16}{\bit} digital signal processing
+chain operating at \SI{100}{\mega\samples\per\second}. Samples from
+the \gls{adc}, which represent the \gls{if} version of $b_2$ are stored in an input
+buffer \textit{buffer1}. The buffer, which was designed for this work, has a configurable
+sample depth and is capable of averaging the samples from up to 8 consecutive sample
+periods. To move the \gls{if} sampled data into baseband, the digital mixer $mix2$ was implemented
+after this buffer. The \gls{lo} generates the needed \SI{30}{\mega\hertz} (see \cref{fig:downconversion})
+$\sin$ and $\cos$ waveforms with a fixed lookup table. This approach has the
+advantage of a highly accurate \gls{iq}-demodulation without any amplitude or
+phase imbalances. After base band conversion a low pass filter would be needed to
+suppress the aliases generated from the sampling process, as can be seen in
+\cref{fig:downconversion}. To keep resource usage at a minimum, this filter was
+left out of the design, since this task can also be achieved with the configurable
+filter \textit{f2} in the next processing step. Since this filtering takes some time,
+the output sample buffer \textit{buffer2}, with double buffering, is used to store
+the filtered results. This buffer enables the continuous playback of the signal, even
+during calculation of the next sample period. The last element in the processing chain
+is the complex multiplier \textit{mul}, which is responsible for the actual reflection
+generation. This multiplier allows adjusting the phase and amplitude of the reflection
+coefficient $\Gamma_L$ by varying $X$ and $Y$.
+
 
 \begin{enumerate}
     \item mixer
