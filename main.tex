@@ -1270,13 +1270,90 @@ is the complex multiplier \textit{mul}, which is responsible for the actual refl
 generation. This multiplier allows adjusting the phase and amplitude of the reflection
 coefficient $\Gamma_L$ by varying $X$ and $Y$.
 
+\begin{itemize}
+    \item adc
+\end{itemize}
 
-\begin{enumerate}
-    \item mixer
-    \item buffers
+\begin{equation}
+    1 + x^{14} + x^{15}
+\end{equation}
+\begin{itemize}
+
+    \item scrambler: 32767 bit long, self synchronize 2 octets
+    \item 8B/10B
+    \item MSB \rightarrow LSB
+    \item K28.5 D5.6/D16.2 (not JESD204B conform\cite{ltc2274}) \cite{jesd205B.01}
+\end{itemize}
+
+\begin{itemize}
     \item circular convolution
-    \item mul
-\end{enumerate}
+\end{itemize}
+
+\begin{figure}[htb]
+    \centering
+    \begin{tikzpicture}
+        \begin{scope}[shift={(0,13em)}]
+            \draw [decorate,decoration={brace},yshift=2pt] (0,4.1em) -- (5,4.1em) node[midway,yshift=8pt] {$n_{sample}$};
+            \draw [decorate,decoration={brace},yshift=2pt] (0,2.8em) -- (3,2.8em) node[midway,yshift=8pt] {$n_{fft}$};
+            \draw [decorate,decoration={brace},yshift=2pt] (0,1.5em) -- (2,1.5em) node[midway,yshift=8pt] {$L$};
+            \draw (0,0.75em) node[anchor=east] {$x[n]$};
+            \draw (0,0) rectangle (5,1.5em);
+            \draw (5,0.75em) node[anchor=west] (zeros) {0000};
+            \draw [dashed] (5,0) rectangle (6,1.5em) (2,0) -- (2,1.5em) (4,0) -- (4,1.5em);
+        \end{scope}
+        \begin{scope}[shift={(0,9em)}]
+            \draw (0,0.75em) node[anchor=east] {$y_0[n]$};
+            \draw (0,0) rectangle (2,1.5em);
+            \draw [pattern=crosshatch] (2,0) rectangle (3,1.5em);
+            \draw (2.5,0) node[coordinate] (y0b) {};
+            \draw (0.5,0) node[coordinate] (y2b) {};
+        \end{scope}
+        \begin{scope}[shift={(0,6em)}]
+            \draw (0,0.75em) node[anchor=east] {$y_1[n]$};
+            \draw (2,0) rectangle (4,1.5em);
+            \draw [pattern=crosshatch] (4,0) rectangle (5,1.5em);
+            \draw (2.5,1.5em) node[coordinate] (y1t) {};
+            \draw (4.5,0) node[coordinate] (y1b) {};
+        \end{scope}
+        \begin{scope}[shift={(0,3em)}]
+            \draw (0,0.75em) node[anchor=east] {$y_2[n]$};
+            \draw (4,0) rectangle (6,1.5em);
+            \draw [pattern=crosshatch] (6,0) rectangle (7,1.5em);
+            \draw [pattern=crosshatch,pattern color=red] (0,0) rectangle (1,1.5em);
+            \draw (1,0.75em) node[coordinate] (circto) {};
+            \draw (4.5,1.5em) node[coordinate] (y2t) {};
+            \draw (0.5,1.5em) node[coordinate] (ynt) {};
+        \end{scope}
+        \draw (0,0.75em) node[anchor=east] {$y[n]$};
+        \draw (0,0) rectangle (5,1.5em);
+        \draw [dashed,color=red] (5,0) rectangle (6,1.5em);
+        \draw [dotted] (6,1.5em) rectangle (7,0em);
+        \draw [latex-,color=red] (circto) parabola (5.5,1.5em);
+
+        \draw ($(y0b)!.5!(y1t)$) node {$+$};
+        \draw ($(y1b)!.5!(y2t)$) node {$+$};
+        \draw ($(y2b)!.5!(ynt)$) node {$+$};
+        \draw [dotted]
+              (0,1.5em) -- (0,13em)
+              (1,1.5em) -- (1,9em)
+              (2,1.5em) -- (2,9em)
+              (3,7.5em) -- (3,9em)
+              (3,1.5em) -- (3,6em)
+              (4,1.5em) -- (4,6em)
+              (5,1.5em) -- (5,3em)
+              (5,4.5em) -- (5,6em)
+              (7,1.5em) -- (7,3em)
+              (2,13em) -- (3,10.5em)
+              (4,13em) -- (5,10.5em) -- (5,7.5em)
+              (6,13em) -- (7,10.5em) -- (7,4.5em);
+    \end{tikzpicture}
+    \caption{Overlap add algorithm (linear convolution, with circular in red). }
+    \label{fig:overlap_add}
+\end{figure}
+
+\begin{itemize}
+    \item dig iq out \cite{fsq_b17} \cite{ds90cr485}
+\end{itemize}
 
 % ===========================================================================
 
