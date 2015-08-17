@@ -27,7 +27,7 @@
 
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.12}
-\pgfplotsset{every axis plot/.append style={smooth},every axis/.append style={grid=major,legend style={font=\footnotesize}}}
+\pgfplotsset{every axis/.append style={grid=major,legend style={font=\footnotesize}}}
 \usepgfplotslibrary{smithchart}
 \usepgfplotslibrary{units}
 \usepgfplotslibrary{fillbetween}
@@ -1412,6 +1412,9 @@ replacement. The detailed hardware implementation can be found in \cref{sec:smbv
 \section{SMBV Interface}
 \label{sec:smbv_interface}
 \section{Processor Interface}
+
+% ===========================================================================
+
 \chapter{Software Implementation}
 \label{chap:software}
 \section{Kernel Module}
@@ -1419,136 +1422,240 @@ replacement. The detailed hardware implementation can be found in \cref{sec:smbv
 \section{Matlab Driver}
 \label{sec:matlab}
 
+
+% ===========================================================================
+
 \chapter{Verification of the Measurement System}
 \label{chap:verification}
-\begin{tikzpicture}[node distance=0.6]
-    \tikzpicturedependsonfile{rfsymbols.tex}
-    \tikzstyle{every node}=[font=\footnotesize]
-    \draw node[dut] (dut) {}
-          node[dircoupler,right=1 of dut] (dirvna) {}
-          node[dircouplera,right=of dirvna] (dircirc) {}
-          node[attenuator,right=of dircirc,label=below:\scriptsize\SI{10}{\deci\bel}] (attcirc) {}
-          node[vectorgenerator,right=of attcirc,anchor=out,label=below:\scriptsize\SI{900}{\mega\hertz}] (gen) {}
 
-          node[lowpass,above=of attcirc,label=below:\scriptsize\SI{81}{\mega\hertz}] (alias) {}
-          node[mixer,rotate=180,left=of alias,anchor=in,scale=0.5] (mixer) {}
-          node[adc,right=of alias] (adc) {}
-          node[generator,above=of mixer.in 2] (lo) {}
-          node[rotate=90,anchor=north] at (lo.east) {\scriptsize\SI{830}{\mega\hertz}}
+\begin{figure}[htb]
+    \centering
+    \begin{tikzpicture}[node distance=0.6]
+        \tikzpicturedependsonfile{rfsymbols.tex}
+        \tikzstyle{every node}=[font=\footnotesize]
+        \draw node[dut] (dut) {}
+              node[dircoupler,right=1 of dut] (dirvna) {}
+              node[dircouplera,right=of dirvna] (dircirc) {}
+              node[attenuator,right=of dircirc,label=below:\scriptsize\SI{10}{\deci\bel}] (attcirc) {}
+              node[vectorgenerator,right=of attcirc,anchor=out,label=below:\scriptsize\SI{900}{\mega\hertz}] (gen) {}
 
-          node[generator,above=of adc] (sample) {}
-          node[rotate=90,anchor=north] at (sample.east) {\scriptsize\SI{100}{\mega\hertz}}
+              node[lowpass,above=of attcirc,label=below:\scriptsize\SI{81}{\mega\hertz}] (alias) {}
+              node[mixer,rotate=180,left=of alias,anchor=in,scale=0.5] (mixer) {}
+              node[adc,right=of alias] (adc) {}
+              node[generator,above=of mixer.in 2] (lo) {}
+              node[rotate=90,anchor=north] at (lo.east) {\scriptsize\SI{830}{\mega\hertz}}
 
-          node[oscilloscope,above=of dirvna.A2,anchor=A1] (oszivna) {}
+              node[generator,above=of adc] (sample) {}
+              node[rotate=90,anchor=north] at (sample.east) {\scriptsize\SI{100}{\mega\hertz}}
 
-          node[mixer,right=1 of gen.in,scale=0.4,rotate=180,anchor=out] (mult) {}
-          (mult |- adc) node[mixer,scale=0.4] (iqdemod) {}
-          ($(mult)!.5!(iqdemod)$) node[allpass,rotate=-90,scale=0.7] (filter) {}
-          node[rotate=90,anchor=north] at (filter.north) {H}
+              node[oscilloscope,above=of dirvna.A2,anchor=A1] (oszivna) {}
 
-          node[vsourcesinshape,scale=.5,rotate=90,right=of iqdemod.out,anchor=center] (diglo) {}
-          node[rotate=90,anchor=north] at (diglo.south) {\scriptsize\SI{30}{\mega\hertz}}
-          (mult -| diglo) node (gamma) {$\Gamma$};
+              node[mixer,right=1 of gen.in,scale=0.4,rotate=180,anchor=out] (mult) {}
+              (mult |- adc) node[mixer,scale=0.4] (iqdemod) {}
+              ($(mult)!.5!(iqdemod)$) node[allpass,rotate=-90,scale=0.7] (filter) {}
+              node[rotate=90,anchor=north] at (filter.north) {H}
 
-    \draw [rounded corners=2pt]
-          (dut.B) -- (dirvna.A1)
-          (dirvna.B1) -- (dircirc.A1)
-          (dircirc.B1) -- (attcirc.A)
-          (attcirc.B) -- (gen.out)
+              node[vsourcesinshape,scale=.5,rotate=90,right=of iqdemod.out,anchor=center] (diglo) {}
+              node[rotate=90,anchor=north] at (diglo.south) {\scriptsize\SI{30}{\mega\hertz}}
+              (mult -| diglo) node (gamma) {$\Gamma$};
 
-          (dirvna.A2) -- (oszivna.A1)
-          (dirvna.B2) |- ($(dirvna.B2)!.5!(oszivna.A2)$) -| (oszivna.A2)
+        \draw [rounded corners=2pt]
+              (dut.B) -- (dirvna.A1)
+              (dirvna.B1) -- (dircirc.A1)
+              (dircirc.B1) -- (attcirc.A)
+              (attcirc.B) -- (gen.out)
 
-          (dircirc.A2) |- (mixer.out)
-          (mixer.in) -- (alias.A)
-          (alias.B) -- (adc.A)
+              (dirvna.A2) -- (oszivna.A1)
+              (dirvna.B2) |- ($(dirvna.B2)!.5!(oszivna.A2)$) -| (oszivna.A2)
 
-          (mixer.in 2) -- (lo)
+              (dircirc.A2) |- (mixer.out)
+              (mixer.in) -- (alias.A)
+              (alias.B) -- (adc.A)
 
-          (sample) -- (adc) -- (iqdemod.in)
-          (iqdemod.in 2) -- (filter) -- (mult.in 2)
-          (mult.out) -- (gen.in)
+              (mixer.in 2) -- (lo)
 
-          (diglo) -- (iqdemod.out)
-          (gamma) -- (mult.in);
+              (sample) -- (adc) -- (iqdemod.in)
+              (iqdemod.in 2) -- (filter) -- (mult.in 2)
+              (mult.out) -- (gen.in)
 
-    \begin{scope}[rounded corners=2pt]
-        \draw [<-]
-        (sample.north) |- ($(sample.north) + (5pt,0.4)$) node[coordinate] (merge) {} -| ($(gen.north west)!.85!(gen.north east)$) node[coordinate] (refgen) {};
-        \draw [->] (merge) -| (lo.north);
-        \draw [->] (merge) -| (oszivna.north);
-    \end{scope}
+              (diglo) -- (iqdemod.out)
+              (gamma) -- (mult.in);
 
-    \draw ($(refgen |- oszivna.north)!.5!(oszivna.north)$) node[coordinate] (refa) {}
-          (refa |- merge) node[anchor=south] {\scriptsize\SI{10}{\mega\hertz} Reference clock};
+        \begin{scope}[rounded corners=2pt]
+            \draw [<-]
+            (sample.north) |- ($(sample.north) + (5pt,0.4)$) node[coordinate] (merge) {} -| ($(gen.north west)!.85!(gen.north east)$) node[coordinate] (refgen) {};
+            \draw [->] (merge) -| (lo.north);
+            \draw [->] (merge) -| (oszivna.north);
+        \end{scope}
 
-    \node[draw,fit=(iqdemod) (filter) (mult) (diglo),rounded corners=4pt,inner xsep=12pt,inner ysep=8pt,label=above:FPGA] {};
+        \draw ($(refgen |- oszivna.north)!.5!(oszivna.north)$) node[coordinate] (refa) {}
+              (refa |- merge) node[anchor=south] {\scriptsize\SI{10}{\mega\hertz} Reference clock};
 
-\end{tikzpicture}
+        \node[draw,fit=(iqdemod) (filter) (mult) (diglo),rounded corners=4pt,inner xsep=12pt,inner ysep=8pt,label=above:FPGA] {};
+
+    \end{tikzpicture}
+    \caption{Measurement system verification test setup}
+    \label{fig:test_setup}
+\end{figure}
+
+\begin{itemize}
+    \item Test setup (redraw figure)
+    \item Detailed description
+\end{itemize}
+
+% ---------------------------------------------------------------------------
+
 \section{One Port \glsentryshort{vna}}
 \label{sec:vna_verify}
+\begin{itemize}
+    \item Calibration
+    \item Calibration results
+    \item what \& why
+\end{itemize}
+
+% ---------------------------------------------------------------------------
+
 \section{Reflection Measurements}
-\begin{tikzpicture}
-    \begin{smithchart}[width=7cm,clip=false]
-        \foreach \i in {1,...,11}{
-            \foreach \j in {1,...,11}{
-                \addplot[blue,is smithchart cs] file {testdata/filter/-1+0i/\i,\j.data};
+\begin{itemize}
+    \item Target find
+    \item Target find trajectories
+    \item Calibration
+    \item Calibration results
+    \item what \& why
+\end{itemize}
+
+\begin{figure}[htb]
+    \centering
+    \begin{tikzpicture}
+        \begin{smithchart}[width=7cm,clip=false]
+            \foreach \i in {1,...,11}{
+                \foreach \j in {1,...,11}{
+                    \addplot[blue,is smithchart cs] file {testdata/filter/1.0,180/\i,\j.data};
+                }
             }
-        }
-        \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(-1,0)};
-    \end{smithchart}
-\end{tikzpicture}\\
-\begin{tikzpicture}
-    \begin{smithchart}[width=7cm,clip=false]
-        \foreach \i in {1,...,11}{
-            \foreach \j in {1,...,11}{
-                \addplot[blue,is smithchart cs] file {testdata/filter/+1+0i/\i,\j.data};
+            \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(-1,0)};
+        \end{smithchart}
+    \end{tikzpicture}%
+    \begin{tikzpicture}
+        \begin{smithchart}[width=7cm,clip=false]
+            \foreach \i in {1,...,11}{
+                \foreach \j in {1,...,11}{
+                    \addplot[blue,is smithchart cs] file {testdata/filter/0.5,135/\i,\j.data};
+                }
             }
-        }
-        \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(+1,0)};
-    \end{smithchart}
-\end{tikzpicture}\\
-\begin{tikzpicture}
-    \begin{smithchart}[width=7cm,clip=false]
-        \foreach \i in {1,...,11}{
-            \foreach \j in {1,...,11}{
-                \addplot[blue,is smithchart cs] file {testdata/filter/mean1/\i,\j.data};
+            \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(-0.3536,03536)};
+        \end{smithchart}
+    \end{tikzpicture}\\
+    \begin{tikzpicture}
+        \begin{smithchart}[width=7cm,clip=false]
+            \foreach \i in {1,...,11}{
+                \foreach \j in {1,...,11}{
+                    \addplot[blue,is smithchart cs] file {testdata/filter/1.0,0/\i,\j.data};
+                }
             }
-        }
-        \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(-1,0) (+1,0)};
-    \end{smithchart}
-\end{tikzpicture}
+            \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(+1,0)};
+        \end{smithchart}
+    \end{tikzpicture}%
+    \begin{tikzpicture}
+        \begin{smithchart}[width=7cm,clip=false]
+            \foreach \i in {1,...,11}{
+                \foreach \j in {1,...,11}{
+                    \addplot[blue,is smithchart cs] file {testdata/filter/0.5,-45/\i,\j.data};
+                }
+            }
+            \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(0.3536,-03536)};
+        \end{smithchart}
+    \end{tikzpicture}\\
+    \begin{tikzpicture}
+        \begin{smithchart}[width=7cm,clip=false]
+            \foreach \i in {1,...,11}{
+                \foreach \j in {1,...,11}{
+                    \addplot[blue,is smithchart cs] file {testdata/filter/mean1/\i,\j.data};
+                }
+            }
+            \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(-1,0) (+1,0)};
+        \end{smithchart}
+    \end{tikzpicture}%
+    \begin{tikzpicture}
+        \begin{smithchart}[width=7cm,clip=false]
+            \foreach \i in {1,...,11}{
+                \foreach \j in {1,...,11}{
+                    \addplot[blue,is smithchart cs] file {testdata/filter/mean2/\i,\j.data};
+                }
+            }
+            \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(0.3536,-03536) (-0.3536,03536)};
+        \end{smithchart}
+    \end{tikzpicture}
+    \caption{Reflection measurements with calibrated filter}
+    \label{fig:calibrated_filter}
+\end{figure}
+
+
+% ---------------------------------------------------------------------------
 
 \section{Phase Drift}
-\begin{tikzpicture}
-    \begin{axis}[
-            ylabel={angle},
-            xlabel={seconds},
-            x unit={\s},
-            width=\linewidth
-        ]
-        \addplot[blue] table {testdata/phase/single.data};
-    \end{axis}
-\end{tikzpicture}
 
-\begin{tikzpicture}
-    \pgfplotstableread{testdata/phase/all.data}\phaseall
-    \begin{axis}[
-            ylabel={angle},
-            xlabel={seconds},
-            x unit={\s},
-            width=\linewidth
-        ]
-        \addplot[blue] table {\phaseall};
-        \addlegendentry{\gls{vna}}
-        \addplot[green] table[x index=0,y index=2] {\phaseall};
-        \addlegendentry{R\&S SMIQ}
-        \addplot[red] table[y index=3] {\phaseall};
-        \addlegendentry{R\&S SMGU}
-        \addplot[black] table[y index=4] {\phaseall};
-        \addlegendentry{R\&S SMBV}
-    \end{axis}
-\end{tikzpicture}
+\begin{itemize}
+    \item Test setup
+    \item Overall drift
+    \item Single drift
+    \item what \& why
+\end{itemize}
+
+\begin{figure}[htb]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+                ylabel={angle},
+                y unit={\degree},
+                xlabel={time},
+                x unit={\minute}, %change xbase
+                width=\linewidth,
+                x filter/.expression={x/60},
+                xmin=0,
+                xmax=1000,
+                height=7cm
+            ]
+            \addplot[blue] table {testdata/phase/single.data};
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Phase drift of measurement system}
+    \label{fig:phase_single}
+\end{figure}
+
+\begin{figure}[htb]
+    \centering
+    \begin{tikzpicture}
+        \pgfplotstableread{testdata/phase/all.data}\phaseall
+        \begin{axis}[
+                ylabel={angle},
+                y unit={\degree},
+                xlabel={time},
+                x unit={\minute},
+                x filter/.expression={x/60},
+                xmin=0,
+                xmax=1000,
+                width=\linewidth,
+                height=7cm,
+                legend style={at={(0.5,1.01)},anchor=south},
+                legend columns=4
+            ]
+            \addplot[blue] table {\phaseall};
+            \addlegendentry{\gls{vna}}
+            \addplot[green] table[x index=0,y index=2] {\phaseall};
+            \addlegendentry{R\&S SMIQ}
+            \addplot[red] table[y index=3] {\phaseall};
+            \addlegendentry{R\&S SMGU}
+            \addplot[black] table[y index=4] {\phaseall};
+            \addlegendentry{R\&S SMBV}
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Phase drift of signal generators}
+    \label{fig:phase_overall}
+\end{figure}
+
+% ===========================================================================
+
 \chapter{Conclusions and Outlook}
 
 \begin{appendix}
