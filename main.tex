@@ -11,8 +11,7 @@
 \graphicspath{{graphics/}}
 \usepackage{tikz}
 \usepackage{circuitikz}
-\usetikzlibrary{positioning,dsp,chains,fit,scopes,calc,backgrounds,arrows,decorations.pathmorphing,bending,arrows.meta,shapes.misc,matrix,patterns}
-
+\usetikzlibrary{positioning,dsp,chains,fit,scopes,calc,backgrounds,arrows,decorations.pathmorphing,bending,arrows.meta,shapes.misc,matrix,patterns,shadows}
 \include{rfsymbols}
 
 %units
@@ -1525,67 +1524,177 @@ replacement. The detailed hardware implementation can be found in \cref{sec:smbv
 \end{itemize}
 
 \begin{figure}[htb]
+    \begin{subfigure}[b]{.5\linewidth}
+        \centering
+        \begin{tikzpicture}[
+            spy/.style={%
+                draw,green,
+                line width=0.5pt,
+                circle,inner sep=0pt,
+            },
+            ]
+            \def\spyviewersize{3cm}
+            \def\spyonclipreduce{0.5pt}
+            \def\spyfactorI{10}
+
+            \def\pic#1#2{
+                \begin{smithchart}[width=.9\linewidth,clip=false#1]
+                    \addplot[blue,is smithchart cs] file {testdata/filter/1.0,0/trajectory10.data};
+                    \addplot[purple,is smithchart cs,only marks,mark=x#2] file {testdata/filter/1.0,0/trajectory10.data};
+                    \draw (cartesian cs:1,0) node[coordinate] (a) {}
+                          (cartesian cs:-0.4,0.4) node[coordinate] (b) {};
+                \end{smithchart}
+            }
+            \pic{}{}
+            \coordinate (spy-on 1) at (a);
+            \coordinate (spy-in 1) at (b);
+
+            \node[spy,ultra thick,circular drop shadow,minimum size=\spyviewersize,fill=white,label={[inner sep=0pt,yshift=-5pt,fill=white,font=\footnotesize]below:\spyfactorI{}x magnification}] (spy-in node 1) at (spy-in 1) {};
+            \begin{scope}
+                \clip (spy-in 1) circle (0.5*\spyviewersize-\spyonclipreduce);
+                \pgfmathsetmacro\sI{1/\spyfactorI}
+                \begin{scope}[
+                    shift={($\sI*(spy-in 1)-\sI*(spy-on 1)$)},
+                    scale around={\spyfactorI:(spy-on 1)}
+                ]
+                \pic{,every axis plot post/.append style={line width=0.07pt},every axis/.append style={line width=0.07pt,grid style={line width=0.07pt}}}{,mark size=0.35pt}
+                \end{scope}
+            \end{scope}
+
+        \end{tikzpicture}
+        \caption{$\Gamma_{L,target} = 1$}
+    \end{subfigure}%
+    \begin{subfigure}[b]{.5\linewidth}
+        \centering
+
+        \begin{tikzpicture}[
+            spy/.style={%
+                draw,green,
+                line width=0.5pt,
+                circle,inner sep=0pt,
+            },
+            ]
+            \def\spyviewersize{3cm}
+            \def\spyonclipreduce{0.5pt}
+            \def\spyfactorI{70}
+
+            \def\pic#1#2{
+                \begin{smithchart}[width=0.9\linewidth,clip=false#1]
+                    \addplot[blue,is smithchart cs] file {testdata/filter/0.5,-45/trajectory6.data};
+                    \addplot[purple,is smithchart cs,only marks,mark=x#2] file {testdata/filter/0.5,-45/trajectory6.data};
+                    \draw (cartesian cs:0.35325,-0.35397) node[coordinate] (a) {}
+                          (cartesian cs:-0.4,0.4) node[coordinate] (b) {};
+                \end{smithchart}
+            }
+            \pic{}{}
+            \coordinate (spy-on 1) at (a);
+            \coordinate (spy-in 1) at (b);
+
+            \node[spy,ultra thick,circular drop shadow,minimum size=\spyviewersize,fill=white,label={[inner sep=0pt,yshift=-5pt,fill=white,font=\footnotesize]below:\spyfactorI{}x magnification}] (spy-in node 1) at (spy-in 1) {};
+            \begin{scope}
+                \clip (spy-in 1) circle (0.5*\spyviewersize-\spyonclipreduce);
+                \pgfmathsetmacro\sI{1/\spyfactorI}
+                \begin{scope}[
+                    shift={($\sI*(spy-in 1)-\sI*(spy-on 1)$)},
+                    scale around={\spyfactorI:(spy-on 1)}
+                ]
+                    \pic{,every axis plot post/.append style={line width=0.01pt}}{,mark size=0.05pt}
+                \end{scope}
+            \end{scope}
+        \end{tikzpicture}
+        \caption{$\Gamma_{L,target} = 0.5 \angle \SI{-45}{\degree}$}
+    \end{subfigure}
+    \caption{Exemplary trajectories of the target algorithm}
+    \label{fig:find_target}
+\end{figure}
+
+
+\begin{figure}[htbp]
     \centering
-    \begin{tikzpicture}
-        \begin{smithchart}[width=7cm,clip=false]
-            \foreach \i in {1,...,11}{
-                \foreach \j in {1,...,11}{
-                    \addplot[blue,is smithchart cs] file {testdata/filter/1.0,180/\i,\j.data};
+    \begin{subfigure}[b]{.45\linewidth}
+        \centering
+        \begin{tikzpicture}
+            \begin{smithchart}[width=.9\linewidth,clip=false]
+                \foreach \i in {1,...,11}{
+                    \foreach \j in {1,...,11}{
+                        \addplot[blue,is smithchart cs] file {testdata/filter/1.0,180/\i,\j.data};
+                    }
                 }
-            }
-            \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(-1,0)};
-        \end{smithchart}
-    \end{tikzpicture}%
-    \begin{tikzpicture}
-        \begin{smithchart}[width=7cm,clip=false]
-            \foreach \i in {1,...,11}{
-                \foreach \j in {1,...,11}{
-                    \addplot[blue,is smithchart cs] file {testdata/filter/0.5,135/\i,\j.data};
+                \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(-1,0)};
+            \end{smithchart}
+        \end{tikzpicture}
+        \caption{$-1$}
+    \end{subfigure}%
+    \begin{subfigure}[b]{.45\linewidth}
+        \centering
+        \begin{tikzpicture}
+            \begin{smithchart}[width=.9\linewidth,clip=false]
+                \foreach \i in {1,...,11}{
+                    \foreach \j in {1,...,11}{
+                        \addplot[blue,is smithchart cs] file {testdata/filter/0.5,135/\i,\j.data};
+                    }
                 }
-            }
-            \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(-0.3536,0.3536)};
-        \end{smithchart}
-    \end{tikzpicture}\\
-    \begin{tikzpicture}
-        \begin{smithchart}[width=7cm,clip=false]
-            \foreach \i in {1,...,11}{
-                \foreach \j in {1,...,11}{
-                    \addplot[blue,is smithchart cs] file {testdata/filter/1.0,0/\i,\j.data};
+                \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(-0.3536,0.3536)};
+            \end{smithchart}
+        \end{tikzpicture}
+        \caption{$0.5 \angle 135$}
+    \end{subfigure}\\
+    \begin{subfigure}[b]{.45\linewidth}
+        \centering
+        \begin{tikzpicture}
+            \begin{smithchart}[width=.9\linewidth,clip=false]
+                \foreach \i in {1,...,11}{
+                    \foreach \j in {1,...,11}{
+                        \addplot[blue,is smithchart cs] file {testdata/filter/1.0,0/\i,\j.data};
+                    }
                 }
-            }
-            \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(+1,0)};
-        \end{smithchart}
-    \end{tikzpicture}%
-    \begin{tikzpicture}
-        \begin{smithchart}[width=7cm,clip=false]
-            \foreach \i in {1,...,11}{
-                \foreach \j in {1,...,11}{
-                    \addplot[blue,is smithchart cs] file {testdata/filter/0.5,-45/\i,\j.data};
+                \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(+1,0)};
+            \end{smithchart}
+        \end{tikzpicture}
+        \caption{$1$}
+    \end{subfigure}%
+    \begin{subfigure}[b]{.45\linewidth}
+        \centering
+        \begin{tikzpicture}
+            \begin{smithchart}[width=.9\linewidth,clip=false]
+                \foreach \i in {1,...,11}{
+                    \foreach \j in {1,...,11}{
+                        \addplot[blue,is smithchart cs] file {testdata/filter/0.5,-45/\i,\j.data};
+                    }
                 }
-            }
-            \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(0.3536,-0.3536)};
-        \end{smithchart}
-    \end{tikzpicture}\\
-    \begin{tikzpicture}
-        \begin{smithchart}[width=7cm,clip=false]
-            \foreach \i in {1,...,11}{
-                \foreach \j in {1,...,11}{
-                    \addplot[blue,is smithchart cs] file {testdata/filter/mean1/\i,\j.data};
+                \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(0.3536,-0.3536)};
+            \end{smithchart}
+        \end{tikzpicture}
+        \caption{$0.5 \angle -45$}
+    \end{subfigure}\\
+    \begin{subfigure}[b]{.45\linewidth}
+        \centering
+        \begin{tikzpicture}
+            \begin{smithchart}[width=.9\linewidth,clip=false]
+                \foreach \i in {1,...,11}{
+                    \foreach \j in {1,...,11}{
+                        \addplot[blue,is smithchart cs] file {testdata/filter/mean1/\i,\j.data};
+                    }
                 }
-            }
-            \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(-1,0) (+1,0)};
-        \end{smithchart}
-    \end{tikzpicture}%
-    \begin{tikzpicture}
-        \begin{smithchart}[width=7cm,clip=false]
-            \foreach \i in {1,...,11}{
-                \foreach \j in {1,...,11}{
-                    \addplot[blue,is smithchart cs] file {testdata/filter/mean2/\i,\j.data};
+                \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(-1,0) (+1,0)};
+            \end{smithchart}
+        \end{tikzpicture}
+        \caption{$mean(-1,1)$}
+    \end{subfigure}%
+    \begin{subfigure}[b]{.45\linewidth}
+        \centering
+        \begin{tikzpicture}
+            \begin{smithchart}[width=.9\linewidth,clip=false]
+                \foreach \i in {1,...,11}{
+                    \foreach \j in {1,...,11}{
+                        \addplot[blue,is smithchart cs] file {testdata/filter/mean2/\i,\j.data};
+                    }
                 }
-            }
-            \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(0.3536,-0.3536) (-0.3536,0.3536)};
-        \end{smithchart}
-    \end{tikzpicture}
+                \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(0.3536,-0.3536) (-0.3536,0.3536)};
+            \end{smithchart}
+        \end{tikzpicture}
+        \caption{$mean(0.5 \angle 135, 0.5 \angle -45)$}
+    \end{subfigure}
     \caption{Reflection measurements with calibrated filter}
     \label{fig:calibrated_filter}
 \end{figure}
