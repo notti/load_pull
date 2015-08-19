@@ -80,7 +80,6 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
 \usepackage{subcaption} %subfigures
 \usepackage{placeins} % keep floats in check (=sections where they belong)
 \usepackage{booktabs} % nicer tables
-\usepackage{lipsum} % TODO remove in final
 \usepackage{cite}
 
 \usepackage{scrlayer-scrpage}
@@ -126,6 +125,7 @@ pdfpagelabels %,hidelinks
 
 \usepackage[noabbrev]{cleveref} %needs to be last
 
+\pagenumbering{roman}
 \begin{document}
 \begin{titlepage}
     \enlargethispage{1cm}
@@ -169,25 +169,36 @@ pdfpagelabels %,hidelinks
 
 \begin{abstract}
     %TODO
-    \lipsum[1-5]
+    \begin{itemize}
+        \item RFPA
+        \item load-pull
+        \item the one in this work
+        \item verification
+    \end{itemize}
 \end{abstract}
 
 \begin{otherlanguage}{ngerman}
 \begin{abstract}
     %TODO
-    \lipsum[1-5]
+    \begin{itemize}
+        \item RFPA
+        \item load-pull
+        \item the one in this work
+        \item verification
+    \end{itemize}
 \end{abstract}
 \end{otherlanguage}
 
 \renewcommand{\abstractname}{Acknowledgements}
 \begin{abstract}
     %TODO
-    \lipsum[1]
+    TODO
 \end{abstract}
 
 \tableofcontents
 
 \chapter{Introduction}
+\pagenumbering{arabic}
 \label{chap:introduction}
 
 At \gls{rf} and \gls{mw} frequencies, the circuit theory with lumped elements, where
