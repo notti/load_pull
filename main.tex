@@ -1429,73 +1429,130 @@ replacement. The detailed hardware implementation can be found in \cref{sec:smbv
 
 \begin{figure}[htb]
     \centering
-    \begin{tikzpicture}[node distance=0.6]
+    \resizebox{\linewidth}{!}{
+    \begin{tikzpicture}
+        \pgfdeclarelayer{foreground}
+        \pgfsetlayers{background,main,foreground}
         \tikzpicturedependsonfile{rfsymbols.tex}
         \tikzstyle{every node}=[font=\footnotesize]
         \draw node[dut] (dut) {}
-              node[dircoupler,right=1 of dut] (dirvna) {}
-              node[dircouplera,right=of dirvna] (dircirc) {}
-              node[attenuator,right=of dircirc,label=below:\scriptsize\SI{10}{\deci\bel}] (attcirc) {}
-              node[vectorgenerator,right=of attcirc,anchor=out,label=below:\scriptsize\SI{900}{\mega\hertz}] (gen) {}
-
-              node[lowpass,above=of attcirc,label=below:\scriptsize\SI{81}{\mega\hertz}] (alias) {}
-              node[mixer,rotate=180,left=of alias,anchor=in,scale=0.5] (mixer) {}
-              node[adc,right=of alias] (adc) {}
-              node[generator,above=of mixer.in 2] (lo) {}
-              node[rotate=90,anchor=north] at (lo.east) {\scriptsize\SI{830}{\mega\hertz}}
-
-              node[generator,above=of adc] (sample) {}
-              node[rotate=90,anchor=north] at (sample.east) {\scriptsize\SI{100}{\mega\hertz}}
-
+              node[dircoupler,right=2 of dut,label=below:dir1] (dirvna) {}
               node[oscilloscope,above=of dirvna.A2,anchor=A1] (oszivna) {}
+              node[dircouplera,right=of dirvna,label=below:dir2] (dircirc) {}
 
-              node[mixer,right=1 of gen.in,scale=0.4,rotate=180,anchor=out] (mult) {}
-              (mult |- adc) node[mixer,scale=0.4] (iqdemod) {}
-              ($(mult)!.5!(iqdemod)$) node[allpass,rotate=-90,scale=0.7] (filter) {}
-              node[rotate=90,anchor=north] at (filter.north) {H}
+              node[coordinate,above=2.5 of dircirc] (uppernode) {}
 
-              node[vsourcesinshape,scale=.5,rotate=90,right=of iqdemod.out,anchor=center] (diglo) {}
-              node[rotate=90,anchor=north] at (diglo.south) {\scriptsize\SI{30}{\mega\hertz}}
-              (mult -| diglo) node (gamma) {$\Gamma$};
+              node[attenuator,right=of dircirc,label=above:att1,label={[font=\tiny]below:\SI{10}{\deci\bel}}] (att) {}
+              node[amplifier,right=of att,label=above:amp1] (amp) {}
+              node[mixer,right=of amp,label=above:mix3] (upmix) {}
+              node[lowpass,right=of upmix,label=above:lp1] (antialias) {}
+              node[adc,right=of antialias,label=above:dac1] (dac) {}
 
-        \draw [rounded corners=2pt]
-              (dut.B) -- (dirvna.A1)
-              (dirvna.B1) -- (dircirc.A1)
-              (dircirc.B1) -- (attcirc.A)
-              (attcirc.B) -- (gen.out)
+              (uppernode -| upmix) node[mixer,label=below:mix1] (downmix) {}
+              node[lowpass,right=of downmix,label=below:lp2,label={[font=\tiny]above:\SI{90}{\mega\hertz}}] (bp) {}
+              node[adc,right=of bp,label=below:adc1] (adc) {}
+              node[empty,right=of adc,label=below:buffer1] (inbuf) {}
+              node[mixer,right=of inbuf] (shift) {}
+              node[rotate=90,anchor=north] at (shift.east) {mix2}
 
-              (dirvna.A2) -- (oszivna.A1)
-              (dirvna.B2) |- ($(dirvna.B2)!.5!(oszivna.A2)$) -| (oszivna.A2)
+              (dac -| inbuf) node[mixer,label=above:mul1] (mul) {}
+              node[empty,right=of mul] (outbuf) {}
+              node[rotate=90,anchor=north] at (outbuf.east) (buffer2) {buffer2}
 
-              (dircirc.A2) |- (mixer.out)
-              (mixer.in) -- (alias.A)
-              (alias.B) -- (adc.A)
+              ($(shift)!.5!(outbuf)$) node[allpass,rotate=90] (H) {}
+              node[rotate=90,anchor=north] at (H.south) {fir1}
 
-              (mixer.in 2) -- (lo)
+              node[source,above=of downmix.center,scale=0.7] (downsource) {}
+              node[rotate=90,anchor=south,font=\tiny] at (downsource.west) {$\SI{830}{\mega\hertz}$}
+              node[rotate=90,anchor=north] at (downsource.east) {lo1}
+              node[source,above=of adc.center,scale=0.7] (sample) {}
+              node[rotate=90,anchor=south,font=\tiny] at (sample.west) {$\SI{100}{\mega\hertz}$}
+              node[rotate=90,anchor=north] at (sample.east) {lo2}
+              node[source,above=of shift.center,scale=0.7] (shiftsource) {}
+              node[rotate=90,anchor=south,font=\tiny] at (shiftsource.west) {$\SI{30}{\mega\hertz}$}
+              node[rotate=90,anchor=north] at (shiftsource.east) {lo3}
+              node[source,below=of upmix.center,scale=0.7] (upsource) {}
+              node[rotate=90,anchor=south,font=\tiny] at (upsource.west) {$\SI{900}{\mega\hertz}$}
+              node[rotate=90,anchor=north] at (upsource.east) {lo4}
+              node[below=of mul.center,fill=white] (gamma) {$\Gamma_{set}$};
 
-              (sample) -- (adc) -- (iqdemod.in)
-              (iqdemod.in 2) -- (filter) -- (mult.in 2)
-              (mult.out) -- (gen.in)
+        \draw ($(dut)!.5!(dirvna)$) node[coordinate] (plane) {};
 
-              (diglo) -- (iqdemod.out)
-              (gamma) -- (mult.in);
+        { [rounded corners=2pt]
+            \draw (dut) -- (dirvna) -- (dircirc.A1);
+            \draw [-latex] (dircirc.A2) |- (downmix);
+            \draw (dirvna.A2) -- (oszivna.A1);
+            \draw (dirvna.B2) |- ($(dirvna.B2)!.7!(oszivna.A2)$) node[coordinate] (oszimiddle) {} -| (oszivna.A2);
+            \draw [-latex] (att) -- (dircirc.B1);
+        }
+        { [-latex]
+            \draw (downsource) -- (downmix);
+            \draw (sample) -- (adc);
+            \draw [double] (shiftsource) -- (shift);
+            \draw (gamma) -- (mul);
+            \draw (upsource) -- (upmix);
+        }
+        { [latex-,dashed,every node/.style={font=\footnotesize}]
+            \foreach \device in {downsource,sample} {
+                \draw (\device) -- ++(0,1) node[anchor=south] {\SI{10}{\mega\hertz} ref};
+            }
+            \draw ([xshift=0.5cm]oszivna.north) -- ++(0,0.5) node[fill=white,anchor=south] {\SI{10}{\mega\hertz} ref};
+        }
+        { [start chain,every on chain/.style={join=by -latex}]
+            \chainin (downmix);
+            \chainin (bp);
+            \chainin (adc);
+            \chainin (inbuf);
+            \chainin (shift);
+            { [every on chain/.style={join=by {double,-latex}}]
+                \chainin (H);
+                \chainin (outbuf);
+                \chainin (mul);
+                \chainin (dac);
+                \chainin (antialias);
+                \chainin (upmix);
+            }
+            \chainin (amp);
+            \chainin (att);
+        }
+        { [on background layer,every path/.style={dotted,decorate,decoration=random steps,segment length=2mm}]
+            \draw ($(dirvna.B1)!.5!(dircirc.A1) + (0,5.5)$) -- ++(0,-8.5) node[coordinate] (leftsplit) {};
+            \draw ($(adc.east)!.5!(mul.west) + (0,4)$) -- ++(0,-8.5) node[coordinate] (rightsplit) {};
+        }
 
-        \begin{scope}[rounded corners=2pt]
-            \draw [<-]
-            (sample.north) |- ($(sample.north) + (5pt,0.4)$) node[coordinate] (merge) {} -| ($(gen.north west)!.85!(gen.north east)$) node[coordinate] (refgen) {};
-            \draw [->] (merge) -| (lo.north);
-            \draw [->] (merge) -| (oszivna.north);
-        \end{scope}
+        \draw (leftsplit) node[anchor=base east] {One Port \gls{vna}}
+              (leftsplit) node[anchor=base west] {Analog}
+              (rightsplit) node[anchor=base west] {Digital}
+              (rightsplit) node[anchor=base east] {Analog};
 
-        \draw ($(refgen |- oszivna.north)!.5!(oszivna.north)$) node[coordinate] (refa) {}
-              (refa |- merge) node[anchor=south] {\scriptsize\SI{10}{\mega\hertz} Reference clock};
+%        \draw [-latex] ($(dirvna.A2) + (-0.2,0.1)$) -- node[base left] {$b_1$} ($(oszivna.A1 |- oszimiddle) - (0.2,0.1)$);
+%        \begin{pgfonlayer}{foreground}
+%            \draw [-latex] ($(dirvna.B2) + (0.2,0.1)$) -- ($(oszimiddle -| dirvna.B2) + (0.2,-0.1)$);
+%        \end{pgfonlayer}
+%        \draw ($(oszimiddle -| dirvna.B2) + (0.2,-0.1)$) node[base right,fill=white] {$a_1$};
 
-        \node[draw,fit=(iqdemod) (filter) (mult) (diglo),rounded corners=4pt,inner xsep=12pt,inner ysep=8pt,label=above:FPGA] {};
+        \draw [dashed] ($(plane) + (0,5.5)$) node[anchor=south] {Load Reference Plane} -- ($(plane) - (0,3)$);
 
+        \draw [latex-] ($(plane) + (0,1.5)$) -- ++(-0.5,0) node[anchor=east] {$Z_L$};
+
+        \draw [-latex] ($(plane) + (0.25,-1.5)$) node[anchor=west] {$a_2$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0.25,-2)$) node[anchor=west] {$b_2$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0,-2.5)$) -- ++(-0.5,0) node[anchor=east] {$\Gamma_L$};
+        \node [draw,fit=(amp) (dac) (upsource),rounded corners=4pt,inner xsep=6pt,inner ysep=14pt,label={above:Vector Signal Generator}] (sig) {};
+        \draw [-latex,dashed] ([xshift=-2cm]sig.south) -- ++(0,-0.5) node[anchor=north] {\SI{10}{\mega\hertz} ref};
+        \node [draw,fit=(gamma) (outbuf) (inbuf) (shiftsource) (buffer2),rounded corners=4pt,inner xsep=6pt,inner ysep=14pt,label={above:\gls{fpga}}] (fpga) {};
+
+        {[densely dashdotdotted,latex-latex]
+            \draw (fpga.east) -- ++(1,0) node [anchor=west] {\gls{pc}};
+            \draw (sig.south) -- ++(0,-0.5) node [anchor=north] {\gls{pc}};
+            \draw ([xshift=-0.5cm]oszivna.north) -- ++(0,1) node [anchor=south] {\gls{pc}};
+        }
     \end{tikzpicture}
+    }
     \caption{Measurement system verification test setup}
     \label{fig:test_setup}
 \end{figure}
+
 
 \begin{itemize}
     \item Test setup (redraw figure)
@@ -1704,6 +1761,7 @@ replacement. The detailed hardware implementation can be found in \cref{sec:smbv
 
 \section{Phase Drift}
 
+
 \begin{itemize}
     \item Test setup
     \item Overall drift
@@ -1730,6 +1788,54 @@ replacement. The detailed hardware implementation can be found in \cref{sec:smbv
     \end{tikzpicture}
     \caption{Phase drift of measurement system}
     \label{fig:phase_single}
+\end{figure}
+
+\begin{figure}[htb]
+    \centering
+    \begin{tikzpicture}
+        \tikzpicturedependsonfile{rfsymbols.tex}
+        \tikzstyle{every node}=[font=\footnotesize]
+        \draw node[vna] (vna) {}
+              node[source,right=of vna,scale=0.7] (downsource) {}
+              node[rotate=90,anchor=south,font=\tiny] at (downsource.west) {$\SI{830}{\mega\hertz}$}
+              node[rotate=90,anchor=north] at (downsource.east) {lo1}
+              node[source,right=of downsource,scale=0.7] (sample) {}
+              node[rotate=90,anchor=south,font=\tiny] at (sample.west) {$\SI{100}{\mega\hertz}$}
+              node[rotate=90,anchor=north] at (sample.east) {lo2}
+              node[source,right=of sample,scale=0.7] (trigger) {}
+              node[rotate=90,anchor=south,font=\tiny] at (trigger.west) {$\SI{10}{\mega\hertz}$}
+              node[rotate=90,anchor=north] at (trigger.east) {trigger}
+              node[source,right=of trigger,scale=0.7] (upsource) {}
+              node[rotate=90,anchor=south,font=\tiny] at (upsource.west) {$\SI{900}{\mega\hertz}$}
+              node[rotate=90,anchor=north] at (upsource.east) {lo4}
+
+              node[oscilloscope,above=2 of downsource] (oszi1) {}
+              node[oscilloscope,right=of oszi1] (oszi2) {};
+
+        {[densely dashdotdotted,latex-latex]
+            \draw ([xshift=-0.5cm]oszi1.north) -- ++(0,1) node [anchor=south] {\gls{pc}};
+            \draw ([xshift=-0.5cm]oszi2.north) -- ++(0,1) node [anchor=south] {\gls{pc}};
+        }
+        {[latex-,dashed,every node/.style={font=\footnotesize},rounded corners=2pt]
+            \draw [latex reversed-,shorten <=1pt] (upsource) -- ++(0,-1) node[coordinate] (lower) {} -- ++(1,0) node[coordinate] (lowerright) {};
+            \draw ([xshift=0.5cm]oszi2.north) -- ++(0,0.5) node[coordinate] (upper) {} -| (lowerright);
+            \draw ([xshift=0.5cm]oszi1.north) |- (upper);
+            \draw (trigger) |- (lower);
+            \draw (sample) |- (trigger |- lower);
+            \draw (downsource) |- (sample |- lower) node[anchor=north] {\SI{10}{\mega\hertz} ref};
+            \draw (vna) |- (downsource |- lower);
+        }
+        {[rounded corners=2pt]
+            \draw (vna) -- ++(0,1) -| (oszi1.A1);
+            \draw (downsource) -- ++(0,1) -| (oszi1.A2);
+            \draw (sample) -- ++(0,1.2) -| (oszi1.A3);
+            \draw (trigger) -- ++(0,1.4) -| (oszi1.A4);
+            \draw (trigger) -- ++(0,1.6) -| (oszi2.A1);
+            \draw (upsource) -- ++(0,1.8) -| (oszi2.A2);
+        }
+    \end{tikzpicture}
+    \caption{Phase drift measurement setup}
+    \label{fig:setup_phase_single}
 \end{figure}
 
 \begin{figure}[htb]
