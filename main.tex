@@ -494,6 +494,7 @@ operational conditions.
 % ===========================================================================
 
 \chapter{\glsentryshort{fpga}-based Load-Pull Measurement System}
+\label{chap:measurement_system}
 
 The aim of this thesis was to setup a broadband active \gls{lp} measurement system, capable of providing a bandwidth of \SI{20}{\mega\hertz}.
 As mentioned in \cref{chap:introduction} these traditional classic systems can only synthesize
@@ -1473,6 +1474,16 @@ replacement. The detailed hardware implementation can be found in \cref{sec:smbv
 \chapter{Verification of the Measurement System}
 \label{chap:verification}
 
+The implemented \gls{elp} design was tested with the setup in
+\cref{fig:test_setup}. This test setup consists of the three parts
+described in \cref{chap:measurement_system}. As mentioned in
+\cref{sec:analog}, instead of a circulator, the directional coupler
+\device{dir2} in combination with attenuator \device{att1} was used.
+Furthermore, since during verification only waves generated inside
+the specified bandwidth of \SI{20}{\mega\hertz} were used, instead of bandpass
+the low-pass filter \device{lp2} was used. A detailed list of the used
+instruments can be found in \cref{sec:instruments}.
+
 \begin{figure}[htb]
     \centering
     \resizebox{\linewidth}{!}{
@@ -1599,11 +1610,14 @@ replacement. The detailed hardware implementation can be found in \cref{sec:smbv
     \label{fig:test_setup}
 \end{figure}
 
-
-\begin{itemize}
-    \item Test setup (redraw figure)
-    \item Detailed description
-\end{itemize}
+Since the overall setup consists of two independent systems, namely the one port
+\gls{vna} and the reflection generation, those two were verified separately. The
+one port \gls{vna} verification can be found in \cref{sec:vna_verify} and the
+reflection generation, consisting of the analog part (see \cref{sec:analog}) and
+the digital part (see \cref{sec:digital}), can be found in \cref{sec:reflection}.
+During these measurements, a noticeable phase drift was observed, and therefore
+an additional measurement was acquired in \cref{sec:drift}, to verify the origin
+of this phase drift.
 
 % ---------------------------------------------------------------------------
 
@@ -1618,6 +1632,7 @@ replacement. The detailed hardware implementation can be found in \cref{sec:smbv
 % ---------------------------------------------------------------------------
 
 \section{Reflection Measurements}
+\label{sec:reflection}
 \begin{itemize}
     \item Target find
     \item Target find trajectories
@@ -1806,6 +1821,7 @@ replacement. The detailed hardware implementation can be found in \cref{sec:smbv
 % ---------------------------------------------------------------------------
 
 \section{Phase Drift}
+\label{sec:drift}
 
 
 \begin{itemize}
@@ -1921,6 +1937,8 @@ replacement. The detailed hardware implementation can be found in \cref{sec:smbv
 
 \begin{appendix}
     \chapter{Hardware Reference}
+    \section{Used Instruments}
+    \label{sec:instruments}
     \section{Physical Overview}
     \section{Memory Map \& Register Assignment}
     \chapter{Software Reference}
