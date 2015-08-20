@@ -1623,11 +1623,48 @@ of this phase drift.
 
 \section{One Port \glsentryshort{vna}}
 \label{sec:vna_verify}
+
+For the calibration and verification of the one port \gls{vna}, the modulator of
+the vector signal generator was turned off. Stepping through the frequency range
+was achieved by stepping the local oscillator \device{lo4} (see \cref{fig:test_setup}).
+A ZV-Z132 (female) calibration kit from Rhode \& Schwarz was used for the calibration
+setup in place of the \gls{dut}. Since the calibration is only valid for a single frequency, the full
+calibration measurements were acquired for 21 $\Delta{}f$-aligned points in a
+\SI{25}{\mega\hertz} range with a center frequency of \SI{900}{\mega\hertz}. This
+was achieved by connecting the appropriate port of the calibration kit, and acquiring
+$\Gamma_{L,f}$ for every frequency point. After measurement, the $\Gamma_{L,f}$ were linearly
+interpolated for every $\Delta{}f$ bin. After this step the \glspl{sparam} of
+the error box (see \cref{sec:vna}) were pre-calculated. 
+
+kit \cite{zv-z132}The targets used for the calibration routine (see \cref{sec:vna}),
+
+\begin{enumerate}
+    \item errors norm distributed along frequency
+    \item errors higher with less power
+    \item no problem if not in bin or interpolated
+\end{enumerate}
+\cref{tab:vna}
 \begin{itemize}
-    \item Calibration
-    \item Calibration results
     \item what \& why
 \end{itemize}
+
+\begin{table}[htb]
+    \centering
+    \begin{tabular}{rrrr}
+        \toprule
+        \shortstack[r]{\textbf{frequency} \\ \si{\mega\hertz}} & 887.5 & 887.505 & 888.095 \\
+        \midrule
+        \shortstack[r]{\textbf{magnitude}\\ 1} & \num{581.0232e-003} & \num{581.0589e-003} & \num{582.3070e-003} \\
+            standard error & \num{37.6e-006}     & \num{38.2e-006}     & \num{36.56e-006} \\
+           diff. \gls{vna} & \num{2.1e-003} & \num{2.1e-003} & \num{2.2e-003} \\
+        \shortstack[r]{\textbf{angle}\\\si{\degree}}     & \num{-157.5029}     & \num{-157.4787}     & \num{-157.7972} \\
+            standard error & \num{8.7e-003}      & \num{8.1e-003}      & \num{9.7e-003} \\
+        diff. \gls{vna} & \num{2.2} & \num{2.3} & \num{2.3} \\
+        \bottomrule
+    \end{tabular}
+    \caption{Measured reflection coefficient with standard error and difference to \gls{vna}}
+    \label{tab:vna}
+\end{table}
 
 % ---------------------------------------------------------------------------
 
