@@ -30,6 +30,7 @@
 \usepgfplotslibrary{smithchart}
 \usepgfplotslibrary{units}
 \usepgfplotslibrary{fillbetween}
+\usepgfplotslibrary{statistics}
 \pgfplotsset{unit code/.code 2 args={\si{#1#2}}}
 
 \usepgfplotslibrary{external}
@@ -1475,7 +1476,7 @@ replacement. The detailed hardware implementation can be found in \cref{sec:smbv
 \label{chap:verification}
 
 The implemented \gls{elp} design was tested with the setup in
-\cref{fig:test_setup}. This test setup consists of the three parts
+\cref{fig:test_setup} at a center frequency $f_0$ of \SI{900}{\mega\hertz}. This test setup consists of the three parts
 described in \cref{chap:measurement_system}. As mentioned in
 \cref{sec:analog}, instead of a circulator, the directional coupler
 \device{dir2} in combination with attenuator \device{att1} was used.
@@ -1632,39 +1633,49 @@ setup in place of the \gls{dut}. Since the calibration is only valid for a singl
 calibration measurements were acquired for 21 $\Delta{}f$-aligned points in a
 \SI{25}{\mega\hertz} range with a center frequency of \SI{900}{\mega\hertz}. This
 was achieved by connecting the appropriate port of the calibration kit, and acquiring
-$\Gamma_{L,f}$ for every frequency point. After measurement, the $\Gamma_{L,f}$ were linearly
-interpolated for every $\Delta{}f$ bin. After this step the \glspl{sparam} of
-the error box (see \cref{sec:vna}) were pre-calculated. 
+$\Gamma_{L,f}$ for every frequency point. After measurement, the different $\Gamma_{L,f}$ were linearly
+interpolated at every $\Delta{}f$ bin. Afterwards the \glspl{sparam} of
+the error box (see \cref{sec:vna}) were pre-calculated for every bin with the values
+from the data sheet of the calibration kit\cite{zv-z132}.
 
-kit \cite{zv-z132}The targets used for the calibration routine (see \cref{sec:vna}),
-
-\begin{enumerate}
-    \item errors norm distributed along frequency
-    \item errors higher with less power
-    \item no problem if not in bin or interpolated
-\end{enumerate}
-\cref{tab:vna}
-\begin{itemize}
-    \item what \& why
-\end{itemize}
+For verification a stub tuner from Maury Microwave was tuned to a specific position and
+then measured with the one port \gls{vna} in this work. Measurements were acquired over
+the whole \SI{25}{\mega\hertz} bandwidth at the calibrated points. Additional measurements
+were acquired at an offset of $\frac{1}{2}\Delta{}f$, to be able to test the performance
+of the chosen window function, and additionally between the calibrated points, to test the
+performance of the interpolation. To be able to verify the measured $\Gamma_L$, measurements
+were also acquired with a different \gls{vna}.
 
 \begin{table}[htb]
     \centering
     \begin{tabular}{rrrr}
         \toprule
-        \shortstack[r]{\textbf{frequency} \\ \si{\mega\hertz}} & 887.5 & 887.505 & 888.095 \\
+        \shortstack[r]{\textbf{frequency} \\ \si{\mega\hertz}} & \shortstack[r]{887.5\\(cal)} & \shortstack[r]{887.505\\($\frac{1}{2}\Delta{}f$)} & \shortstack[r]{888.095\\(between cal)} \\
         \midrule
         \shortstack[r]{\textbf{magnitude}\\ 1} & \num{581.0232e-003} & \num{581.0589e-003} & \num{582.3070e-003} \\
             standard error & \num{37.6e-006}     & \num{38.2e-006}     & \num{36.56e-006} \\
-           diff. \gls{vna} & \num{2.1e-003} & \num{2.1e-003} & \num{2.2e-003} \\
+           $\Delta$Agilent \gls{vna} & \num{2.1e-003} & \num{2.1e-003} & \num{2.2e-003} \\
         \shortstack[r]{\textbf{angle}\\\si{\degree}}     & \num{-157.5029}     & \num{-157.4787}     & \num{-157.7972} \\
             standard error & \num{8.7e-003}      & \num{8.1e-003}      & \num{9.7e-003} \\
-        diff. \gls{vna} & \num{2.2} & \num{2.3} & \num{2.3} \\
+           $\Delta$Agilent \gls{vna} & \num{2.2} & \num{2.3} & \num{2.3} \\
         \bottomrule
     \end{tabular}
     \caption{Measured reflection coefficient with standard error and difference to \gls{vna}}
     \label{tab:vna}
 \end{table}
+
+No noticeable difference in standard error and difference to the results from the Agilent \gls{vna} between the three
+different types of points, over the complete \SI{25}{\mega\hertz} range could be observed.
+Therefore linear interpolation and the chosen window function are appropriate for this type of
+measurement. Since there are only passive parts involved in the one port \gls{vna}, it should
+also be possible to use less calibration points to achieve a faster calibration. The measurement
+result of three exemplary points can be seen in \cref{tab:vna}.
+
+Those results are highly dependent on the used oscilloscope and calibration kit. The standard error
+depends notably on the performance of the oscilloscope. Therefore this
+results are only valid for the used oscilloscope in this work. Additionally care should be taken to
+always use a strong enough signal power in order to achieve the best possible oscilloscope resolution.
+The difference to the results from the Agilent \gls{vna} is mainly caused by the used calibration kit.
 
 % ---------------------------------------------------------------------------
 
@@ -1763,6 +1774,22 @@ kit \cite{zv-z132}The targets used for the calibration routine (see \cref{sec:vn
     \label{fig:find_target}
 \end{figure}
 
+\begin{figure}[htb]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+                ybar interval,
+                ylabel={number of $\Gamma_L$},
+                xlabel={number of iterations},
+                x filter/.expression={x-1}, % remove the start point
+                ymin = 0
+            ]
+            \addplot[blue,fill=blue!10,hist={bins=6,data min=3,data max=9}] table[y index=0] {testdata/trajectories/performance.data};
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Histogram of filter iterations needed to find a specific $\Gamma_L$}
+    \label{fig:iteration_hist}
+\end{figure}
 
 \begin{figure}[htbp]
     \centering
