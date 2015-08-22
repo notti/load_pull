@@ -1681,13 +1681,22 @@ The difference to the results from the Agilent \gls{vna} is mainly caused by the
 
 \section{Reflection Measurements}
 \label{sec:reflection}
-\begin{itemize}
-    \item Target find
-    \item Target find trajectories
-    \item Calibration
-    \item Calibration results
-    \item what \& why
-\end{itemize}
+
+The reflection measurements were carried out with the test setup in \cref{fig:test_setup}
+with an Agilent \gls{vna} as the \gls{dut}. The Agilent \gls{vna} was connected to the
+\SI{10}{\mega\hertz} reference in order to be able to generate the needed phase coherent
+signals for the test setup. This allowed verifying the synthesized $\Gamma_L$, and
+calibrating the \gls{fir} filter \device{fir1} more accurately, than using the built
+in one port \gls{vna}.
+
+The reflection generation consists of two tasks. First the iterative target algorithm
+described in \cref{sec:matlab} is needed, to be able to synthesize specific $\Gamma_L$.
+The performance of this algorithm can be seen in \cref{sec:iterative}. This
+algorithm was then used for calibrating and verifying the filter \device{fir1}. Measurement
+results with the calibrated filter can be seen in \cref{sec:filter}.
+
+\subsection{Iterative target algorithm}
+\label{sec:iterative}
 
 \begin{figure}[htb]
     \begin{subfigure}[b]{.5\linewidth}
@@ -1729,6 +1738,7 @@ The difference to the results from the Agilent \gls{vna} is mainly caused by the
 
         \end{tikzpicture}
         \caption{$\Gamma_{L,target} = 1$}
+        \label{fig:find_target_good}
     \end{subfigure}%
     \begin{subfigure}[b]{.5\linewidth}
         \centering
@@ -1769,27 +1779,68 @@ The difference to the results from the Agilent \gls{vna} is mainly caused by the
             \end{scope}
         \end{tikzpicture}
         \caption{$\Gamma_{L,target} = 0.5 \angle \SI{-45}{\degree}$}
+        \label{fig:find_target_bad}
     \end{subfigure}
     \caption{Exemplary trajectories of the target algorithm}
     \label{fig:find_target}
 \end{figure}
+
+The target algorithm as described in \cref{sec:matlab}, is able to find the
+correct $\Gamma_{L,set}$ with a given $\Gamma_{L,start}$ in order to synthesize
+a given $\Gamma_L$. All the following measurements used 20000 samples as the
+sample period (see \cref{sec:acquisition}), an $L$ of 2000 and an \gls{fft} width $n_{fft}$
+of 4096 (see \cref{fig:overlap_add}). The digital reflection generation introduces
+a very high latency on the order of about \SI{1}{\milli\second} with this settings.
+Therefore a wait time of \SI{100}{\milli\second} was used for the iterative algorithm
+(see \cref{sec:matlab}). This allows the system settling on a $\Gamma_L$ before continuing
+with the algorithm. If the wait time is too low then this algorithm can start to
+cause oscillations and the completion time of the algorithm actually increases, whereas
+a long wait time increases the completion time too.
 
 \begin{figure}[htb]
     \centering
     \begin{tikzpicture}
         \begin{axis}[
                 ybar interval,
-                ylabel={number of $\Gamma_L$},
+                ylabel={percentage},
                 xlabel={number of iterations},
                 x filter/.expression={x-1}, % remove the start point
                 ymin = 0
             ]
-            \addplot[blue,fill=blue!10,hist={bins=6,data min=3,data max=9}] table[y index=0] {testdata/trajectories/performance.data};
+            \addplot[blue,fill=blue!10,hist={bins=7,data min=3,data max=10,density=true}] table[y index=0] {testdata/trajectories/performance.data};
         \end{axis}
     \end{tikzpicture}
-    \caption{Histogram of filter iterations needed to find a specific $\Gamma_L$}
+    \caption{Histogram of algorithm iterations needed to find a specific $\Gamma_L$}
     \label{fig:iteration_hist}
 \end{figure}
+
+Two descriptive example trajectories can be seen in \cref{fig:find_target}. In
+\cref{fig:find_target_good} the algorithm terminated just after three steps,
+whereas in \cref{fig:find_target_bad} the worst observed case can be seen. The
+trajectory in \cref{fig:find_target_bad} oscillates around the target before
+reaching it, which is caused either by a too stringent termination condition, or
+by a bad resolution of the \gls{vna} or the digital part of this system in the
+target range.
+
+Depending on the start point $\Gamma_{L,start}$ and the target $\Gamma_{L}$
+the performance of the algorithm varied. An overall histogram of 108 different
+iterations with different $\Gamma_{L,start}$, different $\Gamma_{L,target}$ and
+at different frequencies can be seen in \cref{fig:iteration_hist}. The trajectory
+in \cref{fig:find_target_bad} is the only one in bin 8.
+
+As can be seen in \cref{fig:find_target,fig:iteration_hist} the algorithm is capable
+of reaching a specified reflection coefficient $\Gamma_{L,target}$ within a reasonable
+amount of time. Keeping the above limitations in mind the algorithm could be further
+accelerated by adjusting the termination condition and the settling time.
+
+\subsection{Filter performance}
+\label{sec:filter}
+
+\begin{itemize}
+    \item Calibration
+    \item Calibration results
+    \item what \& why
+\end{itemize}
 
 \begin{figure}[htbp]
     \centering
@@ -1819,7 +1870,7 @@ The difference to the results from the Agilent \gls{vna} is mainly caused by the
                 \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(-0.3536,0.3536)};
             \end{smithchart}
         \end{tikzpicture}
-        \caption{$0.5 \angle 135$}
+        \caption{$0.5 \angle \SI{135}{\degree}$}
     \end{subfigure}\\
     \begin{subfigure}[b]{.45\linewidth}
         \centering
@@ -1847,7 +1898,7 @@ The difference to the results from the Agilent \gls{vna} is mainly caused by the
                 \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(0.3536,-0.3536)};
             \end{smithchart}
         \end{tikzpicture}
-        \caption{$0.5 \angle -45$}
+        \caption{$0.5 \angle \SI{-45}{\degree}$}
     \end{subfigure}\\
     \begin{subfigure}[b]{.45\linewidth}
         \centering
@@ -1875,7 +1926,7 @@ The difference to the results from the Agilent \gls{vna} is mainly caused by the
                 \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(0.3536,-0.3536) (-0.3536,0.3536)};
             \end{smithchart}
         \end{tikzpicture}
-        \caption{$mean(0.5 \angle 135, 0.5 \angle -45)$}
+        \caption{$mean(0.5 \angle \SI{135}{\degree}, 0.5 \angle \SI{-45}{\degree})$}
     \end{subfigure}
     \caption{Reflection measurements with calibrated filter}
     \label{fig:calibrated_filter}
