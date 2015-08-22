@@ -1789,7 +1789,9 @@ The target algorithm as described in \cref{sec:matlab}, is able to find the
 correct $\Gamma_{L,set}$ with a given $\Gamma_{L,start}$ in order to synthesize
 a given $\Gamma_L$. All the following measurements used 20000 samples as the
 sample period (see \cref{sec:acquisition}), an $L$ of 2000 and an \gls{fft} width $n_{fft}$
-of 4096 (see \cref{fig:overlap_add}). The digital reflection generation introduces
+of 4096 (see \cref{fig:overlap_add}). The filter \device{fir1} was preloaded with the
+impulse response of a low pass filter with a cut off frequency of \SI{25}{\mega\hertz} to
+filter out the aliases (see \cref{sec:digital}). The digital reflection generation introduces
 a very high latency on the order of about \SI{1}{\milli\second} with this settings.
 Therefore a wait time of \SI{100}{\milli\second} was used for the iterative algorithm
 (see \cref{sec:matlab}). This allows the system settling on a $\Gamma_L$ before continuing
