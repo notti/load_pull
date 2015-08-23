@@ -1838,11 +1838,41 @@ accelerated by adjusting the termination condition and the settling time.
 \subsection{Filter performance}
 \label{sec:filter}
 
-\begin{itemize}
-    \item Calibration
-    \item Calibration results
-    \item what \& why
-\end{itemize}
+For verification, the filter \device{fir1} in \cref{fig:test_setup} was calibrated
+by measuring the needed $\Gamma_{L,set}$ to achieve a specific $\Gamma_L$ over a
+baseband range from \SI{-13}{\mega\hertz} to \SI{13}{\mega\hertz} at a \gls{rf} of
+\SI{900}{\mega\hertz} (see \cref{sec:matlab}). All the following
+measurements used the same settings as \cref{sec:iterative}. A sample period $n$ of 20000,
+$L$ of 2000 and an \gls{fft} width $n_{fft}$ of 4096 (see also \cref{fig:overlap_add}).
+Before calibration the filter \device{fir1} was preloaded with a low pass filter with
+a cut off frequency of \SI{25}{\mega\hertz} to filter out the aliases (see
+\cref{sec:digital}). Filter calibration was then carried out at the following $\Gamma_L$
+values: $1$, $-1$, $45\angle\SI{135}{\degree}$ and $45\angle\SI{-45}{\degree}$. Additional
+verification measurements were carried out with the mean of the acquired measurements
+at $1$ and $1$, as well as the mean of the measurements at $45\angle\SI{135}{\degree}$
+and $45\angle\SI{-45}{\degree}$. For the following verification measurements, the respective
+calibration measurement was added to the filter \device{fir1} by linearly interpolating
+the measured $\Gamma_{L,set}$ at every $\Delta{}f$-bin of the filter and then multiplying
+these values with the impulse response of the above mentioned alias filter.
+
+The verification measurements were acquired with the Agilent \gls{vna} at frequencies
+ranging from \SI{895}{\mega\hertz} to \SI{905}{\mega\hertz} in \SI{1}{\mega\hertz} steps
+with a settling time of \SI{0.5}{\second} for every frequency point. To be able to verify
+the performance across the whole range, measurements were acquired over the possible
+$\Gamma_{L,set}$ range by stepping through an 11 by 11 grid. These measurements were
+acquired with the different filter calibrations mentioned above.
+
+The results, which can be seen in \cref{fig:calibrated_filter}, contain every acquired
+trajectory in blue and the calibration point in red. Since only the filter \device{fir1}
+was calibrated, but neither the target algorithm, nor an error model was used for the
+$\Gamma_{L,set}$ values, the overall grid is slightly distorted. As can be seen in these
+smith charts, the trajectories spread out at points far away from the calibration points.
+As expected the filter calibrations with the mean values achieve better trajectories
+between the calibration points. Since the trajectories around the calibration points
+show the best performance it is advisable to use calibration points near the expected
+target $\Gamma_L$ and avoid calibration points at $\abs{\Gamma_L} = 1$. Noticeable
+trajectory spreading near the calibration points is caused by the limited numerical
+precision of the filter implementation of \device{fir1} (see \cref{sec:overlap_add}).
 
 \begin{figure}[htbp]
     \centering
@@ -1934,6 +1964,7 @@ accelerated by adjusting the termination condition and the settling time.
     \label{fig:calibrated_filter}
 \end{figure}
 
+\clearpage
 
 % ---------------------------------------------------------------------------
 
