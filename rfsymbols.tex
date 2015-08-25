@@ -675,6 +675,42 @@
     \endpgfscope
 }
 
+\pgfrfdeclaresimplenode{vcc}
+{
+    \pgf@y=\pgfkeysvalueof{/tikz/circuitikz/bipoles/length}
+    \pgf@y=\pgfkeysvalueof{/tikz/circuitikz/bipoles/vsource/height}\pgf@y
+    \pgf@y=.25\pgf@y
+    \pgf@x=\pgfkeysvalueof{/tikz/circuitikz/bipoles/length}
+    \pgf@x=.15\pgf@x
+    \pgf@x=-\pgfkeysvalueof{/tikz/circuitikz/bipoles/vsource/width}\pgf@x
+}
+{
+    \anchorborder{
+        \@tempdima=\pgf@x
+        \@tempdimb=\pgf@y
+        \northwest
+        \pgf@xa=-\pgf@x
+        \pgf@ya=\pgf@y
+        \pgfpointborderrectangle{\pgfpoint{\@tempdima}{\@tempdimb}}{\pgfpoint{\pgf@xa}{\pgf@ya}}
+    }
+}
+{
+    \northwest
+    \pgf@circ@res@up = \pgf@y 
+    \pgf@circ@res@down = -\pgf@y
+    \pgf@circ@res@right = -\pgf@x
+    \pgf@circ@res@left = \pgf@x
+    \pgfscope
+        \pgfsetlinewidth{\pgfkeysvalueof{/tikz/circuitikz/bipoles/thickness}\pgflinewidth}
+        \pgfpathmoveto{\pgfpoint{\pgf@circ@res@left}{0pt}}
+        \pgfpathlineto{\pgfpoint{0pt}{\pgf@circ@res@up}}
+        \pgfpathlineto{\pgfpoint{\pgf@circ@res@right}{0pt}}
+        \pgfpathmoveto{\pgfpoint{0pt}{\pgf@circ@res@up}}
+        \pgfpathlineto{\pgfpoint{0pt}{0.25\pgf@circ@res@down}}
+        \pgfusepath{draw}
+    \endpgfscope
+}
+
 \pgfrfdeclaresimplenode{isolator}
 {
     \pgf@y=\pgfkeysvalueof{/tikz/circuitikz/bipoles/length}
@@ -1125,133 +1161,6 @@
         \pgfpatharc{180}{0} {0.65\pgf@circ@res@up}
         \pgfusepath{draw}
     \endpgfscope
-}
-
-\pgfdeclareshape{vectorgenerator}
-{
-    \anchor{center}{
-        \pgfpointorigin
-    }
-    \savedanchor\northwest{%
-        \pgf@y=\pgfkeysvalueof{/tikz/circuitikz/bipoles/length}
-        \pgf@y=\pgfkeysvalueof{/tikz/circuitikz/rf/height}\pgf@y
-        \pgf@y=0.75\pgf@y
-        \pgf@x=\pgfkeysvalueof{/tikz/circuitikz/bipoles/length}
-        \pgf@x=\pgf@x
-        \pgf@x=-\pgfkeysvalueof{/tikz/circuitikz/rf/width}\pgf@x
-    }
-    \anchor{north}{
-        \northwest
-        \pgf@x=0pt
-    }
-    \anchor{south}{
-        \northwest
-        \pgf@x=0pt
-        \pgf@y=-\pgf@y
-    }
-    \anchor{out}{
-        \northwest
-        \pgf@y=0.33\pgf@y
-    }
-    \anchor{in}{
-        \northwest
-        \pgf@x=-\pgf@x
-        \pgf@y=-0.33\pgf@y
-    }
-    \anchor{west}{
-        \northwest
-        \pgf@y=0pt
-    }
-    \anchor{east}{
-        \northwest
-        \pgf@y=0pt
-        \pgf@x=-\pgf@x
-    }
-    \anchor{south west}{
-        \northwest
-        \pgf@y=-\pgf@y
-    }
-    \anchor{north east}{
-        \northwest
-        \pgf@x=-\pgf@x
-    }
-    \anchor{north west}{
-        \northwest
-    }
-    \anchor{south east}{
-        \northwest
-        \pgf@x=-\pgf@x
-        \pgf@y=-\pgf@y
-    }	  
-    \anchor{base}{
-        \northwest
-        \pgf@x=0pt	  	
-    }
-    \anchorborder{
-        \@tempdima=\pgf@x
-        \@tempdimb=\pgf@y
-        \northwest
-        \pgf@xa=-\pgf@x
-        \pgf@ya=\pgf@y
-        \pgfpointborderrectangle{\pgfpoint{\@tempdima}{\@tempdimb}}{\pgfpoint{\pgf@xa}{\pgf@ya}}
-    }
-    \backgroundpath{			
-        \pgfsetcolor{\pgfkeysvalueof{/tikz/circuitikz/color}}	
-
-        \northwest
-        \pgf@circ@res@up = \pgf@y 
-        \pgf@circ@res@down = -\pgf@y
-        \pgf@circ@res@right = -\pgf@x
-        \pgf@circ@res@left = \pgf@x
-        \pgf@circ@res@other = 0.33\pgf@circ@res@up
-
-        \pgfscope
-            \pgfsetcornersarced{\pgfpoint{4pt}{4pt}}
-            \pgfpathrectanglecorners{\pgfpoint{\pgf@circ@res@left}{\pgf@circ@res@down}}{\pgfpoint{\pgf@circ@res@right}{\pgf@circ@res@up}}
-            \pgfstroke
-        \endpgfscope
-        \pgfscope             
-            \pgftransformshift{\pgfpoint{0.66\pgf@circ@res@left}{\pgf@circ@res@other}}
-            \pgftransformscale{.4}
-            \pgftransformrotate{180}
-            \pgfnode{buffer}{center}{}{pgf@amp}{\pgfusepath{stroke}}
-        \endpgfscope
-        \pgfscope
-            \pgftransformshift{\pgfpoint{0}{\pgf@circ@res@other}}
-            \pgftransformscale{.5}
-            \pgfnode{mixer}{center}{}{pgf@mix}{\pgfusepath{stroke}}
-        \endpgfscope
-        \pgfscope
-            \pgftransformshift{\pgfpoint{0.66\pgf@circ@res@right}{\pgf@circ@res@other}}
-            \pgftransformscale{.5}
-            \pgftransformrotate{90}
-            \pgfnode{vsourcesinshape}{center}{}{pgf@att}{\pgfusepath{stroke}}
-        \endpgfscope
-        \pgfscope
-            \pgfpathmoveto{\pgfpoint{0.77\pgf@circ@res@left}{0.17\pgf@circ@res@down}}
-            \pgfpathlineto{\pgfpoint{0.55\pgf@circ@res@left}{0.83\pgf@circ@res@up}}
-            \pgfsetarrowsend{stealth}
-            \pgfusepath{draw}
-        \endpgfscope
-        \pgfscope
-            \pgfsetlinewidth{\pgfkeysvalueof{/tikz/circuitikz/bipoles/thickness}\pgflinewidth}
-            \pgftransformshift{\pgfpoint{0.66\pgf@circ@res@right}{-\pgf@circ@res@other}}
-            \pgftransformscale{.5}
-            \pgfnode{adc}{center}{}{pgf@dac}{\pgfusepath{stroke}}
-        \endpgfscope
-        \pgfpathmoveto{\pgfpoint{\pgf@circ@res@left}{\pgf@circ@res@other}}
-        \pgfpathlineto{\pgfpointanchor{pgf@amp}{out}}
-        \pgfpathmoveto{\pgfpointanchor{pgf@amp}{in}}
-        \pgfpathlineto{\pgfpointanchor{pgf@mix}{in}}
-        \pgfpathmoveto{\pgfpointanchor{pgf@mix}{out}}
-        \pgfpathlineto{\pgfpointanchor{pgf@att}{north}}
-        \pgfpathmoveto{\pgfpointanchor{pgf@mix}{in 2}}
-        \pgfpathlineto{\pgfpoint{0pt}{-\pgf@circ@res@other}}
-        \pgfpathlineto{\pgfpointanchor{pgf@dac}{B}}
-        \pgfpathmoveto{\pgfpointanchor{pgf@dac}{A}}
-        \pgfpathlineto{\pgfpoint{\pgf@circ@res@right}{-\pgf@circ@res@other}}
-        \pgfusepath{draw}
-    }
 }
 
 \makeatother

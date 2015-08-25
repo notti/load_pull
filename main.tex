@@ -11,8 +11,12 @@
 \graphicspath{{graphics/}}
 \usepackage{tikz}
 \usepackage{circuitikz}
-\usetikzlibrary{positioning,dsp,chains,fit,scopes,calc,backgrounds,arrows,decorations.pathmorphing,bending,arrows.meta,shapes.misc,matrix,patterns,shadows}
+\usetikzlibrary{positioning,dsp,chains,fit,scopes,calc,backgrounds,arrows,decorations.pathmorphing,bending,arrows.meta,shapes.misc,matrix,patterns,shadows,circuits.ee.IEC}
+\usepackage{tikz-timing}
 \include{rfsymbols}
+\makeatletter
+\newcommand\currentcoordinate{\the\tikz@lastxsaved,\the\tikz@lastysaved}
+\makeatother
 
 %units
 
@@ -47,12 +51,6 @@
 \usepackage{gensymb}
 
 \providecommand{\abs}[1]{\lvert#1\rvert}
-\makeatletter
-\newcommand\xleftrightarrow[2][]{%
-  \ext@arrow 9999{\longleftrightarrowfill@}{#1}{#2}}
-\newcommand\longleftrightarrowfill@{%
-  \arrowfill@\leftarrow\relbar\rightarrow}
-\makeatother
 
 %source
 
@@ -89,6 +87,9 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
 \automark*[section]{}
 
 \def\device#1{\textit{#1}}
+\def\signal#1{{\ttfamily #1}}
+\def\module#1{{\ttfamily\bfseries #1}}
+\def\clk#1{{\itshape\ttfamily #1}}
 
 \usepackage[colorlinks,hyperindex,plainpages=false,
 pdftitle={FPGA-based Load-Pull Measurement System},
@@ -1209,6 +1210,66 @@ of \SI{100}{\mega\samples\per\second}. Any other \gls{adc} capable of handling
 these requirements and a similar digital interface (see \cref{sec:digital}) can be used as a drop in
 replacement for this \gls{elp} system.
 
+\begin{figure}[htb]
+    \centering
+    \resizebox{\linewidth}{!}{
+    \begin{tikzpicture}[circuit ee IEC,every node/.style={font=\footnotesize},circuit symbol lines/.style={draw,very thick}]
+        \tikzpicturedependsonfile{rfsymbols.tex}
+        \draw (0,0) node[coordinate] (down) {}
+            (0,8) node[coordinate] (up) {}
+            (0,4) node[left,font=\tiny] {RFIN}
+            to[short,o-] (0.8,4) -- ++(0.4,0) node[contact] (innode) {}
+            to[capacitor={info=$C_5$,farad'=10n}] ++(1.8,0) node[draw,right,text width=6em,minimum height=11em] (ad8361) {}
+            node[right] {RFIN} node[above left] {3}
+            (innode |- down) node[rground] {} to[resistor={info sloped=$R_9$,ohm' sloped=66}] (innode)
+        ([yshift=-4.5em]ad8361.west) node[right,font=\tiny] {PWDN} node[above left]  {4} -| (2.5,0) node[rground] {}
+        ([yshift= 1.5em]ad8361.east) node[left,font=\tiny]  {FLTR} node[above right] {6} -- ++(0.5,0)
+        ([yshift=   3em]ad8361.east) node[left,font=\tiny]  {IREF} node[above right] {2} -- ++(0.5,0) -- (\currentcoordinate |- up) node[vcc] {} node[anchor=south,rotate=90] {\SI{+3.3}{\volt}}
+        ([yshift= 4.5em]ad8361.east) node[left,font=\tiny]  {VPOS} node[above right] {1} -- ++(0.5,0) node[contact] (vcc1) {} -- ++(1,0) --
+            (\currentcoordinate |- 0,3) node[contact] (lvcap1) {} -- ++(1.8,0) node[coordinate] (rvcap1) {}
+            (lvcap1 |- down) node[rground] {} to[capacitor={info sloped=$C_1$,farad' sloped=100p}] (lvcap1)
+            (rvcap1 |- down) node[rground] {} to[capacitor={info sloped=$C_2$,farad' sloped=10n}] (rvcap1)
+        ([yshift=  -3em]ad8361.east) node[left,font=\tiny]  {SREF} node[above right] {8} -- ++(0.5,0) -- (\currentcoordinate |- down) node[rground] {}
+        ([yshift=-4.5em]ad8361.east) node[left,font=\tiny]  {COMM} node[above right] {5} -- ++(0.5,0) node[contact] {}
+                       (ad8361.east) node[left,font=\tiny]  {VRMS} node[above right] {7} -- ++(5.5,0) node[op amp,anchor=+,yscale=-1] (op1) {}
+        (op1.+) node[above] {3}
+        (op1.-) node[above] {2} -- ++(-0.5,0) node[contact] (op1-) {}
+        (op1- |- down) node[rground] {} to[resistor={info sloped=$R_2$,ohm' sloped=1k}] (op1-) to[resistor={info sloped=$R_1$,ohm' sloped=33k}] (op1- |- up) node[vcc] {} node[anchor=south,rotate=90] {\SI{+3.3}{\volt}}
+        (op1.down) node[right,yshift=3pt] {8} -- (op1.up |- up) node[vcc] {} node[anchor=south,rotate=90] {\SI{+3.3}{\volt}}
+        (op1.up) node[right,yshift=-3pt] {4} -- (op1.down |- down) node[rground] {}
+        ++(1.2,0) node[rground] {} to[capacitor={info sloped=$C_3$,farad' sloped=100n}] (op1- -| \currentcoordinate) |- (op1.down |- vcc1) node[contact] {}
+        (op1.out) node[above left] {1} -- ++(1.5,0) node[contact] (op2+) {} -- ++(2,0) node[op amp,anchor=+] (op2) {}
+        (op2+ |- down) node[rground] {} to[capacitor={info sloped=$C_4$,farad' sloped=100n}] ($(\currentcoordinate)!.5!(op2+)$)
+            to[resistor={info sloped=$R_3$,ohm' sloped=91}] (op2+) -- (op2+ |- vcc1) node[contact] (op2+a) {}
+            to[resistor={info sloped=$R_4$,ohm' sloped=330k}] (op2+a |- up) node[vcc] {} node[anchor=south,rotate=90] {\SI{+3.3}{\volt}}
+        (op2.+) node[above] {5}
+        (op2.-) node[above] {6} -- ++(-0.5,0) node[contact] (op2-) {}
+        (op2- |- down) node[rground] {} to[resistor={info sloped=$R_5$,ohm' sloped=33k}] (op2- |- op1-) -- (op2- |- vcc1) to[resistor={info sloped=$R_6$,ohm' sloped=33k}] (op2- |- up) node[vcc] {} node[anchor=south,rotate=90] {\SI{+3.3}{\volt}}
+        (op2.out) node[above left] {7} -- ++(0.5,0) node[contact] (out) {}
+        (op2+a) -- (op2+a -| op2-) to[resistor={info sloped=$R_6$,ohm' sloped=1M}] (out |- op2+a) node[contact] (out+) {} -- (out)
+        (out+) to[resistor={info sloped=$R_7$,ohm' sloped=1k}] (out+ |- up) node[vcc] {} node[anchor=south,rotate=90] {\SI{+3.3}{\volt}}
+        (out) -- ++(2.5,0) ++(0,0.8) to[diode={light emitting}] ++(0,-0.8)
+        (out) ++(2.5,0.8) -- ++(-1,0) node[above right] {1} -- (\currentcoordinate |- vcc1) to[resistor={info sloped=$R_8$,ohm' sloped=220}] (\currentcoordinate |- up) node[vcc] {} node[anchor=south,rotate=90] {\SI{+3.3}{\volt}}
+        (out) ++(1.5,0) node[above right] {2}
+        (out) ++(3.15,0.4) -- ++(0.25,0.4) node[above right,xshift=0.4cm] {4} to[short,-o] ++(1,0) node[right] {SYNC1}
+        (out) ++(3.4,0) node[above right,xshift=0.4cm] {3} to[short,-o] ++(1,0) node[right] {SYNC2};
+        \draw (out) ++(2,-0.3) rectangle ++(1.8,1.4);
+        \draw[thick] (out) ++(3.15,0.1) -- ++(0,0.6);
+        \draw[decoration={markings,mark=at position 0.7 with {\arrow[black]{latex};}},postaction={decorate}] (out) ++(3.15,0.4) -- ++(0.25,-0.4);
+
+        \draw (op1) node[above left,yshift=1cm,xshift=-0.3cm] {IC2A}
+              (op2) node[above left,yshift=1cm,xshift=-0.3cm] {IC2B}
+              (op2) node[below right,yshift=-0.5cm,xshift=-0.2cm] {LM393M}
+              (ad8361) node[above left,yshift=2.2cm,xshift=-0.7cm] {IC1}
+              (ad8361) node[below left,yshift=-2.2cm] {AD8361}
+              (out) ++(1.9,1.05) node[anchor=south west] {OK1}
+              (out) ++(1.9,-0.3) node[anchor=north west] {TLP283};
+    \end{tikzpicture}
+    }
+    \caption{\gls{adc} adapter}
+    \label{fig:adc_adapter}
+\end{figure}
+
 Digital to analog conversion and up conversion is handled by the lower analog
 processing chain in \cref{fig:analog}. In this work a signal vector generator
 SMBV100A from Rhode \& Schwarz with digital \gls{iq} input support (R\&S SMBV-K18
@@ -1458,6 +1519,25 @@ replacement. The detailed hardware implementation can be found in \cref{sec:smbv
 \label{sec:overlap_add}
 \section{SMBV Interface}
 \label{sec:smbv_interface}
+
+\begin{figure}[htb]
+    \centering
+    \tikzexternaldisable
+    \begin{tikztimingtable}
+        clk & c11{7c}c  \\
+        ckm & c22{3.5c}c \\
+        ckh & c77{c}c \\
+        outdata\_long(0) & x2{14x}{}3{14d}7dd\\
+        outdata\_long(1) & x3{14x}{}2{14d}7dd \\
+        outdata\_long(2) & x{}4{14d}{}14d7dd \\
+        outdata\_long(3) & x14x{}4{14d}{}7dd \\
+        outdata\_short & [font=\scriptsize] x7d{(0)(6:3)}7d{(0)(2:0) (1)(6)}7d{(1)(5:2)}7d{(1)(1:0) (2)(6:5)}7d{(2)(4:1)}7d{(2)(0) (3)(6:4)}7d{(3)(3:0)}7d{(0)(6:3)}7d{(0)(2:0) (1)(6)}7d{(1)(5:2)}7d{(1)(1:0) (2)(6:5)}{}d \\
+        out\_en & l49{l}28{h}h \\
+    \end{tikztimingtable}
+    \caption{LVDS Output generation timing. {\scriptsize (0)(2:0) (1)(6)} in \signal{outdata\_short} means {\ttfamily outdata\_long(0)(2 downto 0) \& outdata\_long(1)(6 downto 6)}.}
+    \label{fig:trans}
+\end{figure}
+
 \section{Processor Interface}
 
 % ===========================================================================
