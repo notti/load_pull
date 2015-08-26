@@ -8,7 +8,7 @@
 %drawings
 
 \usepackage[pdftex]{graphicx}
-\graphicspath{{graphics/}}
+\graphicspath{{images/}}
 \usepackage{tikz}
 \usepackage{circuitikz}
 \usetikzlibrary{positioning,dsp,chains,fit,scopes,calc,backgrounds,arrows,decorations.pathmorphing,bending,arrows.meta,shapes.misc,matrix,patterns,shadows,circuits.ee.IEC}
@@ -378,7 +378,7 @@ these requirements.
         \centering
         \begin{tikzpicture}
             \begin{smithchart}[width=.9\linewidth]
-                \node [circle,draw,pattern=crosshatch,minimum size=.6\linewidth] (0,0) {};
+                \filldraw[draw=blue,fill=blue,fill opacity=0.2] (cartesian cs:0,0) let \p1 = (cartesian cs:0.75,0) in circle ({\x1});
             \end{smithchart}
         \end{tikzpicture}
         \caption{Passive \gls{lp} system}
@@ -1108,7 +1108,7 @@ After shifting the band of interest to the \gls{if}, the signal is converted fro
 analog to digital (\device{bp1} and \device{adc1}). For the sampling rate
 \SI{100}{\mega\samples\per\second} was chosen, since it provides enough headroom to
 support the earlier mentioned bandwidth. Furthermore the chosen vector signal generator supports this sample rate
-at the digital input port. To fulfill the sampling theorem, this sampling rate is too low for the chosen
+at the digital input port. To fulfill the sampling theosubfigurerem, this sampling rate is too low for the chosen
 \gls{if}, therefore bandpass sampling was used. This necessitates that a bandpass
 filter is used as alias filter \device{bp1}.
 
@@ -1209,66 +1209,6 @@ is suited for sampling the \gls{if} of \SI{70}{\mega\hertz} with the sample rate
 of \SI{100}{\mega\samples\per\second}. Any other \gls{adc} capable of handling
 these requirements and a similar digital interface (see \cref{sec:digital}) can be used as a drop in
 replacement for this \gls{elp} system.
-
-\begin{figure}[htb]
-    \centering
-    \resizebox{\linewidth}{!}{
-    \begin{tikzpicture}[circuit ee IEC,every node/.style={font=\footnotesize},circuit symbol lines/.style={draw,very thick}]
-        \tikzpicturedependsonfile{rfsymbols.tex}
-        \draw (0,0) node[coordinate] (down) {}
-            (0,8) node[coordinate] (up) {}
-            (0,4) node[left,font=\tiny] {RFIN}
-            to[short,o-] (0.8,4) -- ++(0.4,0) node[contact] (innode) {}
-            to[capacitor={info=$C_5$,farad'=10n}] ++(1.8,0) node[draw,right,text width=6em,minimum height=11em] (ad8361) {}
-            node[right] {RFIN} node[above left] {3}
-            (innode |- down) node[rground] {} to[resistor={info sloped=$R_9$,ohm' sloped=66}] (innode)
-        ([yshift=-4.5em]ad8361.west) node[right,font=\tiny] {PWDN} node[above left]  {4} -| (2.5,0) node[rground] {}
-        ([yshift= 1.5em]ad8361.east) node[left,font=\tiny]  {FLTR} node[above right] {6} -- ++(0.5,0)
-        ([yshift=   3em]ad8361.east) node[left,font=\tiny]  {IREF} node[above right] {2} -- ++(0.5,0) -- (\currentcoordinate |- up) node[vcc] {} node[anchor=south,rotate=90] {\SI{+3.3}{\volt}}
-        ([yshift= 4.5em]ad8361.east) node[left,font=\tiny]  {VPOS} node[above right] {1} -- ++(0.5,0) node[contact] (vcc1) {} -- ++(1,0) --
-            (\currentcoordinate |- 0,3) node[contact] (lvcap1) {} -- ++(1.8,0) node[coordinate] (rvcap1) {}
-            (lvcap1 |- down) node[rground] {} to[capacitor={info sloped=$C_1$,farad' sloped=100p}] (lvcap1)
-            (rvcap1 |- down) node[rground] {} to[capacitor={info sloped=$C_2$,farad' sloped=10n}] (rvcap1)
-        ([yshift=  -3em]ad8361.east) node[left,font=\tiny]  {SREF} node[above right] {8} -- ++(0.5,0) -- (\currentcoordinate |- down) node[rground] {}
-        ([yshift=-4.5em]ad8361.east) node[left,font=\tiny]  {COMM} node[above right] {5} -- ++(0.5,0) node[contact] {}
-                       (ad8361.east) node[left,font=\tiny]  {VRMS} node[above right] {7} -- ++(5.5,0) node[op amp,anchor=+,yscale=-1] (op1) {}
-        (op1.+) node[above] {3}
-        (op1.-) node[above] {2} -- ++(-0.5,0) node[contact] (op1-) {}
-        (op1- |- down) node[rground] {} to[resistor={info sloped=$R_2$,ohm' sloped=1k}] (op1-) to[resistor={info sloped=$R_1$,ohm' sloped=33k}] (op1- |- up) node[vcc] {} node[anchor=south,rotate=90] {\SI{+3.3}{\volt}}
-        (op1.down) node[right,yshift=3pt] {8} -- (op1.up |- up) node[vcc] {} node[anchor=south,rotate=90] {\SI{+3.3}{\volt}}
-        (op1.up) node[right,yshift=-3pt] {4} -- (op1.down |- down) node[rground] {}
-        ++(1.2,0) node[rground] {} to[capacitor={info sloped=$C_3$,farad' sloped=100n}] (op1- -| \currentcoordinate) |- (op1.down |- vcc1) node[contact] {}
-        (op1.out) node[above left] {1} -- ++(1.5,0) node[contact] (op2+) {} -- ++(2,0) node[op amp,anchor=+] (op2) {}
-        (op2+ |- down) node[rground] {} to[capacitor={info sloped=$C_4$,farad' sloped=100n}] ($(\currentcoordinate)!.5!(op2+)$)
-            to[resistor={info sloped=$R_3$,ohm' sloped=91}] (op2+) -- (op2+ |- vcc1) node[contact] (op2+a) {}
-            to[resistor={info sloped=$R_4$,ohm' sloped=330k}] (op2+a |- up) node[vcc] {} node[anchor=south,rotate=90] {\SI{+3.3}{\volt}}
-        (op2.+) node[above] {5}
-        (op2.-) node[above] {6} -- ++(-0.5,0) node[contact] (op2-) {}
-        (op2- |- down) node[rground] {} to[resistor={info sloped=$R_5$,ohm' sloped=33k}] (op2- |- op1-) -- (op2- |- vcc1) to[resistor={info sloped=$R_6$,ohm' sloped=33k}] (op2- |- up) node[vcc] {} node[anchor=south,rotate=90] {\SI{+3.3}{\volt}}
-        (op2.out) node[above left] {7} -- ++(0.5,0) node[contact] (out) {}
-        (op2+a) -- (op2+a -| op2-) to[resistor={info sloped=$R_6$,ohm' sloped=1M}] (out |- op2+a) node[contact] (out+) {} -- (out)
-        (out+) to[resistor={info sloped=$R_7$,ohm' sloped=1k}] (out+ |- up) node[vcc] {} node[anchor=south,rotate=90] {\SI{+3.3}{\volt}}
-        (out) -- ++(2.5,0) ++(0,0.8) to[diode={light emitting}] ++(0,-0.8)
-        (out) ++(2.5,0.8) -- ++(-1,0) node[above right] {1} -- (\currentcoordinate |- vcc1) to[resistor={info sloped=$R_8$,ohm' sloped=220}] (\currentcoordinate |- up) node[vcc] {} node[anchor=south,rotate=90] {\SI{+3.3}{\volt}}
-        (out) ++(1.5,0) node[above right] {2}
-        (out) ++(3.15,0.4) -- ++(0.25,0.4) node[above right,xshift=0.4cm] {4} to[short,-o] ++(1,0) node[right] {SYNC1}
-        (out) ++(3.4,0) node[above right,xshift=0.4cm] {3} to[short,-o] ++(1,0) node[right] {SYNC2};
-        \draw (out) ++(2,-0.3) rectangle ++(1.8,1.4);
-        \draw[thick] (out) ++(3.15,0.1) -- ++(0,0.6);
-        \draw[decoration={markings,mark=at position 0.7 with {\arrow[black]{latex};}},postaction={decorate}] (out) ++(3.15,0.4) -- ++(0.25,-0.4);
-
-        \draw (op1) node[above left,yshift=1cm,xshift=-0.3cm] {IC2A}
-              (op2) node[above left,yshift=1cm,xshift=-0.3cm] {IC2B}
-              (op2) node[below right,yshift=-0.5cm,xshift=-0.2cm] {LM393M}
-              (ad8361) node[above left,yshift=2.2cm,xshift=-0.7cm] {IC1}
-              (ad8361) node[below left,yshift=-2.2cm] {AD8361}
-              (out) ++(1.9,1.05) node[anchor=south west] {OK1}
-              (out) ++(1.9,-0.3) node[anchor=north west] {TLP283};
-    \end{tikzpicture}
-    }
-    \caption{\gls{adc} adapter}
-    \label{fig:adc_adapter}
-\end{figure}
 
 Digital to analog conversion and up conversion is handled by the lower analog
 processing chain in \cref{fig:analog}. In this work a signal vector generator
@@ -1393,6 +1333,66 @@ can be found in \cref{sec:acquisition}.
 
 \begin{figure}[htb]
     \centering
+    \resizebox{\linewidth}{!}{
+    \begin{tikzpicture}[circuit ee IEC,every node/.style={font=\footnotesize},circuit symbol lines/.style={draw,very thick}]
+        \tikzpicturedependsonfile{rfsymbols.tex}
+        \draw (0,0) node[coordinate] (down) {}
+            (0,8) node[coordinate] (up) {}
+            (0,4) node[left,font=\tiny] {RFIN}
+            to[short,o-] (0.8,4) -- ++(0.4,0) node[contact] (innode) {}
+            to[capacitor={info=$C_5$,farad'=10n}] ++(1.8,0) node[draw,right,text width=6em,minimum height=11em] (ad8361) {}
+            node[right] {RFIN} node[above left] {3}
+            (innode |- down) node[rground] {} to[resistor={info sloped=$R_9$,ohm' sloped=66}] (innode)
+        ([yshift=-4.5em]ad8361.west) node[right,font=\tiny] {PWDN} node[above left]  {4} -| (2.5,0) node[rground] {}
+        ([yshift= 1.5em]ad8361.east) node[left,font=\tiny]  {FLTR} node[above right] {6} -- ++(0.5,0)
+        ([yshift=   3em]ad8361.east) node[left,font=\tiny]  {IREF} node[above right] {2} -- ++(0.5,0) -- (\currentcoordinate |- up) node[vcc] {} node[anchor=south,rotate=90] {\SI{+3.3}{\volt}}
+        ([yshift= 4.5em]ad8361.east) node[left,font=\tiny]  {VPOS} node[above right] {1} -- ++(0.5,0) node[contact] (vcc1) {} -- ++(1,0) --
+            (\currentcoordinate |- 0,3) node[contact] (lvcap1) {} -- ++(1.8,0) node[coordinate] (rvcap1) {}
+            (lvcap1 |- down) node[rground] {} to[capacitor={info sloped=$C_1$,farad' sloped=100p}] (lvcap1)
+            (rvcap1 |- down) node[rground] {} to[capacitor={info sloped=$C_2$,farad' sloped=10n}] (rvcap1)
+        ([yshift=  -3em]ad8361.east) node[left,font=\tiny]  {SREF} node[above right] {8} -- ++(0.5,0) -- (\currentcoordinate |- down) node[rground] {}
+        ([yshift=-4.5em]ad8361.east) node[left,font=\tiny]  {COMM} node[above right] {5} -- ++(0.5,0) node[contact] {}
+                       (ad8361.east) node[left,font=\tiny]  {VRMS} node[above right] {7} -- ++(5.5,0) node[op amp,anchor=+,yscale=-1] (op1) {}
+        (op1.+) node[above] {3}
+        (op1.-) node[above] {2} -- ++(-0.5,0) node[contact] (op1-) {}
+        (op1- |- down) node[rground] {} to[resistor={info sloped=$R_2$,ohm' sloped=1k}] (op1-) to[resistor={info sloped=$R_1$,ohm' sloped=33k}] (op1- |- up) node[vcc] {} node[anchor=south,rotate=90] {\SI{+3.3}{\volt}}
+        (op1.down) node[right,yshift=3pt] {8} -- (op1.up |- up) node[vcc] {} node[anchor=south,rotate=90] {\SI{+3.3}{\volt}}
+        (op1.up) node[right,yshift=-3pt] {4} -- (op1.down |- down) node[rground] {}
+        ++(1.2,0) node[rground] {} to[capacitor={info sloped=$C_3$,farad' sloped=100n}] (op1- -| \currentcoordinate) |- (op1.down |- vcc1) node[contact] {}
+        (op1.out) node[above left] {1} -- ++(1.5,0) node[contact] (op2+) {} -- ++(2,0) node[op amp,anchor=+] (op2) {}
+        (op2+ |- down) node[rground] {} to[capacitor={info sloped=$C_4$,farad' sloped=100n}] ($(\currentcoordinate)!.5!(op2+)$)
+            to[resistor={info sloped=$R_3$,ohm' sloped=91}] (op2+) -- (op2+ |- vcc1) node[contact] (op2+a) {}
+            to[resistor={info sloped=$R_4$,ohm' sloped=330k}] (op2+a |- up) node[vcc] {} node[anchor=south,rotate=90] {\SI{+3.3}{\volt}}
+        (op2.+) node[above] {5}
+        (op2.-) node[above] {6} -- ++(-0.5,0) node[contact] (op2-) {}
+        (op2- |- down) node[rground] {} to[resistor={info sloped=$R_5$,ohm' sloped=33k}] (op2- |- op1-) -- (op2- |- vcc1) to[resistor={info sloped=$R_6$,ohm' sloped=33k}] (op2- |- up) node[vcc] {} node[anchor=south,rotate=90] {\SI{+3.3}{\volt}}
+        (op2.out) node[above left] {7} -- ++(0.5,0) node[contact] (out) {}
+        (op2+a) -- (op2+a -| op2-) to[resistor={info sloped=$R_6$,ohm' sloped=1M}] (out |- op2+a) node[contact] (out+) {} -- (out)
+        (out+) to[resistor={info sloped=$R_7$,ohm' sloped=1k}] (out+ |- up) node[vcc] {} node[anchor=south,rotate=90] {\SI{+3.3}{\volt}}
+        (out) -- ++(2.5,0) ++(0,0.8) to[diode={light emitting}] ++(0,-0.8)
+        (out) ++(2.5,0.8) -- ++(-1,0) node[above right] {1} -- (\currentcoordinate |- vcc1) to[resistor={info sloped=$R_8$,ohm' sloped=220}] (\currentcoordinate |- up) node[vcc] {} node[anchor=south,rotate=90] {\SI{+3.3}{\volt}}
+        (out) ++(1.5,0) node[above right] {2}
+        (out) ++(3.15,0.4) -- ++(0.25,0.4) node[above right,xshift=0.4cm] {4} to[short,-o] ++(1,0) node[right] {SYNC1}
+        (out) ++(3.4,0) node[above right,xshift=0.4cm] {3} to[short,-o] ++(1,0) node[right] {SYNC2};
+        \draw (out) ++(2,-0.3) rectangle ++(1.8,1.4);
+        \draw[thick] (out) ++(3.15,0.1) -- ++(0,0.6);
+        \draw[decoration={markings,mark=at position 0.7 with {\arrow[black]{latex};}},postaction={decorate}] (out) ++(3.15,0.4) -- ++(0.25,-0.4);
+
+        \draw (op1) node[above left,yshift=1cm,xshift=-0.3cm] {IC2A}
+              (op2) node[above left,yshift=1cm,xshift=-0.3cm] {IC2B}
+              (op2) node[below right,yshift=-0.5cm,xshift=-0.2cm] {LM393M}
+              (ad8361) node[above left,yshift=2.2cm,xshift=-0.7cm] {IC1}
+              (ad8361) node[below left,yshift=-2.2cm] {AD8361}
+              (out) ++(1.9,1.05) node[anchor=south west] {OK1}
+              (out) ++(1.9,-0.3) node[anchor=north west] {TLP283};
+    \end{tikzpicture}
+    }
+    \caption{sync-signal generator for \gls{adc}}
+    \label{fig:adc_adapter}
+\end{figure}
+
+\begin{figure}[htb]
+    \centering
     \begin{tikzpicture}
         \begin{scope}[shift={(0,13em)}]
             \draw [decorate,decoration={brace},yshift=2pt] (0,4.1em) -- (5,4.1em) node[midway,yshift=8pt] {$n$};
@@ -1498,6 +1498,38 @@ which was found out empirically during this work, is that the S\_CLK pin of the 
 has to be connected to ground in order for the signal generator to recognize a connected
 device. Other vector signal generators with the same interface can be used as a drop in
 replacement. The detailed hardware implementation can be found in \cref{sec:smbv_interface}.
+
+\begin{figure}[htb]
+    \begin{subfigure}[c]{.45\linewidth}
+        \centering
+        \begin{tikzpicture}
+            \node[anchor=south west,inner sep=0pt] (image) at (0,0) {\includegraphics[width=\textwidth]{adc.jpg}};
+            \begin{scope}[x={(image.south east)},y={(image.north west)},every node/.style={fill=white, fill opacity=0.8}]
+                \draw (0,0.6) node[anchor=south west] {analog in};
+                \draw (1,0) node[anchor=south east] {power supply};
+                \draw (0.1,0.1) node[anchor=south west] {data+};
+                \draw (0.2,1) node[anchor=north west] {data-};
+                \draw (0.9,1) node[anchor=north east] (clk) {clock};
+                \draw [-latex] (clk) -- (0.5,0.85);
+                \draw (0.95,0.825) node[anchor=north east] {sync circuit};
+                \draw (1,0.35) node[anchor=south east] {SATA};
+            \end{scope}
+        \end{tikzpicture}
+        \caption{\gls{adc} adapter circuit board with disconnected clock line, atop the LTC2274 demo board}
+        \label{fig:adc_adapter_circ}
+    \end{subfigure}%
+    ~
+    \begin{subfigure}[c]{.45\linewidth}
+        \centering
+        \begin{tikzpicture}
+            \node[inner sep=0pt] (image) at (0,0) {\includegraphics[width=\textwidth]{digital_iq.jpg}};
+        \end{tikzpicture}
+        \caption{Digital \gls{iq} adapter circuit board with S\_CLK fix}
+        \label{fig:iq_adapter_circ}
+    \end{subfigure}
+    \caption{Photos of implemented adapter boards}
+    \label{fig:adapters}
+\end{figure}
 
 % ===========================================================================
 
