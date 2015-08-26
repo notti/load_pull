@@ -1404,10 +1404,11 @@ swing of about \SI{194}{\milli\volt} is needed to recognize a valid clock signal
 $R_3$ while no clock signal is present. Furthermore, this causes \device{IC2B} to connect the output
 to ground and therefore connecting \device{SYNC1} and \device{SYNC2} via the optocoupler \device{OK1}.
 Right after a valid clock signal is detected, $C_2$ starts to charge via $R_4$ and $R_3$. After
-about \SI{25.7}{\milli\second} this combination reaches switching threshold of \SI{1.6}{\volt} set
-by the voltage divider $R_5$/$R_6$ at the input pin \device{6} of \device{IC2B}, therefore switching
+about \SI{25.7}{\milli\second} this combination reaches switching threshold of \SI{1.6}{\volt}, set
+by the voltage divider $R_5$/$R_6$, at the input pin \device{6} of \device{IC2B}, therefore switching
 the output transistor off. Since this disconnects \device{OK1} from ground, the synchronization
-signal stops. The resistor $R_7$ enables a more stable operation and prevents \device{IC2B} from
+signal stops.  This provides the \gls{adc} with a \SI{25.7}{\milli\second} long synchronization
+request after a clock signal is detected. The resistor $R_7$ enables a more stable operation and prevents \device{IC2B} from
 oscillating near the switching threshold. The implemented adapter circuit board atop the \gls{adc}
 eval board can be seen in \cref{fig:adc_adapter_circ}.
 
