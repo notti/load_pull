@@ -107,6 +107,7 @@ pdfpagelabels %,hidelinks
 \newacronym{fir}{FIR}{finite impulse response}
 \newacronym{gui}{GUI}{graphical user interface}
 \newacronym{dc}{DC}{direct current}
+\newacronym{ac}{AC}{alternative current}
 \newacronym{ui}{UI}{user interface}
 \newacronym{rf}{RF}{radio frequency}
 \newacronym{pa}{PA}{power amplifier}
@@ -126,6 +127,8 @@ pdfpagelabels %,hidelinks
 \newacronym{fft}{FFT}{fast Fourier transform}
 \newacronym{dft}{DFT}{discrete Fourier transform}
 \newacronym{lp}{LP}{load-pull}
+\newacronym{sma}{SMA}{sub-miniature version A}
+\newacronym{sata}{SATA}{serial AT attachment}
 
 \makeglossaries
 
@@ -1318,18 +1321,11 @@ generation. This multiplier allows adjusting the phase and amplitude of the refl
 coefficient $\Gamma_L$ by varying $X$ and $Y$.
 
 The \gls{adc} LTC2274, has a JESD204 compliant high speed serial interface \cite{ltc2274}.
-This interface uses 8B/10B line coding over a \gls{lvds} connection \cite{jesd205B.01}. The line coding
+This interface uses 8b/10b line coding over a \gls{lvds} connection \cite{jesd205B.01}. The line coding
 is responsible for keeping a balanced number of ones and zeros on the line, therefore keeping a long term
 \gls{dc} balance on the line. This allows transmitting the data stream through a high pass
 channel. Clock recovery is also possible, since this protocol ensures frequent transitions
-in the bit stream. The JESD204 also encourages using a scrambler on the raw data, in order to lessen the
-noise caused by the digital transmission in the analog part. The scrambler implemented for
-this project is based on the polynomial given in \cref{eq:poly} \cite{jesd205B.01}. This scrambler can
-be bypassed if a different \gls{adc} is used. A more detailed explanation of the input interface
-can be found in \cref{sec:acquisition}.
-\begin{equation}
-    \label{eq:poly} 1 + x^{14} + x^{15}
-\end{equation}
+in the bit stream.
 
 \begin{figure}[htb]
     \centering
@@ -1338,11 +1334,11 @@ can be found in \cref{sec:acquisition}.
         \tikzpicturedependsonfile{rfsymbols.tex}
         \draw (0,0) node[coordinate] (down) {}
             (0,8) node[coordinate] (up) {}
-            (0,4) node[left,font=\tiny] {RFIN}
+            (0,4) node[left] {RFIN}
             to[short,o-] (0.8,4) -- ++(0.4,0) node[contact] (innode) {}
             to[capacitor={info=$C_5$,farad'=10n}] ++(1.8,0) node[draw,right,text width=6em,minimum height=11em] (ad8361) {}
-            node[right] {RFIN} node[above left] {3}
-            (innode |- down) node[rground] {} to[resistor={info sloped=$R_9$,ohm' sloped=66}] (innode)
+            node[right,font=\tiny] {RFIN} node[above left] {3}
+            (innode |- down) node[rground] {} to[resistor={info sloped=$R_{10}$,ohm' sloped=66}] (innode)
         ([yshift=-4.5em]ad8361.west) node[right,font=\tiny] {PWDN} node[above left]  {4} -| (2.5,0) node[rground] {}
         ([yshift= 1.5em]ad8361.east) node[left,font=\tiny]  {FLTR} node[above right] {6} -- ++(0.5,0)
         ([yshift=   3em]ad8361.east) node[left,font=\tiny]  {IREF} node[above right] {2} -- ++(0.5,0) -- (\currentcoordinate |- up) node[vcc] {} node[anchor=south,rotate=90] {\SI{+3.3}{\volt}}
@@ -1367,10 +1363,10 @@ can be found in \cref{sec:acquisition}.
         (op2.-) node[above] {6} -- ++(-0.5,0) node[contact] (op2-) {}
         (op2- |- down) node[rground] {} to[resistor={info sloped=$R_5$,ohm' sloped=33k}] (op2- |- op1-) -- (op2- |- vcc1) to[resistor={info sloped=$R_6$,ohm' sloped=33k}] (op2- |- up) node[vcc] {} node[anchor=south,rotate=90] {\SI{+3.3}{\volt}}
         (op2.out) node[above left] {7} -- ++(0.5,0) node[contact] (out) {}
-        (op2+a) -- (op2+a -| op2-) to[resistor={info sloped=$R_6$,ohm' sloped=1M}] (out |- op2+a) node[contact] (out+) {} -- (out)
-        (out+) to[resistor={info sloped=$R_7$,ohm' sloped=1k}] (out+ |- up) node[vcc] {} node[anchor=south,rotate=90] {\SI{+3.3}{\volt}}
+        (op2+a) -- (op2+a -| op2-) to[resistor={info sloped=$R_7$,ohm' sloped=1M}] (out |- op2+a) node[contact] (out+) {} -- (out)
+        (out+) to[resistor={info sloped=$R_8$,ohm' sloped=1k}] (out+ |- up) node[vcc] {} node[anchor=south,rotate=90] {\SI{+3.3}{\volt}}
         (out) -- ++(2.5,0) ++(0,0.8) to[diode={light emitting}] ++(0,-0.8)
-        (out) ++(2.5,0.8) -- ++(-1,0) node[above right] {1} -- (\currentcoordinate |- vcc1) to[resistor={info sloped=$R_8$,ohm' sloped=220}] (\currentcoordinate |- up) node[vcc] {} node[anchor=south,rotate=90] {\SI{+3.3}{\volt}}
+        (out) ++(2.5,0.8) -- ++(-1,0) node[above right] {1} -- (\currentcoordinate |- vcc1) to[resistor={info sloped=$R_9$,ohm' sloped=220}] (\currentcoordinate |- up) node[vcc] {} node[anchor=south,rotate=90] {\SI{+3.3}{\volt}}
         (out) ++(1.5,0) node[above right] {2}
         (out) ++(3.15,0.4) -- ++(0.25,0.4) node[above right,xshift=0.4cm] {4} to[short,-o] ++(1,0) node[right] {SYNC1}
         (out) ++(3.4,0) node[above right,xshift=0.4cm] {3} to[short,-o] ++(1,0) node[right] {SYNC2};
@@ -1387,9 +1383,42 @@ can be found in \cref{sec:acquisition}.
               (out) ++(1.9,-0.3) node[anchor=north west] {TLP283};
     \end{tikzpicture}
     }
-    \caption{sync-signal generator for \gls{adc}}
+    \caption{Synchronization signal generator for \gls{adc}}
     \label{fig:adc_adapter}
 \end{figure}
+
+To minimize hardware developement time, a Linear Technology DC1151A-D eval board was used
+for this work. This eval board consists of a \gls{sma} connector for the analog input, two \gls{sma}
+connectors for data+ and data- of the \gls{lvds} connection, an \gls{sma} connector for clock input
+and two pins for enabling synchronization mode. To ensure easier cable management an adapter circuit
+board was developed to be able to use a \gls{sata} cable for clock and data. Furthermore the synchronization
+circuit in \cref{fig:adc_adapter} was developed, to start a synchronization cycle by briefly stopping the clock
+signal. This synchronization circuit consists of the power detector \device{IC1}, which is connected
+via \device{$C_5$}, as an \gls{ac} short, and \device{$R_10$}, needed for input matching, to the TX+
+pin of the \gls{sata} connector. The TX- pin of the \gls{sata} connector is directly connected to
+an \gls{sma} connector, in order to be able to connect the clock input of the \gls{adc} board. After
+the power detector, the output signal \device{VRMS} is compared to \SI{97}{\milli\volt},
+produced by the voltage divider $R_1$ and $R_2$, by \device{IC2A}. Therefore a minimum voltage
+swing of about \SI{194}{\milli\volt} is needed to recognize a valid clock signal. The comparator
+\device{IC2} features an open collector output, therfore draining the capacitor $C_2$ through
+$R_3$ while no clock signal is present. Furthermore, this causes \device{IC2B} to connect the output
+to ground and therefore connecting \device{SYNC1} and \device{SYNC2} via the optocoupler \device{OK1}.
+Right after a valid clock signal is detected, $C_2$ starts to charge via $R_4$ and $R_3$. After
+about \SI{25.7}{\milli\second} this combination reaches switching threshold of \SI{1.6}{\volt} set
+by the voltage divider $R_5$/$R_6$ at the input pin \device{6} of \device{IC2B}, therefore switching
+the output transistor off. Since this disconnects \device{OK1} from ground, the synchronization
+signal stops. The resistor $R_7$ enables a more stable operation and prevents \device{IC2B} from
+oscillating near the switching threshold. The implemented adapter circuit board atop the \gls{adc}
+eval board can be seen in \cref{fig:adc_adapter_circ}.
+
+The JESD204 also encourages using a scrambler on the raw data, in order to lessen the
+noise caused by the digital transmission in the analog part. The scrambler implemented for
+this project is based on the polynomial given in \cref{eq:poly} \cite{jesd205B.01}. This scrambler can
+be bypassed if a different \gls{adc} is used. A more detailed explanation of the input interface
+can be found in \cref{sec:acquisition}.
+\begin{equation}
+    \label{eq:poly} 1 + x^{14} + x^{15}
+\end{equation}
 
 \begin{figure}[htb]
     \centering
@@ -1497,7 +1526,8 @@ the lower \SI{4}{\bit} were tied to zero. One missing detail from the documentat
 which was found out empirically during this work, is that the S\_CLK pin of the connector
 has to be connected to ground in order for the signal generator to recognize a connected
 device. Other vector signal generators with the same interface can be used as a drop in
-replacement. The detailed hardware implementation can be found in \cref{sec:smbv_interface}.
+replacement. The detailed hardware implementation can be found in \cref{sec:smbv_interface} and
+a photo of the implemented pin header to digital \gls{iq} adapter can be seen in \cref{fig:iq_adapter_circ}.
 
 \begin{figure}[htb]
     \begin{subfigure}[c]{.45\linewidth}
