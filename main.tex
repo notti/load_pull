@@ -1567,6 +1567,60 @@ a photo of the implemented pin header to digital \gls{iq} adapter can be seen in
 \chapter{\glsentryshort{fpga} Implementation}
 \label{chap:fpga}
 
+\begin{figure}[htb]
+    \centering
+    \resizebox{\linewidth}{!}{
+    \begin{tikzpicture}[every node/.style={minimum width=5em},latex-latex]
+        \matrix (peripherals)[matrix of nodes,column sep=1em,row sep=0.2em,nodes={draw,anchor=center},ampersand replacement=\&]
+        {
+            DRAM \& \shortstack{DRAM\\Controller} \\
+            Ethernet \& \shortstack{Ethernet\\Controller} \\
+            RS232 \& \shortstack{RS232\\Interface} \\
+            Storage \& SysAce \\
+            \shortstack{LEDS\\Switches} \& GPIO \\
+        };
+        \node[draw,minimum size=5em,above right=0em of peripherals] (cpu) {CPU};
+        \draw (peripherals-1-1) -- (peripherals-1-2);
+        \draw (peripherals-1-2) -| ([xshift=-2.5em]cpu);
+        \draw ([yshift=1em]peripherals-2-2) -| ([xshift=-1.5em]cpu);
+        \foreach \i in {2,...,5}
+        {
+            \draw (peripherals-\i-1) -- (peripherals-\i-2);
+            \draw (peripherals-\i-2) -- (peripherals-\i-2 -| cpu);
+        }
+        \draw[ultra thick,-] (peripherals-5-2 -| cpu) ++(0,-1em) node[below] (plb) {PLB} -- (cpu);
+        \node[draw] at ($(peripherals-5-2)!2!(peripherals-5-2 -| cpu)$) (bram) {RAM};
+        \draw (peripherals-5-2 -| cpu) -- (bram);
+        \node[draw] at ($(peripherals-2-2)!2!(peripherals-2-2 -| cpu)$) (pint) {\shortstack{Processor\\Interface}};
+        \draw (peripherals-2-2 -| cpu) -- (pint);
+        \matrix (internal)[matrix of nodes,column sep=1em,row sep=0.2em,nodes={draw,anchor=center},right=of pint]
+        {
+            Inbuf \\
+            Core \\
+            Outbuf \\
+            Auto \\
+        };
+        \node[draw,right=1.5em of internal-3-1] (digiq) {Digital I/Q};
+        \node[draw,right=1.5em of internal-1-1] (adc) {ADC};
+        \node[coordinate] at ($(pint.east) + (2em,0)$) (l) {};
+        \node[coordinate] at ($(internal) + (0,4.5em)$) (r) {};
+        \foreach \i in {1,...,4}
+        {
+            \draw (pint.east) -- (l) |- (internal-\i-1);
+        };
+        \draw (internal-1-1) -- (adc);
+        \draw (internal-3-1) -- (digiq);
+        \node[draw,fit=(internal-1-1) (internal-4-1) (l) (r),inner xsep=0.5em] (main) {};
+        \node[draw,fit=(cpu) (peripherals-5-2) (plb) (main),inner xsep=0.5em] (fpga) {};
+        \node[anchor=north east,minimum width=0] at (fpga.north east) {top};
+        \node[anchor=north east,minimum width=0] at (main.north east) {main};
+
+    \end{tikzpicture}
+    }
+    \caption{\gls{fpga} design overview}
+    \label{fig:fpga_overview}
+\end{figure}
+
 \begin{itemize}
     \item describe paper \cite{hashim_active_2008}
     \item improvements done
