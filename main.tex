@@ -1658,7 +1658,7 @@ a photo of the implemented pin header to digital \gls{iq} adapter can be seen in
                 \node[below=1em of gtx\i] (align\i) {align};
                 \draw[latex-latex] (align\i) -- (gtx\i);
                 \draw[-latex] (gtx\i) -- (descramble\i);
-                \draw[latex-latex] (gtx\i.east) -- ++(2.5em,0) node[draw,anchor=west] {adc};
+                \draw[latex-latex] (gtx\i.east) -- ++(2.5em,0); % node[draw,anchor=west] {adc};
             \end{scope}
         };
         \node[trapezium,rotate=90,anchor=center,draw,minimum height=1em] at ($(descramble0.west) + (-2em,-1pt)$) (mux) {};
@@ -1712,7 +1712,38 @@ a photo of the implemented pin header to digital \gls{iq} adapter can be seen in
 \begin{figure}[htb]
     \centering
     \begin{tikzpicture}
-        \node {TODO};
+        \node[source] (source) {};
+        \node[circle,draw,below=1em of source] (wavemul) {$\times$};
+        \draw[double,-latex] (source) -- (wavemul);
+        \draw[latex-] (source.west) -- ++(-2em,0) node[coordinate] (out) {};
+        \draw[latex-] (wavemul.west) -- (\currentcoordinate -| out);
+
+        \node[draw,fit=(wavemul) (source),inner xsep=0.5em,label=below:wave] (wave) {};
+
+        \node[draw,right=4em of wavemul] (fft) {fft};
+        \draw[double,-latex] (wavemul) -- (fft);
+
+        \node[circle,draw,right=4em of fft] (mul) {$\times$};
+        \node[draw,above=5em of mul] (H) {H};
+        \draw[double,latex-latex] (H) -- (\currentcoordinate -| out);
+
+        \draw[double,-latex] (H) -- (mul);
+        \draw[double,-latex] (fft) -- (mul);
+
+        \node[draw,right=of mul] (scratch) {scratch};
+        \draw[double,-latex] (mul) -- (scratch);
+        \draw[double,-latex] (scratch.east) -| ++(1em,2em) -| ($(fft.west) - (1em,0)$) -- (fft);
+
+        \node[circle,draw,below=of scratch] (add) {$+$};
+
+        \draw[double,-latex] (scratch.east) -- ++(1em,0) node[coordinate] (r) {} |- (add);
+        \draw[double,-latex] (fft.east) -- ++(2em,0) |- (add);
+        \draw[double,-latex] (fft.east) -- ++(2em,0) -- (\currentcoordinate |- add) -| ($(mul.east)!.5!(scratch.west)$) -- (scratch);
+
+        \draw[double,-latex] (add.south) -- ++(0,-1em) node[coordinate] (d) {} -- (\currentcoordinate -| out);
+
+        \node[draw,fit=(wave) (add) (scratch) (r) (d),label={[xshift=8em]overlap\_add}] (overlap) {};
+        \node[draw,fit=(overlap) (H),label=core] (core) {};
     \end{tikzpicture}
     \caption{Core}
     \label{fig:core}
@@ -1744,7 +1775,26 @@ a photo of the implemented pin header to digital \gls{iq} adapter can be seen in
 \begin{figure}[htb]
     \centering
     \begin{tikzpicture}
-        \node {TODO};
+        \node[draw] (mem0) {mem\_0};
+        \node[draw,below=of mem0] (mem1) {mem\_1};
+        \draw[double,latex-latex] (mem0.west) -- ++(-2em,0) node[coordinate] (out) {};
+        \draw[double,latex-latex] (mem1) -- (mem1 -| out);
+
+        \node[trapezium,minimum height=1em,rotate=-90,anchor=center,draw] at ($(mem0.south east)!0.5!(mem1.north east) + (3em,0)$) (mux) {};
+
+        \draw[double,-latex] (mem0.east) -| ([yshift=0.5em]$(mux.south) - (1em,0)$) -- ([yshift=0.5em]mux.south);
+        \draw[double,-latex] (mem1.east) -| ([yshift=-0.5em]$(mux.south) - (1em,0)$) -- ([yshift=-0.5em]mux.south);
+
+        \node[circle,draw,right=of mux.north] (mul) {$\times$};
+        \draw[double,-latex] (mux) -- (mul);
+        \draw[double,latex-] (mul.south) -- ++(0,-3em) node[coordinate] (r) {} -- (\currentcoordinate -| out);
+
+        \node[draw,right=of mul] (transmitter) {transmitter};
+        \draw[double,latex-] (mul) -- (transmitter);
+        \draw[double,-latex] (transmitter.east) -- ++(2em,0);
+
+        \node[draw,fit=(mem0) (r) (transmitter),inner xsep=0.5em,label=outbuf] (outbuf) {};
+        \draw[dashed] (outbuf.south east) ++(0.5em,-1em) -- (\currentcoordinate |- outbuf.north) -- ++(0,1em);
     \end{tikzpicture}
     \caption{outbuf}
     \label{fig:outbuf}
@@ -1779,18 +1829,8 @@ a photo of the implemented pin header to digital \gls{iq} adapter can be seen in
 
 \section{Processor Interface}
 
-\begin{figure}[htb]
-    \centering
-    \begin{tikzpicture}
-        \node {TODO};
-    \end{tikzpicture}
-    \caption{Memory Layout}
-    \label{fig:memlayout}
-\end{figure}
-
 \begin{itemize}
     \item describe plb interface \cite{slave_burst,ppc} (burst!)
-    \item describe \cref{fig:memlayout}
 \end{itemize}
 
 % ===========================================================================
