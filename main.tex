@@ -1,4 +1,4 @@
-\documentclass[12pt,a4paper,parskip=full,abstract=true,BCOR=10mm,twoside,open=right]{scrreprt}
+\documentclass[12pt,a4paper,parskip=full,abstract=true,BCOR=12mm,twoside,open=right]{scrreprt}
 \KOMAoption{bibliography}{totoc}
 \KOMAoption{listof}{totoc}
 
@@ -11,7 +11,23 @@
 \graphicspath{{images/}}
 \usepackage{tikz}
 \usepackage{circuitikz}
-\usetikzlibrary{positioning,dsp,chains,fit,scopes,calc,backgrounds,arrows,decorations.pathmorphing,bending,arrows.meta,shapes.misc,matrix,patterns,shadows,circuits.ee.IEC}
+\usetikzlibrary{arrows.meta}
+\usetikzlibrary{arrows}
+\usetikzlibrary{backgrounds}
+\usetikzlibrary{bending}
+\usetikzlibrary{calc}
+\usetikzlibrary{chains}
+\usetikzlibrary{circuits.ee.IEC}
+\usetikzlibrary{decorations.pathmorphing}
+\usetikzlibrary{dsp}
+\usetikzlibrary{fit}
+\usetikzlibrary{matrix}
+\usetikzlibrary{patterns}
+\usetikzlibrary{positioning}
+\usetikzlibrary{scopes}
+\usetikzlibrary{shadows}
+\usetikzlibrary{shapes.geometric}
+\usetikzlibrary{shapes.misc}
 \usepackage{tikz-timing}
 \include{rfsymbols}
 \makeatletter
@@ -1436,22 +1452,22 @@ can be found in \cref{sec:acquisition}.
         \begin{scope}[shift={(0,9em)}]
             \draw (0,0.75em) node[anchor=east] {$y_0[n]$};
             \draw (0,0) rectangle (2,1.5em);
-            \draw [pattern=crosshatch] (2,0) rectangle (3,1.5em);
+            \draw [fill=black!30] (2,0) rectangle (3,1.5em);
             \draw (2.5,0) node[coordinate] (y0b) {};
             \draw (0.5,0) node[coordinate] (y2b) {};
         \end{scope}
         \begin{scope}[shift={(0,6em)}]
             \draw (0,0.75em) node[anchor=east] {$y_1[n]$};
             \draw (2,0) rectangle (4,1.5em);
-            \draw [pattern=crosshatch] (4,0) rectangle (5,1.5em);
+            \draw [fill=black!30] (4,0) rectangle (5,1.5em);
             \draw (2.5,1.5em) node[coordinate] (y1t) {};
             \draw (4.5,0) node[coordinate] (y1b) {};
         \end{scope}
         \begin{scope}[shift={(0,3em)}]
             \draw (0,0.75em) node[anchor=east] {$y_2[n]$};
             \draw (4,0) rectangle (6,1.5em);
-            \draw [pattern=crosshatch] (6,0) rectangle (7,1.5em);
-            \draw [pattern=crosshatch,pattern color=red] (0,0) rectangle (1,1.5em);
+            \draw [fill=black!30] (6,0) rectangle (7,1.5em);
+            \draw [fill=red!30] (0,0) rectangle (1,1.5em);
             \draw (1,0.75em) node[coordinate] (circto) {};
             \draw (4.5,1.5em) node[coordinate] (y2t) {};
             \draw (0.5,1.5em) node[coordinate] (ynt) {};
@@ -1595,25 +1611,22 @@ a photo of the implemented pin header to digital \gls{iq} adapter can be seen in
         \draw (peripherals-2-2 -| cpu) -- (pint);
         \matrix (internal)[matrix of nodes,column sep=1em,row sep=0.2em,nodes={draw,anchor=center},right=of pint]
         {
-            Inbuf \\
-            Core \\
-            Outbuf \\
-            Auto \\
+            inbuf \\
+            core \\
+            outbuf \\
+            auto \\
         };
         \node[draw,right=1.5em of internal-3-1] (digiq) {Digital I/Q};
         \node[draw,right=1.5em of internal-1-1] (adc) {ADC};
         \node[coordinate] at ($(pint.east) + (2em,0)$) (l) {};
-        \node[coordinate] at ($(internal) + (0,4.5em)$) (r) {};
         \foreach \i in {1,...,4}
         {
             \draw (pint.east) -- (l) |- (internal-\i-1);
         };
         \draw (internal-1-1) -- (adc);
         \draw (internal-3-1) -- (digiq);
-        \node[draw,fit=(internal-1-1) (internal-4-1) (l) (r),inner xsep=0.5em] (main) {};
-        \node[draw,fit=(cpu) (peripherals-5-2) (plb) (main),inner xsep=0.5em] (fpga) {};
-        \node[anchor=north east,minimum width=0] at (fpga.north east) {top};
-        \node[anchor=north east,minimum width=0] at (main.north east) {main};
+        \node[draw,fit=(internal-1-1) (internal-4-1) (l),inner xsep=0.5em,label=main] (main) {};
+        \node[draw,fit=(cpu) (peripherals-5-2) (plb) (main),inner xsep=0.5em,label=top] (fpga) {};
 
     \end{tikzpicture}
     }
@@ -1622,20 +1635,125 @@ a photo of the implemented pin header to digital \gls{iq} adapter can be seen in
 \end{figure}
 
 \begin{itemize}
-    \item describe paper \cite{hashim_active_2008}
-    \item improvements done
+    \item describe overview
+    \item describe ml507\cite{ml507,virtex5,ppc}
+    \item why gtx clock\cite{gtx}?
+    \item clocking + metastability
+    \item decribe auto
+    \item describe xps
+    \item convergent rounding
 \end{itemize}
 
 \section{Data Acquisition}
 \label{sec:acquisition}
+
+\begin{figure}[htb]
+    \centering
+    \begin{tikzpicture}
+        \foreach \i/\j in {0/2pt,1/0pt}
+        {
+            \begin{scope}[xshift=\j,yshift=\j,every node/.style={draw,fill=white}]
+                \node (gtx\i) {GTX};
+                \node[left=2em of gtx\i] (descramble\i) {descramble};
+                \node[below=1em of gtx\i] (align\i) {align};
+                \draw[latex-latex] (align\i) -- (gtx\i);
+                \draw[-latex] (gtx\i) -- (descramble\i);
+                \draw[latex-latex] (gtx\i.east) -- ++(2.5em,0) node[draw,anchor=west] {adc};
+            \end{scope}
+        };
+        \node[trapezium,rotate=90,anchor=center,draw,minimum height=1em] at ($(descramble0.west) + (-2em,-1pt)$) (mux) {};
+        \draw[-latex] ([xshift=-2pt]descramble0.west) -- (mux.south |- descramble0);
+        \draw[-latex] (descramble1.west) -- (mux.south |- descramble1);
+
+        \node[fit=(descramble1) (gtx0) (align1),draw,label=receiver] (receiver) {};
+
+        \node[circle,left=of mux.north,draw] (adder) {$+$};
+        \draw[-latex] (mux) -- (adder);
+
+        \node[draw,left=of adder] (memory) {memory};
+        \draw[-latex] (adder) -- (memory);
+
+        \draw[latex-latex] (memory.west) -- ++(-2em,0) node[coordinate] (out) {};
+        \draw[-latex] (memory) -- ++(0,2em) node[coordinate] (upper) {} -| (adder);
+
+        \node[fit=(memory) (adder) (upper),label=average\_mem,draw,inner xsep=0.5em] (average) {};
+        \node[draw,anchor=west] at ($(average.south west) + (0,-2em)$) (trigger) {trigger};
+        \node[draw,anchor=east] at ($(average.south east) + (0,-2em)$) (wallclk) {wallclk};
+
+        \draw[-latex] (trigger) -- (average.south -| trigger);
+
+        \draw[-latex] (trigger) -- (wallclk);
+        \draw[latex-latex] (trigger) -- (trigger -| out);
+        \draw[-latex] (wallclk.south) -- ++(0,-1em) -- (\currentcoordinate -| out);
+
+        \node[draw,fit=(average) (receiver) (wallclk),inner ysep=2em,inner xsep=0.5em,label=inbuf] (inbuf) {};
+        \draw[dashed] (inbuf.south east) ++(0.5em,-1em) -- (\currentcoordinate |- inbuf.north) -- ++(0,1em);
+    \end{tikzpicture}
+    \caption{Inbuf}
+    \label{fig:inbuf}
+\end{figure}
+
 \begin{itemize}
-    \item MSB \rightarrow LSB
-    \item K28.5 D5.6/D16.2 (not JESD204B conform\cite{ltc2274}) \cite{jesd205B.01}
+    \item gtx\cite{gtx,gtx_wizard}
+        \begin{itemize}
+            \item MSB \rightarrow LSB
+            \item K28.5 D5.6/D16.2 (not JESD204B conform\cite{ltc2274}) \cite{jesd205B.01}
+        \end{itemize}
+    \item sync machine \cref{sec:digital}
+    \item decramble\cite{ltc2274}
+    \item averaging
+    \item wallclk + trigger
+    \item interface
 \end{itemize}
+
 \section{Overlap Add}
 \label{sec:overlap_add}
+
+\begin{figure}[htb]
+    \centering
+    \begin{tikzpicture}
+        \node {TODO};
+    \end{tikzpicture}
+    \caption{Core}
+    \label{fig:core}
+\end{figure}
+
+\begin{itemize}
+    \item iqdemod
+    \item xilinx fft\cite{xilinx_fft}
+\end{itemize}
+
+\begin{figure}[htb]
+    \centering
+    \begin{tikzpicture}
+        \node {TODO};
+    \end{tikzpicture}
+    \caption{algorithm state machine}
+    \label{fig:overlap_add_machine}
+\end{figure}
+
+\begin{itemize}
+    \item describe \cref{fig:overlap_add_machine}
+    \item describe interface
+    \item decribe specs
+\end{itemize}
+
 \section{SMBV Interface}
 \label{sec:smbv_interface}
+
+\begin{figure}[htb]
+    \centering
+    \begin{tikzpicture}
+        \node {TODO};
+    \end{tikzpicture}
+    \caption{outbuf}
+    \label{fig:outbuf}
+\end{figure}
+
+\begin{itemize}
+    \item describe buffer
+    \item describe outmul
+\end{itemize}
 
 \begin{figure}[htb]
     \centering
@@ -1655,7 +1773,25 @@ a photo of the implemented pin header to digital \gls{iq} adapter can be seen in
     \label{fig:trans}
 \end{figure}
 
+\begin{itemize}
+    \item describe digital iq interface\cite{fsq_b17,ds90cr485} \cref{fig:trans}
+\end{itemize}
+
 \section{Processor Interface}
+
+\begin{figure}[htb]
+    \centering
+    \begin{tikzpicture}
+        \node {TODO};
+    \end{tikzpicture}
+    \caption{Memory Layout}
+    \label{fig:memlayout}
+\end{figure}
+
+\begin{itemize}
+    \item describe plb interface \cite{slave_burst,ppc} (burst!)
+    \item describe \cref{fig:memlayout}
+\end{itemize}
 
 % ===========================================================================
 
@@ -2279,7 +2415,8 @@ trend of the phase drift of every instrument. The phase drift in those instrumen
 caused in part by phase drift of the oscillators in the instruments. Another part is caused by
 the low reference frequency of \SI{10}{\mega\hertz}. During a single period of the reference
 signal, a lot of periods need to be generated by the instruments, allowing only far apart
-synchronisation points. A further component is temperature drift, since the room temperature
+synchronisation points. This means, that a better result can be achieved by using a faster
+reference clock. A further component is temperature drift, since the room temperature
 of the laboratory was not held constant. For these reasons the measurement results in
 \cref{fig:phase_overall} are only exemplary and don't show the real phase drift, since
 the trigger source \device{trigger} and the two oscilloscopes also experience phase drift.
