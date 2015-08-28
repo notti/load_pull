@@ -1589,10 +1589,10 @@ The digital part, as described in \cref{sec:digital}, was implemented on a Xilin
 FXT. This \gls{fpga} provides the necessary high speed transceivers, enough block \gls{ram}
 and dedicated digital signal processing hardware \cite{virtex5}.
 In order to minimize the necessary development time, the ML507
-evaluation board was used for this work. This evaluation board contains the necessary
-\gls{sata} connector needed for the \gls{adc}, connected to high speed GTX transceivers in the \gls{fpga}, an
-Ethernet port, enabling connecting the board to a \gls{pc}, and high speed differential
-pin headers, which can be used for the digital \gls{iq} interface. Although according to
+evaluation board was used for this work. This evaluation board contains the
+\gls{sata} connector needed for the \gls{adc}, which is connected to a high speed GTX transceiver in the \gls{fpga}. Furthermore, high speed differential
+pin headers, which can be used for the digital \gls{iq} interface, are also available. Additionally, the board contains an
+Ethernet port, enabling high speed data exchange with a \gls{pc}. Although according to
 \cite{ml507} the \gls{sata} headers are only rated for \SI{1.5}{\giga\bit\per\second},
 during tests it was confirmed that the necessary \SI{2}{\giga\bit\per\second}, required
 by the \gls{adc} \cite{ltc2274}, are also usable. This \gls{fpga} also contains a
@@ -1657,34 +1657,65 @@ the high level modules of the design and connections between them. The modules \
 are packed in to the \device{core}-module, in order to separate the signal processing functionality from
 the rest of the \gls{fpga} design. A \device{Processor Interface} module, consisting of a memory controller,
 a register implementation and a interrupt controller, enables the \gls{cpu} to interact with the
-\device{core} module. This module is described in more detail in \cref{sec:processor_interface}.
+\device{core} module. This module is described in \cref{sec:processor_interface}.
 The rest of the embedded processor design, consisting of the \gls{cpu} and the
 peripherals connected to the \gls{plb} are described in \cref{sec:processor}.
 
 Since this design uses the unrelated clocks from the \gls{plb} and the
-\gls{adc}, clock synchronization was needed, to minimize the possibility
-of metastability. This was achieved with two-stage synchronizers and
+\gls{adc}, clock synchronization was needed. This clock synchronization to minimizes
+the possibility of metastability. This was achieved with two-stage synchronizers and
 additional pulse shaping, for fast changing signals, where necessary. Block
 \gls{ram}, which needed to be accessed from two different clock domains, was
-utilized using two ports where possible (eg. in \cref{sec:smbv_interface}) or
-clock muxing (eg. in \cref{sec:acquisition}). Undefined behaviour
-can occur, if the timing conditions of the address signals are violated
-and the enable signal is high. This can lead to memory corruption
+utilized using two ports where possible (eg. in \cref{sec:smbv_interface}), or
+clock multiplexing using dedicated \gls{fpga} resources (eg. in \cref{sec:acquisition}). Undefined behaviour
+can occur in the block \gls{ram}, if the timing conditions of the address signals are violated
+while enable signal is high. This can lead to memory corruption
 even if write enable is not asserted\cite{virtex5}. Because of this, the
-enable signal of the block \gls{ram} is de asserted during clock transitions.
+enable signal of the block \gls{ram} is switched to low during clock transitions.
 Since this is not possible if the sample clock is unstable, the validity of
-the sample buffers is not guaranteed, if the \gls{adc} is disconnected or
-connected.
+the sample buffers is not guaranteed during port operation of the \gls{adc}.
 
-To prevent bias in the signal processing, the digital signal processing chain
-used convergent rounding. This rounding mode rounds to even integers in case
-of a tie. Thus the rounding does not introduce a bias towards infinity or zero.
-Additionally overflows are signaled and saturation is used where applicable.
+Necessary bit width truncations throughout the digital signal processing chain use
+convergent rounding. This rounding mode was used, to prevent bias. This rounding
+mode rounds to even integers in case of a tie. For example rounding 4.5 with this method
+results in 4, as does 3.5. Thus the rounding does not introduce a bias towards infinity or zero, as would
+be the case with round half up. Additionally overflows are signaled and saturation is
+used where applicable.
+
+The sample buffer size was chosen according to the available block
+\gls{ram} in the \gls{fpga}. A maximum number of 148 \SI{36}{\kilo\bit} block
+\gls{ram} is available in the Virtex 5 on the ML507 board. Those block \glspl{ram}
+can be also used as two independent \SI{18}{\kilo\bit} block \glspl{ram}. As
+mentioned in \cref{sec:digital}, this design needs to support a sample width
+of \SI{16}{\bit}. Input averaging was chosen to support a maximum of 8 samples,
+resulting in a overall needed bit with of \SI{19}{\bit} for the input buffer. Since
+the output buffer uses double buffering and needs to be able to store \gls{iq} signals,
+two buffers with a bit width of \SI{32}{\bit} are needed. To achieve a high memory utilization
+constrained by the possible block \gls{ram} bit widths, a single data bit of a buffer was
+realised with a \SI{36}{\kilo\bit} and a \SI{18}{\kilo\bit} block \gls{ram}. This leads
+to a total number of 124.5 block \glspl{ram}, leaving enough for the embedded processor
+and the \gls{fft} implementation. With this memory layout only a 2-to-1 multiplexer
+for the output and no address decoder is needed, because the highest address line can
+be used as selection between both block \glspl{ram}. This ensures fast operation of the
+overall memory. Since in one bit mode only \SI{32}{\kilo\bit} (\SI{16}{\kilo\bit})
+are available, this leads to a theoretical buffer depth of 49152 samples. If circular
+convolution is used for the \gls{fir} filter, the full buffer depth is not usable. This
+is caused by the implementation described in \cref{sec:overlap_add}, which needs an
+additional buffer space of at least $L$ after the signal (see \cref{fig:overlap_add}).
 
 % ---------------------------------------------------------------------------
 
-\section{Data Acquisition}
+\section[Data Acquisition]{Data Acquisition - inbuf}
 \label{sec:acquisition}
+
+The \device{inbuf} module is responsible for serial to parallel conversion
+of the \gls{adc} data, descrambling, triggering, averaging and storing
+the acquired samples. As can be seen in \cref{fig:inbuf} this module consists
+of the modules \device{receiver}, which handles receiving the data stream from
+\gls{adc}, and \device{average\_mem}, which handles storing the samples in a buffer
+and averaging. The additional modules \device{trigger}, \device{prepare} and
+\device{wallclk} are responsible for controlling the data acquisition and keeping
+the time, which is needed for the \gls{iq} demodulation explained in \cref{sec:overlap_add}.
 
 \begin{figure}[htb]
     \centering
@@ -1716,29 +1747,58 @@ Additionally overflows are signaled and saturation is used where applicable.
         \draw[-latex] (memory) -- ++(0,2em) node[coordinate] (upper) {} -| (adder);
 
         \node[fit=(memory) (adder) (upper),label=average\_mem,draw,inner xsep=0.5em] (average) {};
-        \node[draw,anchor=west] at ($(average.south west) + (0,-2em)$) (trigger) {trigger};
-        \node[draw,anchor=east] at ($(average.south east) + (0,-2em)$) (wallclk) {wallclk};
+        \node[draw,anchor=west] at ($(average.south west) + (0,-2em)$) (prepare) {prepare};
+        \node[draw,anchor=east] at ($(average.south east) + (0,-2em)$) (trigger) {trigger};
 
         \draw[-latex] (trigger) -- (average.south -| trigger);
+        \draw[latex-latex] (prepare) -- (average.south -| prepare);
 
+        \draw[-latex] (prepare) -- (trigger);
+        \draw[latex-latex] (prepare) -- (prepare -| out);
+
+        \node[draw,below=1em of trigger] (wallclk) {wallclk};
+        \draw[-latex] (wallclk) -- (\currentcoordinate -| out);
         \draw[-latex] (trigger) -- (wallclk);
-        \draw[latex-latex] (trigger) -- (trigger -| out);
-        \draw[-latex] (wallclk.south) -- ++(0,-1em) -- (\currentcoordinate -| out);
 
-        \node[draw,fit=(average) (receiver) (wallclk),inner ysep=2em,inner xsep=0.5em,label=inbuf] (inbuf) {};
+        \node[draw,fit=(average) (receiver) (trigger) (wallclk.north),inner ysep=2em,inner xsep=0.5em,label=inbuf] (inbuf) {};
         \draw[dashed] (inbuf.south east) ++(0.5em,-1em) -- (\currentcoordinate |- inbuf.north) -- ++(0,1em);
     \end{tikzpicture}
-    \caption{Inbuf}
+    \caption{Overview of the inbuf module.}
     \label{fig:inbuf}
 \end{figure}
 
+The serial to parallel conversion was implemented using the built in GTX
+transceiver. Since the ML507 board features two \gls{sata} ports, two
+identical receivers were implemented. Since the GTX blocks need
+a lot of configuration settings, they were instantiated using the
+recommended method, which is the transceiver wizard documented in \cite{gtx_wizard}. The
+settings used in this work, were chosen according to the data sheet
+of the \gls{adc} \cite{ltc2274}. The receiver was configured for the
+specifications as mentioned in the \cref{sec:digital}. These are 8b/10b line coding,
+a data width of \SI{16}{\bit} and a target line rate of \SI{2}{\giga\bit\per\second}.
+Synchronization was configured for a set ISMODE of the \gls{adc}. In this mode the
+transmitter of the \gls{adc} sends idle ordered sets consisting of
+the K28.5 commas followed by either D5.6 or D16.2 code words\cite{ltc2274}. A comma is a special
+code sequence of the 8b/10b line coding that does not represent valid data\cite{gtx}.
+To be able to synchronize the GTX receiver according to these specifications, the comma
+alignment was set to align to even byte boundaries and to detect the K28.5 comma. After
+serial to parallel conversion, the endianness is converted to the internal representation.
+The recovered clock from the received data stream is used as the internal sampling clock.
+This setup allows the use of an externally provided sampling clock by connecting it to
+the \gls{adc} instead of the clock provided by the \gls{adc} adapter circuit board
+mentioned in \cref{sec:digital}. Both the receiver and
+the transmitter share the internal clock generation of the GTX. Therfore the transmitter
+had to be configured for the same line rate. To be able to send a clock signal with the
+transmitter, the 8b/10b line coding was disabled for the transmitter and a fixed clock pattern applied
+to the parallel input.
+
+Because of design limitations in the ML507 evaluation
+board, it is not possible to provide an externally generated clock directly to the
+\gls{sata} connected GTX transceivers. Since using a clock routed through the global clock
+network of the \gls{fpga} introduces a lot of jitter, an externally provided sampling clock
+connected to the \gls{adc} is the preferred mode of usage \cite{gtx}.
+
 \begin{itemize}
-    \item gtx\cite{gtx,gtx_wizard}
-        \begin{itemize}
-            \item MSB \rightarrow LSB
-            \item K28.5 D5.6/D16.2 (not JESD204B conform\cite{ltc2274}) \cite{jesd205B.01}
-        \end{itemize}
-    \item why gtx clock\cite{gtx}?
     \item sync machine \cref{sec:digital}
     \item decramble\cite{ltc2274}
     \item averaging
@@ -1748,7 +1808,7 @@ Additionally overflows are signaled and saturation is used where applicable.
 
 % ---------------------------------------------------------------------------
 
-\section{Overlap Add}
+\section[Overlap Add]{Overlap Add - core}
 \label{sec:overlap_add}
 
 \begin{figure}[htb]
@@ -1793,7 +1853,7 @@ Additionally overflows are signaled and saturation is used where applicable.
 
 \begin{itemize}
     \item iqdemod
-    \item xilinx fft\cite{xilinx_fft}
+    \item xilinx fft\cite{xilinx_fft} (3 block ram)
 \end{itemize}
 
 \begin{figure}[htb]
@@ -1813,7 +1873,7 @@ Additionally overflows are signaled and saturation is used where applicable.
 
 % ---------------------------------------------------------------------------
 
-\section{SMBV Interface}
+\section[SMBV Interface]{SMBV Interface - outbuf}
 \label{sec:smbv_interface}
 
 \begin{figure}[htb]
@@ -1895,6 +1955,7 @@ Additionally overflows are signaled and saturation is used where applicable.
 
 \begin{itemize}
     \item describe xps\cite{ppc}
+    \item 11 block ram
 \end{itemize}
 
 % ===========================================================================
