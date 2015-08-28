@@ -1333,7 +1333,7 @@ left out of the design, since this task can also be achieved with the configurab
 filter \device{fir1} in the next processing step. Since this filtering takes some time,
 the output sample buffer \device{buffer2}, with double buffering, is used to store
 the filtered results. This buffer enables the continuous playback of the signal, even
-during calculation of the next sample period. The last element in the processing chain
+during calculation of the next signal period. The last element in the processing chain
 is the complex multiplier \device{mul1}, which is responsible for the actual reflection
 generation. This multiplier allows adjusting the phase and amplitude of the reflection
 coefficient $\Gamma_L$ by varying $X$ and $Y$.
@@ -1509,7 +1509,7 @@ implemented with convolution using the \gls{fft}:
     \end{split}
 \end{equation}
 Since implementing the \gls{fft} in hardware uses a lot of resources, overlap add
-was used to allow for higher sample periods than $n_{fft}$. As shown by \cite{schaums_2011}
+was used to allow for higher signal periods than $n_{fft}$. As shown by \cite{schaums_2011}
 this algorithm splits the signal $x[n]$ into non-overlapping
 subsequences of length $L$ (see \cref{fig:overlap_add}). Therefore $x[n]$ can
 be expressed by a sum of shifted finite-length sequences:
@@ -1798,13 +1798,51 @@ board, it is not possible to provide an externally generated clock directly to t
 network of the \gls{fpga} introduces a lot of jitter, an externally provided sampling clock
 connected to the \gls{adc} is the preferred mode of usage \cite{gtx}.
 
-\begin{itemize}
-    \item sync machine \cref{sec:digital}
-    \item decramble\cite{ltc2274}
-    \item averaging
-    \item wallclk + trigger
-    \item interface
-\end{itemize}
+The module \device{align} controls the clock signal, which is transmitted with
+the GTX. This module contains a state machine, that blanks the clock signal
+for \SI{41}{\milli\second} after loss of sync of the receiver. Loss of sync is
+detected if either a comma value or a value that is not part of the 8b/10b line coding
+is detected. After the blanking period the clock signal is switched on and
+the GTX is put into alignment mode, which searches for the above mentioned comma
+K28.5. If no comma is detected during a \SI{41}{\milli\second} period, then the
+synchronization starts from the beginning.
+
+After the GTX transceiver the \device{descrambler} module descrambles the data
+according to the data sheet of the \gls{adc}\cite{ltc2274}. This descrambler
+can be bypassed therefore allowing the use of \gls{adc} that do not support
+this feature.
+
+Averaging of the data is handled by the \device{average\_mem} module. This module
+consists of the above mentioned \SI{19}{\bit} by 49152 memory. Averaging is achieved
+by reading the appropriate sample from the buffer and adding it to the current value.
+For the first run the read sample is replaced with the value zero. With this method
+the sampled values are accumulated over a configurable number of rounds of zero, two,
+four or eight runs. Averaging is achieved during memory access from outside the module
+by shifting the accessed values by zero, one, two or three bit. This is equal to dividing
+the samples by the number of rounds used during acquisition. This method needs
+both ports of the block \glspl{ram}. Therefore the memory interface to the rest of the \gls{fpga}
+shares the ports with the rest of the implementation. Since both access needs do
+not share the same clock, the above mentioned clock multiplexing was implemented.
+If the data acquisition is not in use, the \device{average\_mem} is powered by
+the \gls{fpga} clock. Before data acquisition starts, the \device{prepare} module
+takes care of disabling the block \gls{ram} during the clock switching operation.
+During data acquisition the \device{average\_mem} is powered by the sampling clock
+recovered from the received data stream. After the data acquisition finishes, the
+\device{prepare} module transistions the clock signal back to the system clock.
+Write operations to the memory during data acquisition are ignored. Read operations
+during data acquisition don't interfere with the process, but the data read is invalid.
+
+The \device{trigger} module generates the start signal for the \device{average\_mem}
+and the \device{wallclk} module. During the first run and after reset, the trigger can either be triggered
+externally or internally. The external trigger is sampled from the pin AN33 of the
+\gls{fpga}, which is connected to HDR1\_64 on the evaluation board. After a
+successful trigger the \device{trigger} module starts the data acquistion process
+only after multiples of the configured signal period $n$.
+
+After triggering, the \device{wallclk} module takes a snapshot of the
+jiffy counter, which marks the time the first sample of the current acquisition
+was acquired. This is needed to be able to generate the \SI{30}{\mega\hertz}
+signal for the \gls{iq} demodulation (see \cref{sec:digital,sec:overlap_add}.
 
 % ---------------------------------------------------------------------------
 
@@ -2286,7 +2324,7 @@ results with the calibrated filter can be seen in \cref{sec:filter}.
 The target algorithm as described in \cref{sec:matlab}, is able to find the
 correct $\Gamma_{L,set}$ with a given $\Gamma_{L,start}$ in order to synthesize
 a given $\Gamma_L$. All the following measurements used 20000 samples as
-sample period $n$ (see \cref{sec:acquisition}), an $L$ of 2000 and an \gls{fft} width $n_{fft}$
+signal period $n$ (see \cref{sec:acquisition}), an $L$ of 2000 and an \gls{fft} width $n_{fft}$
 of 4096 (see \cref{fig:overlap_add}). The filter \device{fir1} was preloaded with the
 impulse response of a low pass filter with a cut off frequency of \SI{25}{\mega\hertz} to
 filter out the aliases (see \cref{sec:digital}). For the duration of these measurements,
@@ -2341,7 +2379,7 @@ For verification, the filter \device{fir1} in \cref{fig:test_setup} was calibrat
 by measuring the needed $\Gamma_{L,set}$ to achieve a specific $\Gamma_L$ over a
 baseband range from \SI{-13}{\mega\hertz} to \SI{13}{\mega\hertz} at a \gls{rf} of
 \SI{900}{\mega\hertz} (see \cref{sec:matlab}). All following
-measurements used the same settings as described in \cref{sec:iterative}, a sample period $n$ of 20000,
+measurements used the same settings as described in \cref{sec:iterative}, a signal period $n$ of 20000,
 $L$ of 2000 and an \gls{fft} width $n_{fft}$ of 4096 (see also \cref{fig:overlap_add}).
 Before calibration the filter \device{fir1} was preloaded with a low pass filter, with
 a cut off frequency of \SI{25}{\mega\hertz} to filter out the aliases (see
@@ -2475,7 +2513,7 @@ to observe the extent of the phase drift. For this measurement the test setup
 in \cref{fig:test_setup} with the Agilent \gls{vna} (see \cref{sec:instruments})
 as \gls{dut} was used. This \gls{vna} was also connected to the
 \SI{10}{\mega\hertz} reference, in order to generate phase coherent signals. The
-\gls{fpga} implementation was set to 20000 samples as the sample period $n$, an $L$
+\gls{fpga} implementation was set to 20000 samples as the signal period $n$, an $L$
 of 2000 and a \gls{fft} width $n_{fft}$ of 4096 (see \cref{fig:overlap_add}).
 According to \cref{sec:digital} \device{fir1} needs at least a low pass filter to
 filter out the aliases. Therefore it was preloaded with the impulse response of a low pass filter
