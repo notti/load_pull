@@ -145,6 +145,8 @@ pdfpagelabels %,hidelinks
 \newacronym{lp}{LP}{load-pull}
 \newacronym{sma}{SMA}{sub-miniature version A}
 \newacronym{sata}{SATA}{serial AT attachment}
+\newacronym{cpu}{CPU}{central processing unit}
+\newacronym{plb}{PLB}{processor local bus}
 
 \makeglossaries
 
@@ -1583,6 +1585,20 @@ a photo of the implemented pin header to digital \gls{iq} adapter can be seen in
 \chapter{\glsentryshort{fpga} Implementation}
 \label{chap:fpga}
 
+The digital part, as described in \cref{sec:digital}, was implemented on a Xilinx Virtex5
+FXT. This \gls{fpga} provides the necessary high speed transceivers, enough block \gls{ram}
+and dedicated digital signal processing hardware \cite{virtex5}.
+In order to minimize the necessary development time, the ML507
+evaluation board was used for this work. This evaluation board contains the necessary
+\gls{sata} connector needed for the \gls{adc}, connected to high speed GTX transceivers in the \gls{fpga}, an
+Ethernet port, enabling connecting the board to a \gls{pc}, and high speed differential
+pin headers, which can be used for the digital \gls{iq} interface. Although according to
+\cite{ml507} the \gls{sata} headers are only rated for \SI{1.5}{\giga\bit\per\second},
+during tests it was confirmed that the necessary \SI{2}{\giga\bit\per\second}, required
+by the \gls{adc} \cite{ltc2274}, are also usable. This \gls{fpga} also contains a
+hardwired PowerPC \gls{cpu}, which was used for controlling the digital components
+and as a communication bridge to the \gls{pc}.
+
 \begin{figure}[htb]
     \centering
     \resizebox{\linewidth}{!}{
@@ -1630,19 +1646,42 @@ a photo of the implemented pin header to digital \gls{iq} adapter can be seen in
 
     \end{tikzpicture}
     }
-    \caption{\gls{fpga} design overview}
+    \caption{\gls{fpga} design overview.}
     \label{fig:fpga_overview}
 \end{figure}
 
-\begin{itemize}
-    \item describe overview
-    \item describe ml507\cite{ml507,virtex5,ppc}
-    \item why gtx clock\cite{gtx}?
-    \item clocking + metastability
-    \item decribe auto
-    \item describe xps
-    \item convergent rounding
-\end{itemize}
+The overall design overview, as can be seen in \cref{fig:fpga_overview}, describes
+the high level modules of the design and connections between them. The modules \device{inbuf},
+\device{core}, \device{outbuf} and \device{auto}, contain the filtering functionality, as described in
+\cref{sec:digital}. Those modules, which are described in more detail in \cref{sec:acquisition,sec:overlap_add,sec:smbv_interface,sec:auto},
+are packed in to the \device{core}-module, in order to separate the signal processing functionality from
+the rest of the \gls{fpga} design. A \device{Processor Interface} module, consisting of a memory controller,
+a register implementation and a interrupt controller, enables the \gls{cpu} to interact with the
+\device{core} module. This module is described in more detail in \cref{sec:processor_interface}.
+The rest of the embedded processor design, consisting of the \gls{cpu} and the
+peripherals connected to the \gls{plb} are described in \cref{sec:processor}.
+
+Since this design uses the unrelated clocks from the \gls{plb} and the
+\gls{adc}, clock synchronization was needed, to minimize the possibility
+of metastability. This was achieved with two-stage synchronizers and
+additional pulse shaping, for fast changing signals, where necessary. Block
+\gls{ram}, which needed to be accessed from two different clock domains, was
+utilized using two ports where possible (eg. in \cref{sec:smbv_interface}) or
+clock muxing (eg. in \cref{sec:acquisition}). Undefined behaviour
+can occur, if the timing conditions of the address signals are violated
+and the enable signal is high. This can lead to memory corruption
+even if write enable is not asserted\cite{virtex5}. Because of this, the
+enable signal of the block \gls{ram} is de asserted during clock transitions.
+Since this is not possible if the sample clock is unstable, the validity of
+the sample buffers is not guaranteed, if the \gls{adc} is disconnected or
+connected.
+
+To prevent bias in the signal processing, the digital signal processing chain
+used convergent rounding. This rounding mode rounds to even integers in case
+of a tie. Thus the rounding does not introduce a bias towards infinity or zero.
+Additionally overflows are signaled and saturation is used where applicable.
+
+% ---------------------------------------------------------------------------
 
 \section{Data Acquisition}
 \label{sec:acquisition}
@@ -1699,12 +1738,15 @@ a photo of the implemented pin header to digital \gls{iq} adapter can be seen in
             \item MSB \rightarrow LSB
             \item K28.5 D5.6/D16.2 (not JESD204B conform\cite{ltc2274}) \cite{jesd205B.01}
         \end{itemize}
+    \item why gtx clock\cite{gtx}?
     \item sync machine \cref{sec:digital}
     \item decramble\cite{ltc2274}
     \item averaging
     \item wallclk + trigger
     \item interface
 \end{itemize}
+
+% ---------------------------------------------------------------------------
 
 \section{Overlap Add}
 \label{sec:overlap_add}
@@ -1769,6 +1811,8 @@ a photo of the implemented pin header to digital \gls{iq} adapter can be seen in
     \item decribe specs
 \end{itemize}
 
+% ---------------------------------------------------------------------------
+
 \section{SMBV Interface}
 \label{sec:smbv_interface}
 
@@ -1827,10 +1871,30 @@ a photo of the implemented pin header to digital \gls{iq} adapter can be seen in
     \item describe digital iq interface\cite{fsq_b17,ds90cr485} \cref{fig:trans}
 \end{itemize}
 
+% ---------------------------------------------------------------------------
+
+\section{Auto}
+\label{sec:auto}
+\begin{itemize}
+    \item decribe auto
+\end{itemize}
+
+% ---------------------------------------------------------------------------
+
 \section{Processor Interface}
+\label{sec:processor_interface}
 
 \begin{itemize}
     \item describe plb interface \cite{slave_burst,ppc} (burst!)
+\end{itemize}
+
+% ---------------------------------------------------------------------------
+
+\section{Processor}
+\label{sec:processor}
+
+\begin{itemize}
+    \item describe xps\cite{ppc}
 \end{itemize}
 
 % ===========================================================================
