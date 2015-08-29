@@ -1890,17 +1890,57 @@ signal for the \gls{iq} demodulation (see \cref{sec:digital,sec:overlap_add}.
         \node[draw,fit=(wave) (add) (scratch) (r) (d),label={[xshift=8em]overlap\_add}] (overlap) {};
         \node[draw,fit=(overlap) (H),label=core] (core) {};
     \end{tikzpicture}
-    \caption{Core}
+    \caption{Core module overview.}
     \label{fig:core}
 \end{figure}
 
-\begin{itemize}
-    \item iqdemod
-    \item xilinx fft\cite{xilinx_fft} (3 block ram)
-\end{itemize}
+The digital filter \device{fir1}, as described in \cref{sec:digital}, was
+realized in \gls{vhdl} without any software components. This module is named
+\device{core} in the sources and a general overview can be seen in \cref{fig:core}.
+It consists of the buffer \device{H}, which is needed to store the transfer
+function and the module \device{overlap\_add}, which contains the signal
+processing. The \device{overlap\_add}
+module contains the module \device{wave}, which is responsible for \gls{iq}
+demodulation, the \device{fft} module, which can calculate the \gls{fft} and
+inverse-\gls{fft}, a complex adder, a complex multiplier and additional block
+\gls{ram}, needed as scratch space (\device{scratch}).
+
+The \gls{iq} demodulation module \device{wave} consists of a hard coded look up
+table, that generates a \SI{30}{\mega\hertz} sine and cosine waveform for
+a sampling rate of \SI{100}{\mega\hertz}. Furthermore it contains multipliers,
+which multiply the incoming samples with the sine and cosine waveform, therefore
+up converting the signal into I and Q samples. Since this is not performed
+at real time, but during filter execution, the generated sine and
+cosine waveforms are evaluated at the point in time calculated from the
+jiffy counter (see \cref{sec:acquisition}) and the current sample position.
+
+A Xilinx LogiCore IP was used as the \device{fft} module \cite{xilinx_fft}. In
+order to minimize block \gls{ram} usage and increase the performance, the
+pipelined version with three stages in block \gls{ram}, which is the minimum
+setting, was used for this work. Furthermore it was set to allow changing the
+\gls{fft} length at runtime, with a maximum of 4096. A further runtime configuration
+setting is, that this core can change between \gls{fft} and inverse \gls{fft}. This
+was allowed using only one core, therefore reducing the resource usage further. Every
+computational part of the \gls{fft}, called a butterfly, consists of a multiplication
+and addition. This causes the needed bit widths, to represent the samples to grow.
+Keeping every bit for \gls{fft} lengths of this size is not possible with this hardware
+because of resource constraints. Therefore scaling was used. This is implemented
+with a divider after every group, where one group consists of two butterflies.
+Every divider can divide the samples by one, two, four or eight. The correct
+scaling schedule for the \gls{fft} and inverse \gls{fft} can be found by incrementing
+the divider schedule by one until the computation stops overflowing. Input
+data for the \gls{fft} core needs to be in natural order and output data is in
+bit reversed order.
+
+The complex multiplier was implemented with a runtime changeable scaling schedule. This
+schedule can be set to shift the result by 14 to 17 bits. Therefore the transfer function
+should always be scaled to the maximum possible values. The best overall scaling schedule
+can be found by first configuring the scaling schedule of the \gls{fft}, then the
+complex multiplier and after that the inverse \gls{fft}.
 
 \begin{figure}[htb]
-    \begin{subfigure}[b]{.49\linewidth}
+    \centering
+    \begin{subfigure}[t]{.49\linewidth}
         \centering
         \resizebox{\linewidth}{!}{
         \begin{tikzpicture}[gray]
@@ -1934,9 +1974,11 @@ signal for the \gls{iq} demodulation (see \cref{sec:digital,sec:overlap_add}.
             \draw[double,-latex,red] (wave) -- (fft);
         \end{tikzpicture}
         }
-        \caption{fft fill}
+        \caption{Step 1: Up converting and filling \device{fft} with samples.}
+        \label{fig:stage1}
     \end{subfigure}%
-    \begin{subfigure}[b]{.49\linewidth}
+    ~
+    \begin{subfigure}[t]{.49\linewidth}
         \centering
         \resizebox{\linewidth}{!}{
         \begin{tikzpicture}[gray]
@@ -1969,9 +2011,10 @@ signal for the \gls{iq} demodulation (see \cref{sec:digital,sec:overlap_add}.
             \draw[double,-latex,red] (H) -- (mul);
         \end{tikzpicture}
         }
-        \caption{fft unload}
+        \caption{Step 2: Unloading \device{fft} and complex multiplication.}
+        \label{fig:stage2}
     \end{subfigure}\\
-    \begin{subfigure}[b]{.49\linewidth}
+    \begin{subfigure}[t]{.49\linewidth}
         \centering
         \resizebox{\linewidth}{!}{
         \begin{tikzpicture}[gray]
@@ -2005,9 +2048,11 @@ signal for the \gls{iq} demodulation (see \cref{sec:digital,sec:overlap_add}.
             \draw[double,-latex,red] (scratch.east) -| ++(1em,2em) -| ($(fft.west) - (1em,0)$) -- (fft);
         \end{tikzpicture}
         }
-        \caption{ifft fill}
+        \caption{Step 3: Loading the \device{fft} with the computed samples and loading scratch with the previous block.}
+        \label{fig:stage3}
     \end{subfigure}%
-    \begin{subfigure}[b]{.49\linewidth}
+    ~
+    \begin{subfigure}[t]{.49\linewidth}
         \centering
         \resizebox{\linewidth}{!}{
         \begin{tikzpicture}[gray]
@@ -2040,17 +2085,46 @@ signal for the \gls{iq} demodulation (see \cref{sec:digital,sec:overlap_add}.
             \node[black,anchor=south east] at (overlap.north east) {overlap\_add};
         \end{tikzpicture}
         }
-        \caption{ifft unload}
+        \caption{Step 4: Unloading \device{fft} and adding the overlapping part from \device{scratch}.}
+        \label{fig:stage4}
     \end{subfigure}
-    \caption{algorithm state machine}
+    \caption{Overlap add algorithm hardware implementation}
     \label{fig:overlap_add_machine}
 \end{figure}
 
-\begin{itemize}
-    \item describe \cref{fig:overlap_add_machine}
-    \item describe interface
-    \item decribe specs
-\end{itemize}
+The overlap add algorithm, was implemented with two separate state machines.
+This allows speeding up the process since some parts can be done in parallel.
+The first state machine controls the \gls{fft} and complex multiplication part of the
+algorithm and is called \device{fftncmul}. Inverse \gls{fft} and complex
+addition is handled by \device{ifftnadd}. The overall process is described in
+\cref{fig:overlap_add_machine}. Every block of size $L$ (see \cref{fig:overlap_add})
+needs to processed by the four steps. In the first step (\cref{fig:stage1}),
+the \device{fft} module is loaded with $L$ \gls{iq} demodulated samples from the source memory $x$. According to
+the overlap add algorithm, after $L$ samples the data input of the \device{fft}
+is switched to zero. After the \device{fft} module is finished with processing,
+the second step (\cref{fig:stage2}) starts. In this step the data is multiplied
+with $H$ and stored in the scratch buffer. During the next step (\cref{fig:stage3}),
+the \device{fft} module is switched to inverse operation and the samples from the
+\device{scratch} buffer are loaded into the \device{fft} module. At the same time
+the \device{scratch} buffer is filled with the previous computed block from the target
+memory $y$. After the \device{fft} module is finished with the computation, the last step (\cref{fig:stage4})
+is executed. During this step the samples are unloaded into the target memory
+and the overlapping part from the previous block is added. Since the \gls{fft}
+module is pipelined, step one of the next block is started after step three
+of the current block is finished. This means, that the \gls{fft} module computes
+the samples of two different blocks at the same time. With this technique, the
+duration of the overlap add algorithm is reduced by one stage per $L$ sized block.
+If the circular mode is enabled, then the block after the signal is added to the
+beginning (see \cref{fig:overlap_add}). Since this process needs the $L - n_{fft}$ samples
+after the end of the signal, the sample buffer can't be used to the full extent.
+
+The overall module is freely configurable and accepts the \gls{fft} sizes 8, 16,
+32, 64, 128, 256, 512, 1024, 2048 and 4096. The signal size $n$ has to be between
+8 and 65535 and the block size $L$ between 1 and 4096. There are no plausibility
+checks in the hardware, which means that settings will lead to undefined
+behaviour. The \device{core} module can be stopped by issuing a reset signal.
+Numerical overflows are separately reported for \gls{fft}, inverse \gls{fft}
+and the complex multiplication.
 
 % ---------------------------------------------------------------------------
 
