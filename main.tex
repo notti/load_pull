@@ -147,6 +147,7 @@ pdfpagelabels %,hidelinks
 \newacronym{sata}{SATA}{serial AT attachment}
 \newacronym{cpu}{CPU}{central processing unit}
 \newacronym{plb}{PLB}{processor local bus}
+\newacronym{vhdl}{VHDL}{VHSIC Hardware Description Language}
 
 \makeglossaries
 
@@ -1585,8 +1586,9 @@ a photo of the implemented pin header to digital \gls{iq} adapter can be seen in
 \chapter{\glsentryshort{fpga} Implementation}
 \label{chap:fpga}
 
-The digital part, as described in \cref{sec:digital}, was implemented on a Xilinx Virtex5
-FXT. This \gls{fpga} provides the necessary high speed transceivers, enough block \gls{ram}
+The digital part, as described in \cref{sec:digital}, was realized in this thesis in \gls{vhdl}.
+It was specifically tailored to a Xilinx Virtex5 FXT. This \gls{fpga}
+provides the necessary high speed transceivers, enough block \gls{ram}
 and dedicated digital signal processing hardware \cite{virtex5}.
 In order to minimize the necessary development time, the ML507
 evaluation board was used for this work. This evaluation board contains the
@@ -1703,6 +1705,9 @@ convolution is used for the \gls{fir} filter, the full buffer depth is not usabl
 is caused by the implementation described in \cref{sec:overlap_add}, which needs an
 additional buffer space of at least $L$ after the signal (see \cref{fig:overlap_add}).
 
+All the hardware sources and project files, needed to generate the hardware, can
+be found in \cref{sec:sources}.
+
 % ---------------------------------------------------------------------------
 
 \section[Data Acquisition]{Data Acquisition - inbuf}
@@ -1787,7 +1792,7 @@ The recovered clock from the received data stream is used as the internal sampli
 This setup allows the use of an externally provided sampling clock by connecting it to
 the \gls{adc} instead of the clock provided by the \gls{adc} adapter circuit board
 mentioned in \cref{sec:digital}. Both the receiver and
-the transmitter share the internal clock generation of the GTX. Therfore the transmitter
+the transmitter share the internal clock generation of the GTX. Therefore the transmitter
 had to be configured for the same line rate. To be able to send a clock signal with the
 transmitter, the 8b/10b line coding was disabled for the transmitter and a fixed clock pattern applied
 to the parallel input.
@@ -1828,16 +1833,15 @@ the \gls{fpga} clock. Before data acquisition starts, the \device{prepare} modul
 takes care of disabling the block \gls{ram} during the clock switching operation.
 During data acquisition the \device{average\_mem} is powered by the sampling clock
 recovered from the received data stream. After the data acquisition finishes, the
-\device{prepare} module transistions the clock signal back to the system clock.
+\device{prepare} module transitions the clock signal back to the system clock.
 Write operations to the memory during data acquisition are ignored. Read operations
 during data acquisition don't interfere with the process, but the data read is invalid.
 
 The \device{trigger} module generates the start signal for the \device{average\_mem}
 and the \device{wallclk} module. During the first run and after reset, the trigger can either be triggered
 externally or internally. The external trigger is sampled from the pin AN33 of the
-\gls{fpga}, which is connected to HDR1\_64 on the evaluation board. After a
-successful trigger the \device{trigger} module starts the data acquistion process
-only after multiples of the configured signal period $n$.
+\gls{fpga}, which is connected to HDR1\_64 on the evaluation board. After the first
+successful trigger, consecutive triggers are only generated at multiples of the configured signal period $n$.
 
 After triggering, the \device{wallclk} module takes a snapshot of the
 jiffy counter, which marks the time the first sample of the current acquisition
@@ -2803,27 +2807,25 @@ the different parts of the measurement setup.
 
 \chapter{Conclusions and Outlook}
 
-\begin{appendix}
-    \chapter{Hardware Reference}
-    \section{Used Instruments}
-    \label{sec:instruments}
-    \section{Physical Overview}
-    \section{Memory Map \& Register Assignment}
-    \chapter{Software Reference}
-    \section{Kernel Module Usage}
-    \section{Protocols}
-    \section{Matlab Classes}
-    \section{Usage Examples}
-    \chapter{Build Instructions}
-    \section{Hardware}
-    \section{Software}
+\appendix
+\chapter{References}
+\section{Sources}
+\label{sec:sources}
+\section{Used Instruments}
+\label{sec:instruments}
+\section{Register Assignment}
+\section{Protocol}
+\section{Matlab Classes}
+\chapter{Build Instructions}
+\section{Hardware}
+\section{Software}
 
-    \printglossary[type=\acronymtype]
+\printglossary[type=\acronymtype]
 
-    \listoffigures
+\listoffigures
 
-    \bibliographystyle{IEEEtran}
-    \bibliography{main}
+\bibliographystyle{IEEEtran}
+\bibliography{main}
 
 \begin{otherlanguage}{ngerman}
     \chapter*{Code of Conduct}
@@ -2837,6 +2839,5 @@ the different parts of the measurement setup.
     \par\noindent\makebox[7cm][l]{Unterschrift} \hfill\makebox[5cm][l]{Datum}%
 \end{otherlanguage}
 
-    \end{appendix}
 \end{document}
 
