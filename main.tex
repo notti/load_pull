@@ -1881,6 +1881,7 @@ signal for the \gls{iq} demodulation (see \cref{sec:digital,sec:overlap_add}.
         \draw[double,-latex] (fft.east) -- ++(2em,0) -- (\currentcoordinate |- add) -| ($(mul.east)!.5!(scratch.west)$) -- (scratch);
 
         \draw[double,-latex] (add.south) -- ++(0,-1em) node[coordinate] (d) {} -- (\currentcoordinate -| out);
+        \draw[double,latex-latex] (scratch) -- ($(mul.east)!.5!(scratch.west)$) -- (\currentcoordinate |- d) -- (\currentcoordinate -| out);
 
         \node[draw,fit=(wave) (add) (scratch) (r) (d),label={[xshift=8em]overlap\_add}] (overlap) {};
         \node[draw,fit=(overlap) (H),label=core] (core) {};
@@ -1895,10 +1896,148 @@ signal for the \gls{iq} demodulation (see \cref{sec:digital,sec:overlap_add}.
 \end{itemize}
 
 \begin{figure}[htb]
-    \centering
-    \begin{tikzpicture}
-        \node {TODO};
-    \end{tikzpicture}
+    \begin{subfigure}[b]{.49\linewidth}
+        \centering
+        \resizebox{\linewidth}{!}{
+        \begin{tikzpicture}[gray]
+            \node[draw,black] (wave) {wave};
+            \draw[latex-,red] (wave.west) -- ++(-1em,0) node[coordinate] (out) {} node[left] {$x$};
+
+            \node[draw,right=2em of wave,black] (fft) {fft};
+
+            \node[circle,draw,right=2em of fft] (mul) {$\times$};
+            \node[coordinate,above=1.5em of mul] (u) {};
+            \node[above=3em of mul] (H) {$H$};
+
+            \draw[double] (H) -- (mul);
+            \draw[double] (fft) -- (mul);
+
+            \node[draw,right=of mul] (scratch) {scratch};
+            \draw[double] (mul) -- (scratch);
+            \draw[double] (scratch.east) -| ++(1em,2em) -| ($(fft.west) - (1em,0)$) -- (\currentcoordinate |- fft);
+
+            \node[circle,draw,below=of scratch] (add) {$+$};
+
+            \draw[double] (scratch.east) -- ++(1em,0) node[coordinate] (r) {} |- (add);
+            \draw[double] (fft.east) -- ($(fft.east)!.5!(mul.west)$) |- (add);
+            \draw[double] (fft.east) -- ($(fft.east)!.5!(mul.west)$) -- (\currentcoordinate |- add) -| ($(mul.east)!.5!(scratch.west)$) -- (scratch);
+
+            \draw[double] (add.south) -- ++(0,-1em) node[coordinate] (d) {} -- (\currentcoordinate -| out) node[left] {$y$};
+            \draw[double] (scratch) -- ($(mul.east)!.5!(scratch.west)$) -- (\currentcoordinate |- d) -- (\currentcoordinate -| out);
+
+            \node[draw,fit=(wave) (add) (scratch) (r) (d) (u),inner xsep=0.5em,black] (overlap) {};
+            \node[black,anchor=south east] at (overlap.north east) {overlap\_add};
+            \draw[double,-latex,red] (wave) -- (fft);
+        \end{tikzpicture}
+        }
+        \caption{fft fill}
+    \end{subfigure}%
+    \begin{subfigure}[b]{.49\linewidth}
+        \centering
+        \resizebox{\linewidth}{!}{
+        \begin{tikzpicture}[gray]
+            \node[draw] (wave) {wave};
+            \draw (wave.west) -- ++(-1em,0) node[coordinate] (out) {} node[left] {$x$};
+
+            \node[draw,right=2em of wave,black] (fft) {fft};
+            \draw[double] (wave) -- (fft);
+
+            \node[circle,draw,right=2em of fft,black] (mul) {$\times$};
+            \node[coordinate,above=1.5em of mul] (u) {};
+            \node[above=3em of mul,red] (H) {$H$};
+
+            \node[draw,right=of mul,black] (scratch) {scratch};
+            \draw[double] (scratch.east) -| ++(1em,2em) -| ($(fft.west) - (1em,0)$) -- (fft);
+
+            \node[circle,draw,below=of scratch] (add) {$+$};
+
+            \draw[double] (scratch.east) -- ++(1em,0) node[coordinate] (r) {} |- (add);
+            \draw[double] (fft.east) -- ($(fft.east)!.5!(mul.west)$) |- (add);
+            \draw[double] (fft.east) -- ($(fft.east)!.5!(mul.west)$) -- (\currentcoordinate |- add) -| ($(mul.east)!.5!(scratch.west)$);
+
+            \draw[double] (add.south) -- ++(0,-1em) node[coordinate] (d) {} -- (\currentcoordinate -| out) node[left] {$y$};
+            \draw[double] ($(mul.east)!.5!(scratch.west)$) -- (\currentcoordinate |- d) -- (\currentcoordinate -| out);
+
+            \node[draw,fit=(wave) (add) (scratch) (r) (d) (u),inner xsep=0.5em,black] (overlap) {};
+            \node[black,anchor=south east] at (overlap.north east) {overlap\_add};
+            \draw[double,-latex,red] (fft) -- (mul);
+            \draw[double,-latex,red] (mul) -- (scratch);
+            \draw[double,-latex,red] (H) -- (mul);
+        \end{tikzpicture}
+        }
+        \caption{fft unload}
+    \end{subfigure}\\
+    \begin{subfigure}[b]{.49\linewidth}
+        \centering
+        \resizebox{\linewidth}{!}{
+        \begin{tikzpicture}[gray]
+            \node[draw] (wave) {wave};
+            \draw[latex-] (wave.west) -- ++(-1em,0) node[coordinate] (out) {} node[left] {$x$};
+
+            \node[draw,right=2em of wave,black] (fft) {ifft};
+            \draw[double] (wave) -- ($(fft.west) - (1em,0)$);
+
+            \node[circle,draw,right=2em of fft] (mul) {$\times$};
+            \node[coordinate,above=1.5em of mul] (u) {};
+            \node[above=3em of mul] (H) {$H$};
+
+            \draw[double] (H) -- (mul);
+            \draw[double] (fft) -- (mul);
+
+            \node[draw,right=of mul,black] (scratch) {scratch};
+            \draw[double] (mul) -- ($(mul.east)!.5!(scratch.west)$);
+
+            \node[circle,draw,below=of scratch] (add) {$+$};
+
+            \draw[double] (scratch.east) -- ++(1em,0) node[coordinate] (r) {} |- (add);
+            \draw[double] (fft.east) -- ($(fft.east)!.5!(mul.west)$) |- (add);
+            \draw[double] (fft.east) -- ($(fft.east)!.5!(mul.west)$) -- (\currentcoordinate |- add) -| ($(mul.east)!.5!(scratch.west)$);
+
+            \draw[double] (add.south) -- ++(0,-1em) node[coordinate] (d) {} -- (\currentcoordinate -| out) node[left,blue] {$y$};
+            \draw[double,latex-,blue] (scratch) -- ($(mul.east)!.5!(scratch.west)$) -- (\currentcoordinate |- d) -- (\currentcoordinate -| out);
+
+            \node[draw,fit=(wave) (add) (scratch) (r) (d) (u),inner xsep=0.5em,black] (overlap) {};
+            \node[black,anchor=south east] at (overlap.north east) {overlap\_add};
+            \draw[double,-latex,red] (scratch.east) -| ++(1em,2em) -| ($(fft.west) - (1em,0)$) -- (fft);
+        \end{tikzpicture}
+        }
+        \caption{ifft fill}
+    \end{subfigure}%
+    \begin{subfigure}[b]{.49\linewidth}
+        \centering
+        \resizebox{\linewidth}{!}{
+        \begin{tikzpicture}[gray]
+            \node[draw] (wave) {wave};
+            \draw[latex-] (wave.west) -- ++(-1em,0) node[coordinate] (out) {} node[left] {$x$};
+
+            \node[draw,right=2em of wave,black] (fft) {ifft};
+            \draw[double] (wave) -- (fft);
+
+            \node[circle,draw,right=2em of fft] (mul) {$\times$};
+            \node[coordinate,above=1.5em of mul] (u) {};
+            \node[above=3em of mul] (H) {$H$};
+
+            \draw[double] (H) -- (mul);
+            \draw[double] (fft) -- (mul);
+
+            \node[draw,right=of mul,black] (scratch) {scratch};
+            \draw[double] (mul) -- (scratch);
+            \draw[double] (scratch.east) -| ++(1em,2em) -| ($(fft.west) - (1em,0)$) -- (fft);
+
+            \node[circle,draw,below=of scratch,black] (add) {$+$};
+
+            \draw[double] (fft.east) -- ($(fft.east)!.5!(mul.west)$) -- (\currentcoordinate |- add) -| ($(mul.east)!.5!(scratch.west)$) -- (scratch);
+
+            \draw[double,-latex,red] (scratch.east) -- ++(1em,0) node[coordinate] (r) {} |- (add);
+            \draw[double,-latex,red] (fft.east) -- ($(fft.east)!.5!(mul.west)$) |- (add);
+            \draw[double,-latex,red] (add.south) -- ++(0,-1em) node[coordinate] (d) {} -- (\currentcoordinate -| out) node[left] {$y$};
+            \node[draw,fit=(wave) (add) (scratch) (r) (d) (u),inner xsep=0.5em,black] (overlap) {};
+            \draw[double] (scratch) -- ($(mul.east)!.5!(scratch.west)$) -- (\currentcoordinate |- d);
+            \node[black,anchor=south east] at (overlap.north east) {overlap\_add};
+        \end{tikzpicture}
+        }
+        \caption{ifft unload}
+    \end{subfigure}
     \caption{algorithm state machine}
     \label{fig:overlap_add_machine}
 \end{figure}
