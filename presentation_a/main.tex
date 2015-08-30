@@ -1,0 +1,963 @@
+\documentclass{beamer}
+\usepackage{etex}
+
+\title[FPGA based LP]{Diploma thesis}
+\author[G.~Vormayr]{Gernot Vormayr\\0425210}
+\institute[EMCE]{Institute of Electrodynamics, Microwave and Circuit Engineering}
+\date[MW '15]{Microwave Engineering 2015}
+\subtitle{FPGA based Load-Pull Measurement System}
+
+\mode<presentation>
+{
+    \usetheme{CambridgeUS}
+    \usecolortheme{dolphin} %whale?
+    \usefonttheme{structureitalicserif}
+    \setbeamertemplate{navigation symbols}{}
+}
+
+\AtBeginSubsection[]
+{
+  \begin{frame}<beamer>{Outline}
+    \tableofcontents[currentsection,currentsubsection]
+  \end{frame}
+}
+\usepackage[overlay,absolute]{textpos}
+\usepackage[english]{babel}
+
+%drawings
+
+\usepackage{graphicx}
+\graphicspath{{images/}}
+\usepackage{tikz}
+\usepackage{circuitikz}
+\usetikzlibrary{arrows.meta}
+\usetikzlibrary{arrows}
+\usetikzlibrary{backgrounds}
+\usetikzlibrary{bending}
+\usetikzlibrary{calc}
+\usetikzlibrary{chains}
+\usetikzlibrary{circuits.ee.IEC}
+\usetikzlibrary{decorations.pathmorphing}
+\usetikzlibrary{dsp}
+\usetikzlibrary{fit}
+\usetikzlibrary{matrix}
+\usetikzlibrary{patterns}
+\usetikzlibrary{positioning}
+\usetikzlibrary{scopes}
+\usetikzlibrary{shadows}
+\usetikzlibrary{shapes.geometric}
+\usetikzlibrary{shapes.misc}
+\usepackage{tikz-timing}
+\include{rfsymbols}
+\makeatletter
+\newcommand\currentcoordinate{\the\tikz@lastxsaved,\the\tikz@lastysaved}
+\makeatother
+
+\tikzset{
+    invisible/.style={opacity=0},
+    visible on/.style={alt={#1{}{invisible}}},
+    alt/.code args={<#1>#2#3}{%
+        \alt<#1>{\pgfkeysalso{#2}}{\pgfkeysalso{#3}}
+    },
+}
+
+%units
+
+\usepackage[binary-units,retain-explicit-plus]{siunitx}
+\DeclareSIUnit \belm {Bm}
+\DeclareSIUnit \belfs {BFS}
+\DeclareSIUnit \samples {S}
+\sisetup{per-mode = symbol}
+
+%plots
+
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.12}
+\pgfplotsset{every axis/.append style={grid=major,legend style={font=\footnotesize}}}
+\usepgfplotslibrary{smithchart}
+\usepgfplotslibrary{units}
+\usepgfplotslibrary{fillbetween}
+\usepgfplotslibrary{statistics}
+\pgfplotsset{unit code/.code 2 args={\si{#1#2}}}
+
+\usepgfplotslibrary{external}
+\tikzsetexternalprefix{figures/}
+\tikzexternalize[mode=list and make]
+\tikzexternalwritetomakefile{}
+\tikzexternalwritetomakefile{.DELETE_ON_ERROR:}
+\tikzexternalwritetomakefile{}
+
+%math
+
+\usepackage{gensymb}
+
+\providecommand{\abs}[1]{\lvert#1\rvert}
+
+%source
+
+\usepackage{listings}
+\lstset{language=Matlab,numbers=left,numberstyle=\tiny,stepnumber=5,numbersep=5pt,frame=single,
+breaklines=true,postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\hookrightarrow\space}},
+captionpos=b,escapeinside={(*}{*)},mathescape=true}
+\usepackage{letltxmacro}
+\newcommand*{\SavedLstInline}{}
+\LetLtxMacro\SavedLstInline\lstinline
+\DeclareRobustCommand*{\lstinline}{%
+  \ifmmode
+    \let\SavedBGroup\bgroup
+    \def\bgroup{%
+      \let\bgroup\SavedBGroup
+      \hbox\bgroup
+    }%
+  \fi
+  \SavedLstInline
+}
+
+%stuff
+
+\usepackage{url}
+\usepackage{booktabs} % nicer tables
+
+\def\device#1{\textit{#1}}
+\def\signal#1{{\ttfamily #1}}
+\def\module#1{{\ttfamily\bfseries #1}}
+\def\clk#1{{\itshape\ttfamily #1}}
+
+\begin{document}
+
+\begin{frame}
+    \titlepage
+\end{frame}
+
+\begin{frame}{Outline}
+  \tableofcontents
+\end{frame}
+
+\section{Introduction}
+\subsection{Load Pull}
+
+\begin{frame}{Why Load Pull?}
+    \begin{block}{Non linear measurement system}
+        \begin{itemize}
+            \item Transistor characterization
+        \end{itemize}
+    \end{block}
+    \begin{block}{Verification}
+        \begin{itemize}
+            \item Amplifier design
+            \item Semiconductor process development
+        \end{itemize}
+    \end{block}
+    \uncover<2>{\qquad\dots by presenting a variable load impedance to the device under test (DUT).}
+\end{frame}
+
+\begin{frame}{Load Pull Realization}
+    \begin{example}[Passive Load Pull]
+        \begin{columns}
+            \column{5cm}
+                \resizebox{!}{2.5cm}{
+                \begin{tikzpicture}
+                    \tikzpicturedependsonfile{rfsymbols.tex}
+                    \draw node[source] (source) {}
+                          node[tuner,right=of source,label=above:{fixed input tuner}] (ituner) {}
+                          node[dut,right=of ituner] (dut) {}
+                          node[tuner,right=2 of dut,label=above:{output tuner}] (otuner) {}
+                          node[match,right=of otuner,label=above:{$Z_0$}] (match) {}
+                          node[rground,right=0.3 of match,rotate=90,anchor=center] (ground) {};
+                    \draw ($(dut)!.5!(otuner)$) node[coordinate] (plane) {};
+
+                    \draw (source) -- (ituner) -- (dut) -- (otuner) -- (match) -- (ground);
+
+                    \draw [dashed] ($(plane) + (0,2)$) node[anchor=south] {Load Reference Plane} -- ($(plane) - (0,2.5)$);
+
+                    \draw [latex-] ($(plane) + (0,1.5)$) -- ++(-0.5,0) node[anchor=east] {$Z_L$};
+
+                    \draw [-latex] ($(plane) + (0.25,-1)$) node[anchor=west] {$a_2$}-- ++(-0.5,0);
+                    \draw [latex-] ($(plane) + (0.25,-1.5)$) node[anchor=west] {$b_2$}-- ++(-0.5,0);
+                    \draw [latex-] ($(plane) + (0,-2)$) -- ++(-0.5,0) node[anchor=east] {$\Gamma_L$};
+
+                \end{tikzpicture}
+                }
+            \column{5cm}
+                \[ \Gamma_L = \frac{Z_L-Z_0}{Z_L+Z_0} \]
+        \end{columns}
+    \end{example}
+    \begin{example}[Active Load Pull]
+        \begin{columns}
+            \column{5cm}
+                \resizebox{!}{2.5cm}{
+                \begin{tikzpicture}
+                    \tikzpicturedependsonfile{rfsymbols.tex}
+                    \draw node[source] (source) {}
+                          node[tuner,right=of source,label=above:{fixed input tuner}] (ituner) {}
+                          node[dut,right=of ituner] (dut) {}
+                          node[circulator,right=2 of dut] (circ) {}
+                          node[vmatch,right=of circ,label=above:{Attenuator},yshift=1cm] (att) {}
+                          node[vphase,right=1.5 of att,label=above:{Phase shift}] (phase) {}
+                          node[amplifier,right=of circ,label=above:{Amplifier},yshift=-1cm] (amp) {};
+
+                    \draw ($(dut)!.5!(circ)$) node[coordinate] (plane) {};
+
+                    \draw (source) -- (ituner) -- (dut) -- (circ.A);
+                    \draw (circ.B) -- ($(circ.B |- att)!.5!(att)$) node[coordinate] (upper) {} -- (att) -- (phase) -- ++(1,0) |- (amp) -- ($(circ.C |- amp)!.5!(amp)$) node[coordinate] (lower) {} -- (circ.C);
+
+                    \draw [-latex] ($(circ.B) + (-0.2,0.2)$) -- node[sloped,above] {$b_2$} ($(upper) + (-0.2,0.2)$);
+                    \draw [latex-] ($(circ.C) + (-0.2,-0.2)$) -- node[sloped,below] {$a_2$} ($(lower) + (-0.2,-0.2)$);
+
+                    \draw [dashed] ($(plane) + (0,2)$) node[anchor=south] {Load Reference Plane} -- ($(plane) - (0,2.5)$);
+
+                    \draw [latex-] ($(plane) + (0,1.5)$) -- ++(-0.5,0) node[anchor=east] {$Z_L$};
+
+                    \draw [-latex] ($(plane) + (0.25,-1)$) node[anchor=west] {$a_2$}-- ++(-0.5,0);
+                    \draw [latex-] ($(plane) + (0.25,-1.5)$) node[anchor=west] {$b_2$}-- ++(-0.5,0);
+                    \draw [latex-] ($(plane) + (0,-2)$) -- ++(-0.5,0) node[anchor=east] {$\Gamma_L$};
+                \end{tikzpicture}
+                }
+            \column{5cm}
+                \[ \Gamma_L = \frac{a_2}{b_2} \]
+        \end{columns}
+    \end{example}
+\end{frame}
+
+\subsection{Limitations}
+
+\begin{frame}
+    \begin{block}{Passive Load Pull}
+        \begin{itemize}
+            \item Limited tuning range
+            \item Narrowband
+        \end{itemize}
+    \end{block}
+
+    \begin{block}{Active Load Pull}
+        \begin{itemize}
+            \item Stability issues
+            \item Narrowband
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+
+\begin{frame}{Objectives of this Diploma Thesis}
+    \begin{block}{Active Load Pull system}
+        \begin{itemize}
+            \item Digital reflection generation
+            \item Baseband
+            \item Digital filter to support bandwidths $\geq\SI{20}{\mega\hertz}$
+            \item FPGA based
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+
+\section{Implementation}
+
+\subsection{Design}
+
+\begin{frame}
+\begin{figure}[htb]
+    \centering
+    \resizebox{\linewidth}{!}{
+    \begin{tikzpicture}
+        \pgfdeclarelayer{foreground}
+        \pgfsetlayers{background,main,foreground}
+        \tikzpicturedependsonfile{rfsymbols.tex}
+        \tikzstyle{every node}=[font=\footnotesize]
+        \draw node[dut] (dut) {}
+              node[dircoupler,right=2 of dut,label=below:dir1] (dirvna) {}
+              node[oscilloscope,above=of dirvna.A2,anchor=A1] (oszivna) {}
+              node[circulator,right=of dirvna,label=below:circ1] (circ) {}
+
+              node[coordinate,right=of circ,yshift=1.5cm] (uppernode) {}
+              node[coordinate,right=of circ,yshift=-1.5cm] (lowernode) {}
+
+              (lowernode) node[amplifier,label=above:amp1] (amp) {}
+              node[mixer,right=of amp,label=above:mix3] (upmix) {}
+              node[lowpass,right=of upmix,label=above:lp1] (antialias) {}
+              node[adc,right=of antialias,label=above:dac1] (dac) {}
+
+              (uppernode -| upmix) node[mixer,label=below:mix1] (downmix) {}
+              node[bandpass,right=of downmix,label=below:bp1] (bp) {}
+              node[adc,right=of bp,label=below:adc1] (adc) {}
+              node[empty,right=of adc,label=below:buffer1] (inbuf) {}
+              node[mixer,right=of inbuf] (shift) {}
+              node[rotate=90,anchor=north] at (shift.east) {mix2}
+
+              (dac -| inbuf) node[mixer,label=above:mul1,red] (mul) {}
+              node[empty,right=of mul] (outbuf) {}
+              node[rotate=90,anchor=north] at (outbuf.east) {buffer2}
+
+              ($(shift)!.5!(outbuf)$) node[allpass,rotate=90] (H) {}
+              node[rotate=90,anchor=north] at (H.south) {fir1}
+
+              node[source,above=of downmix.center,scale=0.7] (downsource) {}
+              node[anchor=west] at (downsource.east) {lo1}
+              node[source,above=of adc.center,scale=0.7] (sample) {}
+              node[anchor=west] at (sample.east) {lo2}
+              node[source,above=of shift.center,scale=0.7] (shiftsource) {}
+              node[anchor=west] at (shiftsource.east) {lo3}
+              node[source,below=of upmix.center,scale=0.7] (upsource) {}
+              node[anchor=west] at (upsource.east) {lo4}
+              node[below=of mul.center,color=red,fill=white] (gamma) {$\Gamma_{set} = X + jY$};
+
+        \draw ($(dut)!.5!(dirvna)$) node[coordinate] (plane) {};
+
+        { [rounded corners=2pt]
+            \draw (dut) -- (dirvna) -- (circ.A);
+            \draw[purple] [-latex] (circ.B) -- ($(circ.B |- uppernode)!.5!(uppernode)$) node[coordinate] (upper) {} -- (downmix);
+            \draw[purple] (dirvna.A2) -- (oszivna.A1);
+            \draw[blue] (dirvna.B2) |- ($(dirvna.B2)!.7!(oszivna.A2)$) node[coordinate] (oszimiddle) {} -| (oszivna.A2);
+            \draw[blue] [-latex] (amp) -- ($(circ.C |- amp)!.5!(lowernode)$) node[coordinate] (lower) {} -- (circ.C);
+        }
+        { [-latex]
+            \draw (downsource) -- (downmix);
+            \draw (sample) -- (adc);
+            \draw [double] (shiftsource) -- (shift);
+            \draw[red] (gamma) -- (mul);
+            \draw (upsource) -- (upmix);
+        }
+        { [latex-,dashed,every node/.style={font=\footnotesize}]
+            \foreach \device in {downsource,sample,shiftsource} {
+                \draw (\device) -- ++(0,1) node[anchor=south] {ref};
+            }
+            \draw ([xshift=0.5cm]oszivna.north) -- ++(0,0.5) node[fill=white,anchor=south] {ref};
+            \draw (upsource) -- ++(0,-1) node[anchor=north] {ref};
+        }
+        { [start chain,every on chain/.style={join=by {-latex,purple}}]
+            \chainin (downmix);
+            \chainin (bp);
+            \chainin (adc);
+            \chainin (inbuf);
+            \chainin (shift);
+            { [every on chain/.style={join=by {double,-latex,purple}}]
+                \chainin (H);
+                \chainin (outbuf);
+                \chainin (mul);
+            }
+        }
+        { [start chain,every on chain/.style={join=by {-latex,blue}}]
+            { [every on chain/.style={join=by {double,-latex,blue}}]
+                \chainin (mul);
+                \chainin (dac);
+                \chainin (antialias);
+                \chainin (upmix);
+            }
+            \chainin (amp);
+        }
+        { [on background layer,every path/.style={dotted,decorate,decoration=random steps,segment length=2mm}]
+            \draw ($(dirvna.B1)!.5!(circ.A) + (0,4)$) -- ++(0,-8.5) node[coordinate] (leftsplit) {};
+            \draw ($(adc.east)!.5!(mul.west) + (0,4)$) -- ++(0,-8.5) node[coordinate] (rightsplit) {};
+        }
+
+        \draw (leftsplit) node[anchor=base east] {One Port VNA}
+              (leftsplit) node[anchor=base west] {Analog}
+              (rightsplit) node[anchor=base west] {Digital}
+              (rightsplit) node[anchor=base east] {Analog};
+
+        \draw [dashed] ($(plane) + (0,4)$) node[anchor=south] {Load Reference Plane} -- ($(plane) - (0,4.5)$);
+
+        \draw [latex-] ($(plane) + (0,1.5)$) -- ++(-0.5,0) node[anchor=east] {$Z_L$};
+
+        \draw [-latex,blue] ($(plane) + (0.25,-1.5)$) node[anchor=west] {$a_2$}-- ++(-0.5,0);
+        \draw [latex-,purple] ($(plane) + (0.25,-2)$) node[anchor=west] {$b_2$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0,-2.5)$) -- ++(-0.5,0) node[anchor=east] {$\Gamma_L$};
+
+        {[densely dashdotdotted,latex-latex]
+            \draw ($(inbuf.north) + (0,1)$) -- ++(0,1) node [anchor=south] {PC};
+            \draw ([xshift=-0.5cm]oszivna.north) -- ++(0,1) node [anchor=south] {PC};
+        }
+    \end{tikzpicture}
+    }
+\end{figure}
+\end{frame}
+
+
+\begin{frame}
+\begin{enumerate}
+    \item A one port VNA, to be able to measure the current $\Gamma_L$. This part is
+needed, to be able to reach a specific $\Gamma_{L,target}$ iteratively and is
+described in detail in. The iterative algorithm can be found
+in .
+    \item The analog part, which contains the mixers for the frequency shifting operation, necessary
+        filters, a DAC, an ADC, and an amplifier. A detailed description can be found
+        in .
+    \item A digital processing chain is implemented in an FPGA, which is controlled with
+a PC running Matlab. The FPGA implementation is described in .
+The software running on the processor contained in the FPGA, as well as the Matlab
+code, in .
+\end{enumerate}
+\end{frame}
+
+
+\begin{frame}
+
+\begin{figure}[htb]
+    \centering
+    \begin{tikzpicture}
+        \pgfdeclarelayer{foreground}
+        \pgfsetlayers{background,main,foreground}
+        \tikzpicturedependsonfile{rfsymbols.tex}
+        \tikzstyle{every node}=[font=\footnotesize]
+        \draw node[dut] (dut) {}
+              node[dircoupler,right=2 of dut,label=below:dir1] (dirvna) {}
+              node[oscilloscope,above=of dirvna.A2,anchor=A1] (oszivna) {}
+              node[coordinate,right=of dirvna] (rest) {}
+              node[coordinate,right=of rest] (resta) {};
+
+        \draw ($(dut)!.5!(dirvna)$) node[coordinate] (plane) {};
+
+        \draw [dashed] (rest) -- (resta);
+
+        { [rounded corners=2pt]
+            \draw (dut) -- (dirvna) -- (rest);
+            \draw (dirvna.A2) -- (oszivna.A1);
+            \draw (dirvna.B2) |- ($(dirvna.B2)!.7!(oszivna.A2)$) node[coordinate] (oszimiddle) {} -| (oszivna.A2);
+        }
+        { [latex-,dashed,every node/.style={font=\footnotesize}]
+            \draw ([xshift=0.5cm]oszivna.north) -- ++(0,0.5) node[fill=white,anchor=south] {ref};
+        }
+        { [on background layer,every path/.style={dotted,decorate,decoration=random steps,segment length=2mm}]
+            \draw ($(dirvna.B1)!.5!(rest) + (0,4)$) -- ++(0,-7) node[coordinate] (leftsplit) {};
+        }
+
+        \draw (leftsplit) node[anchor=base east] {One Port VNA}
+              (leftsplit) node[anchor=base west] {Analog};
+
+        \draw [-latex] ($(dirvna.A2) + (-0.2,0.1)$) -- node[base left] {$b_1$} ($(oszivna.A1 |- oszimiddle) - (0.2,0.1)$);
+        \begin{pgfonlayer}{foreground}
+            \draw [-latex] ($(dirvna.B2) + (0.2,0.1)$) -- node[coordinate] (a1) {} ($(oszimiddle -| dirvna.B2) + (0.2,-0.1)$);
+        \end{pgfonlayer}
+        \draw (a1) node[base right,fill=white] {$a_1$};
+
+        \draw [dashed] ($(plane) + (0,4)$) node[anchor=south] {Load Reference Plane} -- ($(plane) - (0,3)$);
+
+        \draw [latex-] ($(plane) + (0,1.5)$) -- ++(-0.5,0) node[anchor=east] {$Z_L$};
+
+        \draw [-latex] ($(plane) + (0.25,-1.5)$) node[anchor=west] {$a_2$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0.25,-2)$) node[anchor=west] {$b_2$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0,-2.5)$) -- ++(-0.5,0) node[anchor=east] {$\Gamma_L$};
+
+        {[densely dashdotdotted,latex-latex]
+            \draw ([xshift=-0.5cm]oszivna.north) -- ++(0,1) node [anchor=south] {PC};
+        }
+    \end{tikzpicture}
+    \caption{One port VNA part}
+    \label{fig:vna_part}
+\end{figure}
+
+
+\begin{equation}\label{eq:gl_phase}
+    \begin{split}
+        \Gamma_L & = \frac{a_2}{b_2} \\
+                 & = \frac{\abs{a_2}}{\abs{b_2}} e^{j(\arg{a_2}-\arg{b_2})}
+    \end{split}
+\end{equation}
+
+
+\begin{align}
+    \label{eq:k} k & = \left\lfloor \frac{f}{\Delta{}f} \right\rfloor\\
+    \label{eq:win} w & = \lstinline|flattopwin($n$, 'periodic')| \\
+    \label{eq:A} A[n] & = \mathcal{DFT}(a[n]\,w) \\
+    \label{eq:B} B[n] & = \mathcal{DFT}(b[n]\,w) \\
+    \label{eq:gamma_lf} \Gamma_{L,f} & = \frac{A[k]}{B[k]}
+\end{align}
+
+\end{frame}
+
+
+\begin{frame}{Errorbox One Port VNA}
+    \begin{columns}
+        \column{3cm}
+            \resizebox{!}{3cm}{
+            \begin{tikzpicture}[thick]
+                \matrix (box)
+                [matrix of nodes,%
+                 nodes in empty cells,
+                 nodes={dspnodeopen},
+                 column sep=1cm,
+                 row sep=2cm,
+                 ampersand replacement=\&]
+                {
+                    |[coordinate]| \& \&[4cm] \& \& |[coordinate]| \\
+                    |[coordinate]| \& \& \& \& |[coordinate]| \\
+                };
+                \draw[-latex] (box-1-1) node[anchor=east] {$a_{1}$} -- (box-1-2);
+                \draw[-latex] (box-1-2) -- node[above] {$1$} (box-1-3);
+                \draw[-latex] (box-1-3) -- node[above] {$b_{2}$} (box-1-4);
+
+                \draw[latex-] (box-2-1) node[anchor=east] {$b_{1}$} -- (box-2-2);
+                \draw[latex-] (box-2-2) -- node[above] {$S_{12}$} (box-2-3);
+                \draw[latex-] (box-2-3) -- node[above] {$a_{2}$} (box-2-4);
+
+                \draw[-latex] (box-1-2) to[bend left=30] node[right] {$S_{11}$} (box-2-2);
+                \draw[latex-] (box-1-3) to[bend right=30] node[left] {$S_{22}$} (box-2-3);
+
+                \draw[-latex] (box-1-4) to[bend left=30] node[right] {$\Gamma_L$} (box-2-4);
+
+                \draw ($(box-1-2) + (0,0.7cm)$) rectangle ($(box-2-3) - (0,0.7cm)$);
+                \draw ($(box-1-4) + (0,0.7cm)$) rectangle ($(box-2-5) - (0,0.7cm)$);
+
+                \draw[dashed] (box-1-2) -- ++(0,1.5cm) node[anchor=south] {Oscilloscope};
+                \draw[dashed] (box-1-3) -- ++(0,1.5cm) node[anchor=south] {Load Reference Plane};
+
+                \draw[dashed] (box-2-2) -- ++(0,-1cm);
+                \draw[dashed] (box-2-3) -- ++(0,-1cm);
+
+                \draw ($(box-2-4)!.5!(box-2-5) - (0,0.7cm)$) node[anchor=north] {DUT};
+                \draw ($(box-2-2)!.5!(box-2-3) - (0,0.7cm)$) node[anchor=north] {Error box};
+            \end{tikzpicture}
+            }
+        \column{6cm}
+            \begin{description}
+                \item[$S_{22}$] Source match
+                \item[$S_{11}$] Directivity
+                \item[$S_{12}$] Reflection tracking
+            \end{description}
+    \end{columns}
+\end{frame}
+
+\begin{frame}
+\begin{align}
+    \label{eq:b2} b_{2} & = a_{1} + S_{22} a_{2}\\
+    \label{eq:b1} b_{1} & = S_{11} a_{1} + S_{12} a_{2} \\
+    \label{eq:a2} a_{2} & = \Gamma_L b_{2}
+\end{align}
+
+\begin{equation}\label{eq:gamma_err}
+    \begin{split}
+        \Gamma_{L,corr} & = \frac{S_{11} - \frac{b_1}{a_1}}{S_{11} S_{22} - S_{22}\frac{b_1}{a_1} - S_{12}} \\
+                        & = \frac{S_{11} - \Gamma_{L,f}^{-1}}{S_{11} S_{22}\Gamma_{L,f}^{-1} - S_{22} - S_{12}}
+    \end{split}
+\end{equation}
+
+\end{frame}
+
+
+\begin{frame}
+\begin{figure}[htb]
+    \centering
+    \begin{tikzpicture}
+        \pgfdeclarelayer{foreground}
+        \pgfsetlayers{background,main,foreground}
+        \tikzpicturedependsonfile{rfsymbols.tex}
+        \tikzstyle{every node}=[font=\footnotesize]
+        \draw node[dut] (dut) {}
+              node[circulator,right=2 of dut,label=below:circ1] (circ) {}
+              node[coordinate,right=of circ,yshift=1.5cm] (uppernode) {}
+              node[coordinate,right=of circ,yshift=-1.5cm] (lowernode) {}
+
+              (lowernode) node[amplifier,label=above:amp1] (amp) {}
+              node[mixer,right=of amp,label=above:mix3] (upmix) {}
+              node[lowpass,right=of upmix,label=above:lp1] (antialias) {}
+              node[adc,right=of antialias,label=above:dac1] (dac) {}
+              node[coordinate,right=of dac] (outbuf) {}
+
+              (uppernode -| upmix) node[mixer,label=below:mix1] (downmix) {}
+              node[bandpass,right=of downmix,label=below:bp1] (bp) {}
+              node[adc,right=of bp,label=below:adc1] (adc) {}
+              node[coordinate,right=of adc] (inbuf) {}
+
+              node[source,above=of downmix.center,scale=0.7] (downsource) {}
+              node[rotate=90,anchor=south,font=\tiny] at (downsource.west) {$f_0 - \SI{70}{\mega\hertz}$}
+              node[rotate=90,anchor=north] at (downsource.east) {lo1}
+              node[source,above=of adc.center,scale=0.7] (sample) {}
+              node[rotate=90,anchor=south,font=\tiny] at (sample.west) {$\SI{100}{\mega\hertz}$}
+              node[rotate=90,anchor=north] at (sample.east) {lo2}
+              node[source,below=of upmix.center,scale=0.7] (upsource) {}
+              node[rotate=90,anchor=south,font=\tiny] at (upsource.west) {$f_0$}
+              node[rotate=90,anchor=north] at (upsource.east) {lo4};
+
+        \draw ($(dut)!.4!(circ.A)$) node[coordinate] (plane) {};
+
+        { [on background layer,every path/.style={dotted,decorate,decoration=random steps,segment length=2mm}]
+            \draw ($(dut)!.75!(circ.A) + (0,4)$) -- ++(0,-8.5) node[coordinate] (leftsplit) {};
+            \draw ($(adc.east)!.5!(outbuf.west) + (0,4)$) -- ++(0,-8.5) node[coordinate] (rightsplit) {};
+        }
+        { [rounded corners=2pt]
+            \draw (dut) -- (plane);
+            \draw [dashed] (plane) -- (plane -| leftsplit);
+            \draw (plane -| leftsplit) -- (circ.A);
+            \draw [-latex] (circ.B) -- ($(circ.B |- uppernode)!.5!(uppernode)$) node[coordinate] (upper) {} -- (downmix);
+            \draw [-latex] (amp) -- ($(circ.C |- amp)!.5!(lowernode)$) node[coordinate] (lower) {} -- (circ.C);
+        }
+        { [-latex]
+            \draw (downsource) -- (downmix);
+            \draw (sample) -- (adc);
+            \draw (upsource) -- (upmix);
+        }
+        { [latex-,dashed,every node/.style={font=\footnotesize}]
+            \foreach \device in {downsource,sample} {
+                \draw (\device) -- ++(0,1) node[anchor=south] {ref};
+            }
+            \draw (upsource) -- ++(0,-1) node[anchor=north] {ref};
+        }
+        { [start chain,every on chain/.style={join=by -latex}]
+            \chainin (downmix);
+            \chainin (bp);
+            \chainin (adc);
+            \chainin (inbuf);
+        }
+        { [start chain,every on chain/.style={join=by -latex}]
+            { [every on chain/.style={join=by {double,-latex}}]
+                \chainin (outbuf);
+                \chainin (dac);
+                \chainin (antialias);
+                \chainin (upmix);
+            }
+            \chainin (amp);
+        }
+
+        \draw (leftsplit) node[anchor=south west,rotate=90] {One Port VNA}
+              (leftsplit) node[anchor=base west] {Analog}
+              (rightsplit) node[anchor=base west] {Digital}
+              (rightsplit) node[anchor=base east] {Analog};
+
+        \draw [dashed] ($(plane) + (0,4)$) node[anchor=south] {Load Reference Plane} -- ($(plane) - (0,4.5)$);
+
+        \draw [latex-] ($(plane) + (0,1.5)$) -- ++(-0.5,0) node[anchor=east] {$Z_L$};
+
+        \draw [-latex] ($(plane) + (0.25,-.5)$) node[anchor=west] {$a_2$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0.25,-1)$) node[anchor=west] {$b_2$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0,-1.5)$) -- ++(-0.5,0) node[anchor=east] {$\Gamma_L$};
+
+        \node [draw,fit=(amp) (dac) (upsource),rounded corners=4pt,inner xsep=6pt,inner ysep=14pt,label={above:Vector Signal Generator}] {};
+    \end{tikzpicture}
+    \caption{Analog part}
+    \label{fig:analog}
+\end{figure}
+
+\end{frame}
+
+
+\begin{frame}
+\begin{figure}[htb]
+    \centering
+    \begin{tikzpicture}
+        \tikzpicturedependsonfile{rfsymbols.tex}
+        \tikzstyle{every node}=[font=\footnotesize]
+        \draw node[dut] (dut) {}
+              node[coordinate,right=2 of dut] (circ) {}
+
+              node[coordinate,right=of circ,yshift=-1.5cm,label=left:$a_2$] (dac) {}
+
+              node[coordinate,right=of circ,yshift=1.5cm,label=left:$b_2$] (adc) {}
+              node[empty,right=of adc,label=below:buffer1] (inbuf) {}
+              node[mixer,right=of inbuf] (shift) {}
+              node[rotate=90,anchor=north] at (shift.east) {mix2}
+
+              (dac -| inbuf) node[mixer,label=above:mul1] (mul) {}
+              node[empty,right=of mul] (outbuf) {}
+              node[rotate=90,anchor=north] at (outbuf.east) {buffer2}
+
+              ($(shift)!.5!(outbuf)$) node[allpass,rotate=90] (H) {}
+              node[rotate=90,anchor=north] at (H.south) {fir1}
+
+              node[source,above=of shift.center,scale=0.7] (shiftsource) {}
+              node[rotate=90,anchor=south,font=\tiny] at (shiftsource.west) {$\SI{30}{\mega\hertz}$}
+              node[rotate=90,anchor=north] at (shiftsource.east) {lo3}
+              node[below=of mul.center,fill=white] (gamma) {$\Gamma_{set} = X + jY$};
+
+        \draw ($(dut)!.4!(circ)$) node[coordinate] (plane) {};
+
+        { [on background layer,every path/.style={dotted,decorate,decoration=random steps,segment length=2mm}]
+            \draw ($(dut)!.75!(circ) + (0,4)$) -- ++(0,-8.5) node[coordinate] (leftsplit) {};
+            \draw ($(adc.east)!.5!(mul.west) + (0,4)$) -- ++(0,-8.5) node[coordinate] (rightsplit) {};
+        }
+        { [rounded corners=2pt]
+            \draw (dut) -- (plane);
+            \draw [dashed] (plane) -- (plane -| leftsplit) -- (circ);
+        }
+        { [-latex]
+            \draw [double] (shiftsource) -- (shift);
+            \draw (gamma) -- (mul);
+        }
+        { [latex-,dashed,every node/.style={font=\footnotesize}]
+            \foreach \device in {shiftsource} {
+                \draw (\device) -- ++(0,1) node[anchor=south] {ref};
+            }
+        }
+        { [start chain,every on chain/.style={join=by -latex}]
+            \chainin (adc);
+            \chainin (inbuf);
+            \chainin (shift);
+            { [every on chain/.style={join=by {double,-latex}}]
+                \chainin (H);
+                \chainin (outbuf);
+                \chainin (mul);
+                \chainin (dac);
+            }
+        }
+
+        \draw (leftsplit) node[anchor=south west,rotate=90] {One Port VNA}
+              (rightsplit) node[anchor=base west] {Digital}
+              ($(leftsplit)!.5!(rightsplit)$) node[anchor=base] {Analog};
+
+        \draw [dashed] ($(plane) + (0,4)$) node[anchor=south] {Load Reference Plane} -- ($(plane) - (0,4.5)$);
+
+        \draw [latex-] ($(plane) + (0,1.5)$) -- ++(-0.5,0) node[anchor=east] {$Z_L$};
+
+        \draw [-latex] ($(plane) + (0.25,-.5)$) node[anchor=west] {$a_2$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0.25,-1)$) node[anchor=west] {$b_2$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0,-1.5)$) -- ++(-0.5,0) node[anchor=east] {$\Gamma_L$};
+    \end{tikzpicture}
+    \caption{Digital part}
+    \label{fig:digital}
+\end{figure}
+
+\end{frame}
+
+
+\begin{frame}{Overlap Add Algorithm}
+\begin{figure}[htb]
+    \centering
+    \begin{tikzpicture}
+        \begin{scope}[shift={(0,13em)}]
+            \draw [decorate,decoration={brace},yshift=2pt] (0,4.1em) -- (5,4.1em) node[midway,yshift=8pt] {$n$};
+            \draw [decorate,decoration={brace},yshift=2pt] (0,2.8em) -- (3,2.8em) node[midway,yshift=8pt] {$n_{fft}$};
+            \draw [decorate,decoration={brace},yshift=2pt] (0,1.5em) -- (2,1.5em) node[midway,yshift=8pt] {$L$};
+            \draw (0,0.75em) node[anchor=east] {$x[n]$};
+            \draw (0,0) rectangle (5,1.5em);
+            \draw (5,0.75em) node[anchor=west] (zeros) {0000};
+            \draw [dashed] (5,0) rectangle (6,1.5em) (2,0) -- (2,1.5em) (4,0) -- (4,1.5em);
+        \end{scope}
+        \begin{scope}[shift={(0,9em)}]
+            \draw (0,0.75em) node[anchor=east] {$y_0[n]$};
+            \draw (0,0) rectangle (2,1.5em);
+            \draw [fill=black!30] (2,0) rectangle (3,1.5em);
+            \draw (2.5,0) node[coordinate] (y0b) {};
+            \draw (0.5,0) node[coordinate] (y2b) {};
+        \end{scope}
+        \begin{scope}[shift={(0,6em)}]
+            \draw (0,0.75em) node[anchor=east] {$y_1[n]$};
+            \draw (2,0) rectangle (4,1.5em);
+            \draw [fill=black!30] (4,0) rectangle (5,1.5em);
+            \draw (2.5,1.5em) node[coordinate] (y1t) {};
+            \draw (4.5,0) node[coordinate] (y1b) {};
+        \end{scope}
+        \begin{scope}[shift={(0,3em)}]
+            \draw (0,0.75em) node[anchor=east] {$y_2[n]$};
+            \draw (4,0) rectangle (6,1.5em);
+            \draw [fill=black!30] (6,0) rectangle (7,1.5em);
+            \draw [fill=red!30] (0,0) rectangle (1,1.5em);
+            \draw (1,0.75em) node[coordinate] (circto) {};
+            \draw (4.5,1.5em) node[coordinate] (y2t) {};
+            \draw (0.5,1.5em) node[coordinate] (ynt) {};
+        \end{scope}
+        \draw (0,0.75em) node[anchor=east] {$y[n]$};
+        \draw (0,0) rectangle (5,1.5em);
+        \draw [dashed,color=red] (5,0) rectangle (6,1.5em);
+        \draw [dotted] (6,1.5em) rectangle (7,0em);
+        \draw [latex-,color=red] (circto) parabola (5.5,1.5em);
+
+        \draw ($(y0b)!.5!(y1t)$) node {$+$};
+        \draw ($(y1b)!.5!(y2t)$) node {$+$};
+        \draw ($(y2b)!.5!(ynt)$) node {$+$};
+        \draw [dotted]
+              (0,1.5em) -- (0,13em)
+              (1,1.5em) -- (1,9em)
+              (2,1.5em) -- (2,9em)
+              (3,7.5em) -- (3,9em)
+              (3,1.5em) -- (3,6em)
+              (4,1.5em) -- (4,6em)
+              (5,1.5em) -- (5,3em)
+              (5,4.5em) -- (5,6em)
+              (7,1.5em) -- (7,3em)
+              (2,13em) -- (3,10.5em)
+              (4,13em) -- (5,10.5em) -- (5,7.5em)
+              (6,13em) -- (7,10.5em) -- (7,4.5em);
+    \end{tikzpicture}
+\end{figure}
+
+\end{frame}
+
+
+\begin{frame}
+\begin{equation}
+    \begin{split}
+     \label{eq:circ} y[n] = h[n] * x[n] & = \sum_{k=0}^{n_{fft}-1} h[k]x[n-k]\\
+         & = \mathcal{DFT}^{-1}\left\{\mathcal{DFT}(x[n])\,\mathcal{DFT}(h[n])\right\}
+    \end{split}
+\end{equation}
+
+\begin{equation}
+    \label{eq:sum_seq} x[n] = \sum_{i=0}^{\infty} x_i[n-iL] \qquad x_i[n] =\begin{cases}
+        x[n+iL] & n = 0, 1, \ldots, L-1\\
+        0 & \text{else} \end{cases}
+\end{equation}
+
+\begin{equation}
+    \begin{split}\label{eq:overlap_add_sum}
+        y[n] = h[n] * x[n] & = \sum_{i=0}^{\infty} x_i[n-iL] * h[n] = \sum_{i=0}^{\infty} y_i[n-iL]
+    \end{split}
+\end{equation}
+
+\end{frame}
+
+
+\begin{frame}{FPGA Design}
+    \resizebox{\linewidth}{!}{
+    \begin{tikzpicture}[every node/.style={minimum width=5em},latex-latex]
+        \matrix (peripherals)[matrix of nodes,column sep=1em,row sep=0.2em,nodes={draw,anchor=center},ampersand replacement=\&]
+        {
+            DRAM \& \shortstack{DRAM\\Controller} \\
+            Ethernet \& \shortstack{Ethernet\\Controller} \\
+            RS232 \& \shortstack{RS232\\Interface} \\
+            Storage \& SysAce \\
+            \shortstack{LEDS\\Switches} \& GPIO \\
+        };
+        \node[draw,minimum size=5em,above right=0em of peripherals] (cpu) {CPU};
+        \draw (peripherals-1-1) -- (peripherals-1-2);
+        \draw (peripherals-1-2) -| ([xshift=-2.5em]cpu);
+        \draw ([yshift=1em]peripherals-2-2) -| ([xshift=-1.5em]cpu);
+        \foreach \i in {2,...,5}
+        {
+            \draw (peripherals-\i-1) -- (peripherals-\i-2);
+            \draw (peripherals-\i-2) -- (peripherals-\i-2 -| cpu);
+        }
+        \draw[ultra thick,-] (peripherals-5-2 -| cpu) ++(0,-1em) node[below] (plb) {PLB} -- (cpu);
+        \node[draw] at ($(peripherals-5-2)!2!(peripherals-5-2 -| cpu)$) (bram) {RAM};
+        \draw (peripherals-5-2 -| cpu) -- (bram);
+        \node[draw] at ($(peripherals-2-2)!2!(peripherals-2-2 -| cpu)$) (pint) {\shortstack{Processor\\Interface}};
+        \draw (peripherals-2-2 -| cpu) -- (pint);
+        \matrix (internal)[matrix of nodes,column sep=1em,row sep=0.2em,nodes={draw,anchor=center},right=of pint]
+        {
+            inbuf \\
+            core \\
+            outbuf \\
+            auto \\
+        };
+        \node[draw,right=1.5em of internal-3-1] (digiq) {Digital I/Q};
+        \node[draw,right=1.5em of internal-1-1] (adc) {ADC};
+        \node[coordinate] at ($(pint.east) + (2em,0)$) (l) {};
+        \foreach \i in {1,...,4}
+        {
+            \draw (pint.east) -- (l) |- (internal-\i-1);
+        };
+        \draw (internal-1-1) -- (adc);
+        \draw (internal-3-1) -- (digiq);
+        \node[draw,fit=(internal-1-1) (internal-4-1) (l),inner xsep=0.5em,label=main] (main) {};
+        \node[draw,fit=(cpu) (peripherals-5-2) (plb) (main),inner xsep=0.5em,label=top] (fpga) {};
+
+    \end{tikzpicture}
+    }
+\end{frame}
+
+\section{Results}
+
+\subsection{Reflection Generation}
+
+\begin{frame}[fragile]{Target algorithm}
+    \begin{tikzpicture}[
+        spy/.style={%
+            draw,green,
+            line width=0.5pt,
+            circle,inner sep=0pt,
+        },
+        every axis/.style={font=\footnotesize},
+        ]
+        \def\spyviewersize{3cm}
+        \def\spyonclipreduce{0.5pt}
+        \def\spyfactorI{10}
+
+        \def\pic#1#2{
+            \begin{smithchart}[width=7cm,clip=false#1]
+                \addplot[blue,is smithchart cs] file {testdata/filter/1.0,0/trajectory10.data};
+                \addplot[purple,is smithchart cs,only marks,mark=x#2] file {testdata/filter/1.0,0/trajectory10.data};
+                \draw (cartesian cs:1,0) node[coordinate] (a) {}
+                      (cartesian cs:-0.4,0.4) node[coordinate] (b) {};
+            \end{smithchart}
+        }
+        \pic{}{}
+        \coordinate (spy-on 1) at (a);
+        \coordinate (spy-in 1) at (b);
+
+        \node[spy,ultra thick,circular drop shadow,minimum size=\spyviewersize,fill=white,label={[inner sep=2pt,yshift=-5pt,fill=white,font=\small]below:\spyfactorI{}x magnification}] (spy-in node 1) at (spy-in 1) {};
+        \begin{scope}
+            \clip (spy-in 1) circle (0.5*\spyviewersize-\spyonclipreduce);
+            \pgfmathsetmacro\sI{1/\spyfactorI}
+            \begin{scope}[
+                shift={($\sI*(spy-in 1)-\sI*(spy-on 1)$)},
+                scale around={\spyfactorI:(spy-on 1)}
+            ]
+            \pic{,every axis plot post/.append style={line width=0.07pt},every axis/.append style={line width=0.07pt,grid style={line width=0.07pt}}}{,mark size=0.35pt}
+            \end{scope}
+        \end{scope}
+
+    \end{tikzpicture}
+\end{frame}
+
+
+\begin{frame}{Target algorithm performance}
+    \begin{tikzpicture}
+        \begin{axis}[
+                ybar interval,
+                ylabel={percentage of invocations},
+                xlabel={number of iterations},
+                x filter/.expression={x-1}, % remove the start point
+                ymin = 0
+            ]
+            \addplot[blue,fill=blue!10,hist={bins=7,data min=3,data max=10,density=true}] table[y index=0] {testdata/trajectories/performance.data};
+        \end{axis}
+    \end{tikzpicture}
+\end{frame}
+
+\subsection{Filter performance}
+
+\begin{frame}{Calibrated Filter, Uncalibrated $\Gamma_{L,set}$}
+    \begin{columns}
+        \column{0.5\linewidth}
+            \begin{tikzpicture}[every axis/.style={font=\tiny}]
+                \begin{smithchart}[width=\linewidth,clip=false]
+                    \foreach \i in {1,...,11}{
+                        \foreach \j in {1,...,11}{
+                            \addplot[blue,is smithchart cs] file {testdata/filter/0.5,135/\i,\j.data};
+                        }
+                    }
+                    \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(-0.3536,0.3536)};
+                \end{smithchart}
+            \end{tikzpicture}
+        \column{0.5\linewidth}
+            \begin{tikzpicture}[every axis/.style={font=\tiny}]
+                \begin{smithchart}[width=\linewidth,clip=false]
+                    \foreach \i in {1,...,11}{
+                        \foreach \j in {1,...,11}{
+                            \addplot[blue,is smithchart cs] file {testdata/filter/0.5,-45/\i,\j.data};
+                        }
+                    }
+                    \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(0.3536,-0.3536)};
+                \end{smithchart}
+            \end{tikzpicture}
+    \end{columns}
+\end{frame}
+
+\section*{Summary}
+
+\begin{frame}{Summary}
+    \begin{itemize}
+        \item It works
+    \end{itemize}
+\end{frame}
+
+\appendix
+\section{Phase drift}
+
+\begin{frame}{Phase drift of $\Gamma_L$}
+    \begin{tikzpicture}
+        \begin{axis}[
+                ylabel={angle},
+                y unit={\degree},
+                xlabel={time},
+                x unit={\minute}, %change xbase
+                width=.95\linewidth,
+                x filter/.expression={x/60},
+                xmin=0,
+                xmax=1000,
+                height=7cm
+            ]
+            \addplot[blue] table {testdata/phase/single.data};
+        \end{axis}
+    \end{tikzpicture}
+\end{frame}
+
+\end{document}
+

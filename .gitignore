@@ -28,4 +28,7 @@ main.pdf
 *.brf
 *.figlist
 *.makefile
+*.nav
+*.snm
+*.vrb
 tmp
