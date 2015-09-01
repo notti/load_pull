@@ -2132,12 +2132,23 @@ and the complex multiplication.
 \section[SMBV Interface]{SMBV Interface - outbuf}
 \label{sec:smbv_interface}
 
+The \device{outbuf} module consists of the two independent sample buffers
+\device{mem\_0} and \device{mem\_1}, a complex multiplier and the digital
+\gls{iq} interface \device{transmitter}. The two sample buffers are both
+\SI{32}{\bit} wide, to be able to store the \SI{16}{\bit} wide I and Q
+signals. Both can store up to 49192 samples. A general overview can be
+seen in \cref{fig:outbuf}.
+
 \begin{figure}[htb]
     \centering
     \begin{tikzpicture}
         \node[draw] (mem0) {mem\_0};
         \node[draw,below=of mem0] (mem1) {mem\_1};
-        \draw[double,latex-latex] (mem0.west) -- ++(-2em,0) node[coordinate] (out) {};
+        \node[coordinate] at ($(mem0.west)+(-4em,0)$) (out) {};
+
+        \draw[double] ($(mem0.west)-(1em,0)$) -- ($(mem1.west)-(2em,0)$)  node[coordinate] (out2) {};
+        \draw[double] ($(mem1.west)-(1em,0)$) -- ($(mem0.west)-(2em,0)$);
+        \draw[double,latex-latex] (mem0.west) -- (out);
         \draw[double,latex-latex] (mem1) -- (mem1 -| out);
 
         \node[trapezium,minimum height=1em,rotate=-90,anchor=center,draw] at ($(mem0.south east)!0.5!(mem1.north east) + (3em,0)$) (mux) {};
@@ -2150,20 +2161,39 @@ and the complex multiplication.
         \draw[double,latex-] (mul.south) -- ++(0,-3em) node[coordinate] (r) {} -- (\currentcoordinate -| out);
 
         \node[draw,right=of mul] (transmitter) {transmitter};
-        \draw[double,latex-] (mul) -- (transmitter);
+        \draw[double,-latex] (mul) -- (transmitter);
         \draw[double,-latex] (transmitter.east) -- ++(2em,0);
 
-        \node[draw,fit=(mem0) (r) (transmitter),inner xsep=0.5em,label=outbuf] (outbuf) {};
+        \node[draw,fit=(mem0) (r) (transmitter) (out2),inner xsep=0.5em,label=outbuf] (outbuf) {};
         \draw[dashed] (outbuf.south east) ++(0.5em,-1em) -- (\currentcoordinate |- outbuf.north) -- ++(0,1em);
     \end{tikzpicture}
     \caption{outbuf}
     \label{fig:outbuf}
 \end{figure}
 
-\begin{itemize}
-    \item describe buffer
-    \item describe outmul
-\end{itemize}
+Samples buffers \device{mem\_0} and \device{mem\_1} can only be accessed by the
+logical names \device{active} and \device{inactive} from outside the
+\device{outbuf} module. The \device{active} sample buffer contains the sample data,
+that is currently streamed via the \device{transmitter} module to the digital \gls{iq}
+interface. This memory can only be used in read mode via the internal interface.
+The \device{active} sample buffer can be read and written to. Maintaining this
+logical to physical assignment is handled by the network indicated to the left
+of the sample buffers and the multiplexer in \cref{fig:outbuf}. Both sample
+buffers consist of true dual port block \glspl{ram}. In combination with the
+unsupported writes to the \device{active} sample buffer, this ensures that
+no timing conditions due to the different clocks are violated.
+
+The complex multiplier between the multiplexer and the \device{transmitter}
+module in \cref{fig:outbuf} is the multiplier that is responsible for the
+reflection generation. It multiplies the signal output by to the transmitter
+with $\Gamma_{L,set}$ (see \cref{sec:digital}). As mentioned earlier, this
+multiplier features a bit shifter at the output. This bit shifter divides the
+output by a configurable range of \SI{2}{\bit} to \SI{17}{\bit}. With this
+shifter it is possible to reach full scale output even with small input
+signals. This is for instance necessary if a high scaling factor is needed
+for the \device{core} module (see \cref{sec:overlap_add}). After this scaling
+and convergent rounding, this multiplier also features dynamic configurable
+saturation.
 
 \begin{figure}[htb]
     \centering
