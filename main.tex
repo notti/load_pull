@@ -151,6 +151,11 @@ pdfpagelabels %,hidelinks
 \newacronym{vhdl}{VHDL}{VHSIC Hardware Description Language}
 \newacronym[shortplural=OSERDES]{oserdes}{OSERDES}{output parallel-to-serial logic resource}
 \newacronym{ddr}{DDR}{double data rate}
+\newacronym{dram}{DRAM}{dynamic random access memory}
+\newacronym{rom}{ROM}{read only memory}
+\newacronym{cf}{CF}{compact flash}
+\newacronym{os}{OS}{operating system}
+\newacronym{led}{LED}{light emitting diode}
 
 \makeglossaries
 
@@ -1602,13 +1607,13 @@ Ethernet port, enabling high speed data exchange with a \gls{pc}. Although accor
 during tests it was confirmed that the necessary \SI{2}{\giga\bit\per\second}, required
 by the \gls{adc} \cite{ltc2274}, are also usable. This \gls{fpga} also contains a
 hardwired PowerPC \gls{cpu}, which was used for controlling the digital components
-and as a communication bridge to the \gls{pc}.
+and as a communication bridge to the \gls{pc}. The complete sources can be found in \cref{sec:sources}.
 
 \begin{figure}[htb]
     \centering
     \resizebox{\linewidth}{!}{
     \begin{tikzpicture}[every node/.style={minimum width=5em},latex-latex]
-        \matrix (peripherals)[matrix of nodes,column sep=1em,row sep=0.2em,nodes={draw,anchor=center},ampersand replacement=\&]
+        \matrix (peripherals)[matrix of nodes,column sep=1.5em,row sep=0.2em,nodes={draw,anchor=center},ampersand replacement=\&]
         {
             DRAM \& \shortstack{DRAM\\Controller} \\
             Ethernet \& \shortstack{Ethernet\\Controller} \\
@@ -1646,8 +1651,10 @@ and as a communication bridge to the \gls{pc}.
         };
         \draw (internal-1-1) -- (adc);
         \draw (internal-3-1) -- (digiq);
+        \node[draw,fit=(cpu) (peripherals-5-2) (plb) (bram),inner xsep=0.5em,label=processor] (processor) {};
+        \node[coordinate] at ($(processor.north) + (0,1em)$) (u) {};
         \node[draw,fit=(internal-1-1) (internal-4-1) (l),inner xsep=0.5em,label=main] (main) {};
-        \node[draw,fit=(cpu) (peripherals-5-2) (plb) (main),inner xsep=0.5em,label=top] (fpga) {};
+        \node[draw,fit=(processor) (main) (u),inner xsep=0.5em,label=top] (fpga) {};
 
     \end{tikzpicture}
     }
@@ -2260,10 +2267,73 @@ it is necessary to clear eventual overflows of the \device{core} module.
 \section{Processor}
 \label{sec:processor}
 
-\begin{itemize}
-    \item describe xps\cite{ppc}
-    \item 11 block ram
-\end{itemize}
+The embedded processor design was realized with the Xilinx Platform
+Studio. This design consists of every additional module needed to be
+able to run Linux and communicate via Ethernet. As can be seen in
+\cref{fig:cpu_design}, this includes a \gls{dram} controller, an
+Ethernet controller, a RS232 interface, a SystemACE controller,
+a \gls{gpio} module and an additional memory controller with a connected
+block \gls{ram}. Additionally an interrupt controller is needed, which is
+not included in \cref{fig:cpu_design}.
+
+\begin{figure}[htb]
+    \centering
+    \begin{tikzpicture}[every node/.style={minimum width=5em},latex-latex]
+        \matrix (peripherals)[matrix of nodes,column sep=1.5em,row sep=0.2em,nodes={draw,anchor=center},ampersand replacement=\&]
+        {
+            DRAM \& \shortstack{DRAM\\Controller} \\
+            Ethernet \& \shortstack{Ethernet\\Controller} \\
+            RS232 \& \shortstack{RS232\\Interface} \\
+            Storage \& SysAce \\
+            \shortstack{LEDS\\Switches} \& GPIO \\
+        };
+        \node[draw,minimum size=5em,above right=0em of peripherals] (cpu) {CPU};
+        \draw (peripherals-1-1) -- (peripherals-1-2);
+        \draw (peripherals-1-2) -| ([xshift=-2.5em]cpu);
+        \draw ([yshift=1em]peripherals-2-2) -| ([xshift=-1.5em]cpu);
+        \foreach \i in {2,...,5}
+        {
+            \draw (peripherals-\i-1) -- (peripherals-\i-2);
+            \draw (peripherals-\i-2) -- (peripherals-\i-2 -| cpu);
+        }
+        \draw[ultra thick,-] (peripherals-5-2 -| cpu) ++(0,-1em) node[below] (plb) {PLB} -- (cpu);
+        \node[draw] at ($(peripherals-5-2)!2!(peripherals-5-2 -| cpu)$) (bram) {RAM};
+        \draw (peripherals-5-2 -| cpu) -- (bram);
+        \node[draw] at ($(peripherals-2-2)!2!(peripherals-2-2 -| cpu)$) (pint) {\shortstack{Processor\\Interface}};
+        \draw (peripherals-2-2 -| cpu) -- (pint);
+        \draw[latex-,dashed] (pint.east) -- ++(2em,0);
+        \node[draw,fit=(cpu) (peripherals-5-2) (plb) (bram),inner xsep=0.5em,label=processor] (processor) {};
+        \node[coordinate] at ($(processor.north) + (0,1em)$) (u) {};
+        \node[fit=(processor) (u),inner xsep=0.5em,label=top] (fpga) {};
+        \draw[-] (fpga.south east) -- (fpga.south west) -- (fpga.north west) -- (fpga.north east);
+        \draw[-,dashed] (fpga.north east) -- ++(2em,0);
+        \draw[-,dashed] (fpga.south east) -- ++(2em,0);
+
+    \end{tikzpicture}
+    \caption{Processor design overview.}
+    \label{fig:cpu_design}
+\end{figure}
+
+The internal block \gls{ram} is needed, because the PowerPC 440 embedded
+in the used \gls{fpga} has a reset address, which resides in the highest
+addressable page\cite{ppc}. Since the \gls{dram} is mapped at the lowest address
+and is only \SI{256}{\mebi\byte} large\cite{ml507}, the processor would try to access
+a not existing address after reset. Furthermore, the \gls{cpu} starts
+executing code before the complete setup is finished. To prevent undefined
+behaviour after programming the \gls{fpga} a memory has to be placed at
+this address. This memory needs to be filled with a boot loop. A boot
+loop is a simple program consisting only of an endless loop. Since Linux
+also uses this address range, this small memory can't be implemented
+as a \gls{rom}.
+
+To enable communication with a computer the RS232 module and the Ethernet
+module are needed. The RS232 module is not necessary for production use,
+but needed for debugging purposes. The SystemACE module is required to
+provide access to the \gls{cf} card on the ML507 board. With this module,
+a network boot setup is unnecessary, therefore enabling easier deployment
+of the whole system. The \gls{gpio} module was included into this setup,
+to provide the \gls{os} with access to the \glspl{led} and switches for
+indicating purposes.
 
 \subsection{Processor Interface}
 \label{sec:processor_interface}
