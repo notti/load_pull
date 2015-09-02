@@ -156,6 +156,7 @@ pdfpagelabels %,hidelinks
 \newacronym{cf}{CF}{compact flash}
 \newacronym{os}{OS}{operating system}
 \newacronym{led}{LED}{light emitting diode}
+\newacronym{xps}{XPS}{Xilinx Platform Studio}
 
 \makeglossaries
 
@@ -2176,7 +2177,7 @@ seen in \cref{fig:outbuf}.
         \node[draw,fit=(mem0) (r) (transmitter) (out2),inner xsep=0.5em,label=outbuf] (outbuf) {};
         \draw[dashed] (outbuf.south east) ++(0.5em,-1em) -- (\currentcoordinate |- outbuf.north) -- ++(0,1em);
     \end{tikzpicture}
-    \caption{outbuf}
+    \caption{Outbuf module overview}
     \label{fig:outbuf}
 \end{figure}
 
@@ -2267,8 +2268,8 @@ it is necessary to clear eventual overflows of the \device{core} module.
 \section{Processor}
 \label{sec:processor}
 
-The embedded processor design was realized with the Xilinx Platform
-Studio. This design consists of every additional module needed to be
+The embedded processor design was realized with the \gls{xps}. This
+design consists of every additional module needed to be
 able to run Linux and communicate via Ethernet. As can be seen in
 \cref{fig:cpu_design}, this includes a \gls{dram} controller, an
 Ethernet controller, a RS232 interface, a SystemACE controller,
@@ -2335,14 +2336,42 @@ of the whole system. The \gls{gpio} module was included into this setup,
 to provide the \gls{os} with access to the \glspl{led} and switches for
 indicating purposes.
 
+% ---------------------------------------------------------------------------
+
 \subsection{Processor Interface}
 \label{sec:processor_interface}
 
-\begin{itemize}
-    \item describe plb interface \cite{slave_burst,ppc} (burst!)
-\end{itemize}
+The processor interface allowing the processor to control the digital
+signal processing chain consists of three modules. A \gls{xps} module which
+interfaces with the \gls{plb} called \device{proc2fpga}, a module
+implementing the registers called \device{proc\_register} and a module
+implementing a small memory controller called \device{proc\_memory}. Separating
+the \gls{plb} interface into a \gls{xps} module allowed to keep the whole
+\device{processor} module fixed during development. See \cref{sec:kernel_module}
+for a description of the software needed to control the processor interface.
 
-% ---------------------------------------------------------------------------
+The \gls{plb} interface was implemented with the peripheral wizard in \gls{xps}.
+It uses the burst variant of the \gls{plb} slave \cite{slave_burst}. This module
+exposes four user memories with \SI{16}{\bit} addressing and \SI{32}{\bit} data
+bus, six \SI{32}{\bit} registers, and 16 interrupt lines to the \gls{fpga} fabric.
+The interrupt lines are triggered on the positive edge. In order to enable wide
+memory accesses, the burst variant is needed. Wide memory accesses are needed
+to be able to use memory mapping in Linux. In this mode Linux handles the
+size of the memory access, which results in reading or writing in whole
+cache lines. Since the \gls{plb} is \SI{128}{\bit} wide, the non burst variant
+can't handle these operations, because the module interface is only \SI{32}{\bit}
+wide. The burst variant handles this situation by queuing four consecutive
+\SI{32}{\bit} operations. Without this a Bus Error would be generated.
+
+An overview of the register contents can be seen in \cref{sec:registers}. These
+registers and the interrupt generation is implemented in the \device{proc\_register}
+module. Every register has a single cycle access time.
+
+The memory controller implemented in the \device{proc\_memory} module generates
+the necessary acknowledge signals for the processor. Furthermore it generates the
+write and enable signals from the chip select and write request signals of the
+processor interface. Special care was taken to enable multi cycle requests as
+described above.
 
 
 % ===========================================================================
@@ -2350,6 +2379,7 @@ indicating purposes.
 \chapter{Software Implementation}
 \label{chap:software}
 \section{Kernel Module}
+\label{sec:kernel_module}
 \section{Network Server and Web-Interface}
 \section{Matlab Driver}
 \label{sec:matlab}
@@ -3020,6 +3050,7 @@ the different parts of the measurement setup.
 \section{Used Instruments}
 \label{sec:instruments}
 \section{Register Assignment}
+\label{sec:registers}
 %TODO:
 \begin{register}{h}{reg(0)}{0x00}%
     \label{reg0}%
