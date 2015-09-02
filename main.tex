@@ -149,6 +149,8 @@ pdfpagelabels %,hidelinks
 \newacronym{cpu}{CPU}{central processing unit}
 \newacronym{plb}{PLB}{processor local bus}
 \newacronym{vhdl}{VHDL}{VHSIC Hardware Description Language}
+\newacronym[shortplural=OSERDES]{oserdes}{OSERDES}{output parallel-to-serial logic resource}
+\newacronym{ddr}{DDR}{double data rate}
 
 \makeglossaries
 
@@ -2183,56 +2185,75 @@ buffers consist of true dual port block \glspl{ram}. In combination with the
 unsupported writes to the \device{active} sample buffer, this ensures that
 no timing conditions due to the different clocks are violated.
 
+This module uses a configurable sample period $n$. This period can only be changed
+by resetting the module or by asserting the resync signal. Sample data of length $n$ is
+continuously read from the \device{active} buffer. Swapping the \device{active}
+and the \device{inactive} buffer can be initiated by asserting the toggle\_buf
+signal for one cycle. To prevent signal distortion, the actual swapping occurs
+only before reading sample zero from the buffer. Accesses to the sample buffers
+during this operation result in undefined behaviour and can corrupt the buffer
+contents.
+
 The complex multiplier between the multiplexer and the \device{transmitter}
 module in \cref{fig:outbuf} is the multiplier that is responsible for the
 reflection generation. It multiplies the signal output by to the transmitter
 with $\Gamma_{L,set}$ (see \cref{sec:digital}). As mentioned earlier, this
-multiplier features a bit shifter at the output. This bit shifter divides the
+multiplier features a bit shifter at the output. This bit shifter shifts the
 output by a configurable range of \SI{2}{\bit} to \SI{17}{\bit}. With this
 shifter it is possible to reach full scale output even with small input
 signals. This is for instance necessary if a high scaling factor is needed
 for the \device{core} module (see \cref{sec:overlap_add}). After this scaling
-and convergent rounding, this multiplier also features dynamic configurable
-saturation.
+and convergent rounding, the multiplier is also capable of saturating the
+output. This prevents wrap around and limits therefore signal distortion.
 
-\begin{figure}[htb]
-    \centering
-    \tikzexternaldisable
-    \begin{tikztimingtable}
-        clk & c11{7c}c  \\
-        ckm & c22{3.5c}c \\
-        ckh & c77{c}c \\
-        outdata\_long(0) & x2{14x}{}3{14d}7dd\\
-        outdata\_long(1) & x3{14x}{}2{14d}7dd \\
-        outdata\_long(2) & x{}4{14d}{}14d7dd \\
-        outdata\_long(3) & x14x{}4{14d}{}7dd \\
-        outdata\_short & [font=\scriptsize] x7d{(0)(6:3)}7d{(0)(2:0) (1)(6)}7d{(1)(5:2)}7d{(1)(1:0) (2)(6:5)}7d{(2)(4:1)}7d{(2)(0) (3)(6:4)}7d{(3)(3:0)}7d{(0)(6:3)}7d{(0)(2:0) (1)(6)}7d{(1)(5:2)}7d{(1)(1:0) (2)(6:5)}{}d \\
-        out\_en & l49{l}28{h}h \\
-    \end{tikztimingtable}
-    \caption{LVDS Output generation timing. {\scriptsize (0)(2:0) (1)(6)} in \signal{outdata\_short} means {\ttfamily outdata\_long(0)(2 downto 0) \& outdata\_long(1)(6 downto 6)}.}
-    \label{fig:trans}
-\end{figure}
+According to \cite{fsq_b17} the Rhode \& Schwarz digital \gls{iq} interface
+uses the encoding scheme and digital interface of a DS90CR485 channel link
+serializer. This serializer encodes data from a \SI{24}{\bit} input on both
+clock edges for a total of \SI{48}{\bit} per clock cycle \cite{ds90cr485}.
+As specified by \cite{fsq_b17} \SI{20}{\bit} I, \SI{20}{\bit} Q data, enable,
+valid, marker and trigger bits need to be encoded in these \SI{48}{\bit}. Valid
+and Enable are connected to high by this implementation. The trigger and marker
+bits are not supported by the Rhode \& Schwarz SMBV100a vector signal generator
+in digital \gls{iq} input mode. Therefore these are permanently disabled in this
+work. The \gls{fpga} internal \SI{16}{\bit} \gls{iq} implementation is mapped
+onto the \SI{20}{\bit} link by left shifting the data by \SI{4}{\bit}.
 
-\begin{itemize}
-    \item describe digital iq interface\cite{fsq_b17,ds90cr485} \cref{fig:trans}
-\end{itemize}
+The \device{transmitter} module is an implementation of the DS90CR485 channel
+link serializer specification in \gls{vhdl}. Since \cite{fsq_b17} does not
+mention which operating mode of the channel link serializer is needed, the
+full DS90CR485 specification according to \cite{ds90cr485} was implemented for this work.
+According to this specification, the \SI{48}{\bit}, as mentioned in the last
+paragraph, need to be partitioned onto eight \gls{lvds} links clocked at
+\SI{700}{\mega\hertz}. It is not possible to achieve such high frequencies
+in the \gls{fpga} fabric. Therefore the serialization was implemented utilizing
+\glspl{oserdes} in \SI{4}{\bit} \gls{ddr} mode. The \gls{ddr} mode reduces the
+necessary clock rate to \SI{350}{\mega\hertz} for the \gls{oserdes}. The
+\SI{4}{\bit} mode decreases the needed clock for the parallel data to
+\SI{175}{\mega\hertz}. By connecting a test implementation of the transmitter,
+it was verified, that the Rhode \& Schwarz digital \gls{iq} interface uses the
+DS90CR485 channel link serializer with switched off \gls{dc} Balance mode.
 
 % ---------------------------------------------------------------------------
 
-\section{Auto}
+\section{Auto module}
 \label{sec:auto}
-\begin{itemize}
-    \item decribe auto
-\end{itemize}
 
-% ---------------------------------------------------------------------------
+For a complete signal computation, the previously described blocks
+\device{inbuf} (see \cref{sec:acquisition}), \device{core} (see
+\cref{sec:overlap_add}) and \device{outbuf} (see \cref{sec:smbv_interface})
+need to be triggered in this order. To minimize the delay and \gls{cpu}
+usage, the \device{auto} module contains a state machine that can achieve
+this task. It supports single shot and continuous operation.
 
-\section{Processor Interface}
-\label{sec:processor_interface}
+During a single run, the \device{auto} module first triggers the \device{inbuf}
+module. After data acquisition finished, the filter operation is carried out
+by starting the \device{core} module. If an overflow occurred during these
+computations, then the automatic mode is stopped. After a successful filter
+operation the \device{outbuf} buffer is toggled. If the \device{auto} module
+was switched to continuous mode, then the whole process is repeated.
 
-\begin{itemize}
-    \item describe plb interface \cite{slave_burst,ppc} (burst!)
-\end{itemize}
+Because of the way, the \device{auto} module was implemented for this thesis,
+it is necessary to clear eventual overflows of the \device{core} module.
 
 % ---------------------------------------------------------------------------
 
@@ -2243,6 +2264,16 @@ saturation.
     \item describe xps\cite{ppc}
     \item 11 block ram
 \end{itemize}
+
+\subsection{Processor Interface}
+\label{sec:processor_interface}
+
+\begin{itemize}
+    \item describe plb interface \cite{slave_burst,ppc} (burst!)
+\end{itemize}
+
+% ---------------------------------------------------------------------------
+
 
 % ===========================================================================
 
