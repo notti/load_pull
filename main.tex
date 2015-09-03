@@ -1422,19 +1422,19 @@ and two pins for enabling synchronization mode. To ensure easier cable managemen
 board was developed to be able to use a \gls{sata} cable for clock and data. Furthermore the synchronization
 circuit in \cref{fig:adc_adapter} was developed, to start a synchronization cycle by briefly stopping the clock
 signal. This synchronization circuit consists of the power detector \device{IC1}, which is connected
-via \device{$C_5$}, as an \gls{ac} short, and \device{$R_10$}, needed for input matching, to the TX+
+via \device{$C_5$}, used as an \gls{ac} short, and \device{$R_{10}$}, needed for input matching, to the TX+
 pin of the \gls{sata} connector. The TX- pin of the \gls{sata} connector is directly connected to
 an \gls{sma} connector, in order to be able to connect the clock input of the \gls{adc} board. After
-the power detector, the output signal \device{VRMS} is compared to \SI{97}{\milli\volt},
-produced by the voltage divider $R_1$ and $R_2$, by \device{IC2A}. Therefore a minimum voltage
+the power detector, the output signal \device{VRMS} is compared to \SI{97}{\milli\volt}
+produced by the voltage divider $R_1$ and $R_2$. This is carried out by the comparator \device{IC2A}. Therefore a minimum voltage
 swing of about \SI{194}{\milli\volt} is needed to recognize a valid clock signal. The comparator
 \device{IC2} features an open collector output, therfore draining the capacitor $C_2$ through
 $R_3$ while no clock signal is present. Furthermore, this causes \device{IC2B} to connect the output
 to ground and therefore connecting \device{SYNC1} and \device{SYNC2} via the optocoupler \device{OK1}.
 Right after a valid clock signal is detected, $C_2$ starts to charge via $R_4$ and $R_3$. After
-about \SI{25.7}{\milli\second} this combination reaches switching threshold of \SI{1.6}{\volt}, set
-by the voltage divider $R_5$/$R_6$, at the input pin \device{6} of \device{IC2B}, therefore switching
-the output transistor off. Since this disconnects \device{OK1} from ground, the synchronization
+about \SI{25.7}{\milli\second} this combination reaches the switching threshold of \SI{1.6}{\volt}. This
+switching threshold is set by the voltage divider $R_5$/$R_6$. After reaching this threshold at the input pin \device{6} of \device{IC2B}
+the output transistor of \device{IC2B} is switched off. Since this disconnects \device{OK1} from ground, the synchronization
 signal stops.  This provides the \gls{adc} with a \SI{25.7}{\milli\second} long synchronization
 request after a clock signal is detected. The resistor $R_7$ enables a more stable operation and prevents \device{IC2B} from
 oscillating near the switching threshold. The implemented adapter circuit board atop the \gls{adc}
