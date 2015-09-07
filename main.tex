@@ -81,9 +81,6 @@
 %source
 
 \usepackage{listings}
-\lstset{language=Matlab,numbers=left,numberstyle=\tiny,stepnumber=5,numbersep=5pt,frame=single,
-breaklines=true,postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\hookrightarrow\space}},
-captionpos=b,escapeinside={(*}{*)},mathescape=true}
 \usepackage{letltxmacro}
 \newcommand*{\SavedLstInline}{}
 \LetLtxMacro\SavedLstInline\lstinline
@@ -2403,8 +2400,11 @@ these advantages the following kernel module has been implemented.
 
 \section{Kernel Module}
 \label{sec:kernel_module}
-\lstset{language=C,escapeinside={(*}{*)}}
-\begin{lstlisting}[float=htb,language=C,caption={Basic elements of a platform driver module},label=src:pdriver,basicstyle=\hack\tiny]
+\lstset{language=C,numbers=left,numberstyle=\tiny,stepnumber=5,numbersep=5pt,frame=single,
+breaklines=true,postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\hookrightarrow\space}},
+captionpos=b,escapeinside={(*}{*)},mathescape=true,deletekeywords={register}}
+
+\begin{lstlisting}[float=htb,caption={Basic elements of a platform driver module},label=src:pdriver,basicstyle=\hack\tiny]
 ...
 
 struct emce_device { (*\label{deviceData}*)
@@ -2471,22 +2471,21 @@ has to be released again in the remove function. Omitting this prevents
 reloading the driver.\\
 The driver handles the three tasks:
 \subsubsection{Memory access}
-\lstset{language=C,escapeinside={<*}{*>}}
-\begin{lstlisting}[float=htbp,language=C,caption={Character device},label=src:cdev,basicstyle=\hack\tiny]
+\begin{lstlisting}[float=htbp,caption={Character device},label=src:cdev,basicstyle=\hack\tiny]
 ssize_t mem_read (struct file *file, char __user *buf,
-		size_t count, loff_t *ppos) { <*\label{mem_read}*>
+		size_t count, loff_t *ppos) { (*\label{mem_read}*)
 	struct user_mem *mem = file->private_data;
 
 	if(*ppos >= mem->size)  <*\label{mem_read_checka}*>
 		return 0; //EOF
 
 	if(*ppos + count >= mem->size)
-		count = mem->size - *ppos; <*\label{mem_read_checkb}*>
+		count = mem->size - *ppos; (*\label{mem_read_checkb}*)
 
-	if(copy_to_user(buf, mem->base_address+*ppos, count)) <*\label{mem_read_copy}*>
+	if(copy_to_user(buf, mem->base_address+*ppos, count)) (*\label{mem_read_copy}*)
 		return -EFAULT;
 
-	*ppos+=count; <*\label{mem_read_advance}*>
+	*ppos+=count; (*\label{mem_read_advance}*)
 	return count;
 }
 
@@ -2495,7 +2494,7 @@ ssize_t mem_write(struct file *file, const char __user *buf,
 	...
 }
 
-static int mem_open(struct inode *inode, struct file *file) { <*\label{mem_open}*>
+static int mem_open(struct inode *inode, struct file *file) { (*\label{mem_open}*)
 	struct emce_device *edev;
 
 	if(MINOR(inode->i_rdev)>=USER_MEM)
@@ -2512,7 +2511,7 @@ static loff_t mem_lseek(struct file *file, loff_t offset, int orig) {
 
 ...
 
-static const struct file_operations emce_fops = { <*\label{fops}*>
+static const struct file_operations emce_fops = { (*\label{fops}*)
 	.owner = THIS_MODULE,
 	.read = mem_read,
 	.write = mem_write,
@@ -2525,7 +2524,7 @@ static struct class *emce_class;
 
 ...
 
-        cdev_init(&edev->cdev, &emce_fops); <*\label{cdev_init}*>
+        cdev_init(&edev->cdev, &emce_fops); (*\label{cdev_init}*)
 	edev->cdev.owner = THIS_MODULE;
 	kobject_set_name(&edev->cdev.kobj, "mem");
 	if(cdev_add(&edev->cdev, edev->dev, USER_MEM)) {
@@ -2538,21 +2537,21 @@ static struct class *emce_class;
 
 	for(minor = 0; minor < USER_MEM; minor++)
 		device_create(emce_class, dev, MKDEV(MAJOR(edev->dev), minor),
-				NULL, "emce%d", minor); <*\label{cdev_init_end}*>
+				NULL, "emce%d", minor); (*\label{cdev_init_end}*)
 \end{lstlisting}
 
 The memories from \device{inbuf}, \device{outbuf} and \device{H} are exposed
-to user space via character devices\cite[p. 42ff]{ldd}. During
+to user space via character devices\cite{ldd}. During
 \lstinline+probe+ the memory ranges are reserved with
-\lstinline+request_mem_region+\cite[p. 249]{ldd} (only one driver is allowed
+\lstinline+request_mem_region+\cite{ldd} (only one driver is allowed
 to handle a memory region at a time) and mapped to a virtual address with
-\lstinline+ioremap+\cite[p. 250]{ldd} (only virtual memory can be accessed).
+\lstinline+ioremap+\cite{ldd} (only virtual memory can be accessed).
 Character devices look to user space as if they were normal files which can
 be opened, seeked, read and written. All those operations are possible on
 the byte level, hence the name. The following paragraphs reference lines from
 \Cref{src:cdev}.\\
 To set up a character device a
-\lstinline+struct_file_operations+\cite[p. 54]{ldd} is needed. This structure
+\lstinline+struct_file_operations+\cite{ldd} is needed. This structure
 has an entry for every possible operation, which in turn is a function pointer
 which need to point to the implementation. Not implemented functions need to
 point to \lstinline+NULL+, which is taken care of by leaving out the fields
@@ -2562,7 +2561,7 @@ accessed and so there is virtually no setup done on \emph{open} and therefor
 no cleanup needs to happen. Allocating the necessary
 memory and initializing everything is taken care of by the functions in
 \Crefrange{cdev_init}{cdev_init_end}. The most important functions are
-\lstinline+cdev_init+\cite[p. 56]{ldd} which allocates the driver structure
+\lstinline+cdev_init+\cite{ldd} which allocates the driver structure
 and initializes the operations, and \lstinline+device_create+ which allocates
 and creates the actual devices. Every device needs a major and a minor number,
 which are used to identify which device a file belongs to. In this example the
@@ -2576,7 +2575,7 @@ kernel deduces from the major number, that this driver is meant and calls
 \lstinline+mem_open+ in \Cref{mem_open}. As mentioned earlier no setup needs
 to be done here. This function only checks if the minor number, which tells
 the driver which of the memories is meant, is in range and then assigns the
-memory area to the private data of the inode\cite[p. 54]{ldd}. Storing this
+memory area to the private data of the inode\cite{ldd}. Storing this
 information within the inode is not actually neede, but without this the
 other functions would need to fetch this data on every invocation.\\
 Every operation on an opened device is in turn handled by the rest of the
@@ -2655,6 +2654,9 @@ therefor very simple and does the following things:
 \section{Network Server and Web-Interface}
 \section{Matlab Driver}
 \label{sec:matlab}
+\lstset{language=Matlab,numbers=left,numberstyle=\tiny,stepnumber=5,numbersep=5pt,frame=single,
+breaklines=true,postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\hookrightarrow\space}},
+captionpos=b,escapeinside={(*}{*)},mathescape=true}
 
 
 % ===========================================================================
