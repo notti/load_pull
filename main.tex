@@ -4,9 +4,6 @@
 
 \usepackage[ngerman,english]{babel}
 
-\usepackage{fontspec}
-\setmonofont{Hack}[Scale=MatchUppercase]
-
 %drawings
 
 \usepackage{graphicx}
@@ -62,6 +59,17 @@
 \tikzexternalwritetomakefile{.DELETE_ON_ERROR:}
 \tikzexternalwritetomakefile{}
 
+\tikzifexternalizing{}{%
+    \usepackage{fontspec}
+    \newfontfamily\hack{hack}[
+        Scale = MatchUppercase,
+        ItalicFont = *-oblique,
+        BoldItalicFont = *-boldoblique,
+    ]
+}
+
+
+
 %math
 
 \usepackage[cmex10]{amsmath}
@@ -111,9 +119,6 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
 \automark*[section]{}
 
 \def\device#1{\textit{#1}}
-\def\signal#1{{\ttfamily #1}}
-\def\module#1{{\ttfamily\bfseries #1}}
-\def\clk#1{{\itshape\ttfamily #1}}
 
 \usepackage[colorlinks,hyperindex,plainpages=false,
 pdftitle={FPGA-based Load-Pull Measurement System},
@@ -2399,7 +2404,7 @@ these advantages the following kernel module has been implemented.
 \section{Kernel Module}
 \label{sec:kernel_module}
 \lstset{language=C,escapeinside={(*}{*)}}
-\begin{lstlisting}[float=htb,language=C,caption={Basic elements of a platform driver module},label=src:pdriver,basicstyle=\ttfamily\tiny]
+\begin{lstlisting}[float=htb,language=C,caption={Basic elements of a platform driver module},label=src:pdriver,basicstyle=\hack\tiny]
 ...
 
 struct emce_device { (*\label{deviceData}*)
@@ -2467,7 +2472,7 @@ reloading the driver.\\
 The driver handles the three tasks:
 \subsubsection{Memory access}
 \lstset{language=C,escapeinside={<*}{*>}}
-\begin{lstlisting}[float=htbp,language=C,caption={Character device},label=src:cdev,basicstyle=\ttfamily\tiny]
+\begin{lstlisting}[float=htbp,language=C,caption={Character device},label=src:cdev,basicstyle=\hack\tiny]
 ssize_t mem_read (struct file *file, char __user *buf,
 		size_t count, loff_t *ppos) { <*\label{mem_read}*>
 	struct user_mem *mem = file->private_data;
@@ -2536,7 +2541,7 @@ static struct class *emce_class;
 				NULL, "emce%d", minor); <*\label{cdev_init_end}*>
 \end{lstlisting}
 
-The memories from \module{inbuf}, \module{outbuf} and \module{H} are exposed
+The memories from \device{inbuf}, \device{outbuf} and \device{H} are exposed
 to user space via character devices\cite[p. 42ff]{ldd}. During
 \lstinline+probe+ the memory ranges are reserved with
 \lstinline+request_mem_region+\cite[p. 249]{ldd} (only one driver is allowed
@@ -3372,16 +3377,16 @@ the different parts of the measurement setup.
     \regfield{depth}{16}{0}{0}%
     \reglabel{Reset}\regnewline%
     \begin{regdesc}\begin{reglist}[auto\_single]
-        \item[avg\_rst] Writing a 1 to this bit resets \module{average\_mem}.
+        \item[avg\_rst] Writing a 1 to this bit resets \device{average\_mem}.
         \item[avg\_err] 1 if the data stream became invalid during data
             acquisition. Gets on next trigger event.
         \item[avg\_active] 1 during data acquisition.
         \item[avg\_width] Number of samples over which averaging is done.
-        \item[auto\_rst] Writing a 1 to this bit resets \module{auto}.
+        \item[auto\_rst] Writing a 1 to this bit resets \device{auto}.
         \item[auto\_single] Does a single automatic mode cycle
             (acquire, convolute, switch output).
         \item[auto\_run] Automatic mode.
-        \item[trig\_rst] Writing a 1 to this bit resets \module{trigger}.
+        \item[trig\_rst] Writing a 1 to this bit resets \device{trigger}.
         \item[trig\_int] Writing a 1 to this bit manually triggers the
             internal trigger.
         \item[trig\_arm] Writing a 1 to this bit arms the trigger.
@@ -3420,7 +3425,7 @@ the different parts of the measurement setup.
     \regfield{core\_L}{12}{0}{0}%
     \reglabel{Reset}\regnewline%
     \begin{regdesc}\begin{reglist}[core\_scale\_cmul]
-        \item[core\_rst] Writing a 1 to this bit resets \module{core}.
+        \item[core\_rst] Writing a 1 to this bit resets \device{core}.
         \item[core\_circular] Set to 1 for circular convolution.
         \item[core\_ov\_cmul] 1 if complex multiplication has overflown.
         \item[core\_ov\_ifft] 1 if iFFT has overflown.
@@ -3461,7 +3466,7 @@ the different parts of the measurement setup.
         \item[tx\_ovfl] 1 if an overflow occurred in the complex multiplier.
             Write a 0 to this bit to reset the overflow.
         \item[tx\_sat] Enable saturation for complex multiplier.
-        \item[tx\_rst] Writing a 1 to this bit resets \module{outbuf}.
+        \item[tx\_rst] Writing a 1 to this bit resets \device{outbuf}.
         \item[tx\_resync] Resynchronizes the sample output to
             tx\_frame\_offset on the internal frame clock.
         \item[tx\_toggle] Writing a 1 to this bit switches the output buffers.
