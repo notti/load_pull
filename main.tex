@@ -59,7 +59,9 @@
 \tikzexternalwritetomakefile{.DELETE_ON_ERROR:}
 \tikzexternalwritetomakefile{}
 
-\tikzifexternalizing{}{%
+\tikzifexternalizing{%
+    \newcommand{\hack}{}
+}{%
     \usepackage{fontspec}
     \newfontfamily\hack{hack}[
         Scale = MatchUppercase,
@@ -166,6 +168,7 @@ pdfpagelabels %,hidelinks
 \newacronym{os}{OS}{operating system}
 \newacronym{led}{LED}{light emitting diode}
 \newacronym{xps}{XPS}{Xilinx Platform Studio}
+\newacronym{snr}{SNR}{signal-to-noise ratio}
 
 \makeglossaries
 
@@ -565,7 +568,7 @@ and the problem of the \gls{if} calibration with a fully configurable digital \g
               ($(upmix)!.5!(downmix)$) node[mixer] (mul) {}
               node[rotate=90,anchor=south] at (mul.west) {mul}
 
-              node[right=0.5 of mul] (gamma) {$\Gamma_{set} = X + j Y$}
+              node[right=0.5 of mul] (gamma) {$\Gamma_{L,set} = X + j Y$}
               node[source,right=0.5 of gamma,scale=0.7,label=right:$f_0$] (lo) {};
 
         \draw ($(dut)!.5!(circ)$) node[coordinate] (plane) {};
@@ -596,7 +599,7 @@ and the problem of the \gls{if} calibration with a fully configurable digital \g
 
         \draw [-latex] ($(plane) + (0.25,-1.5)$) node[anchor=west] {$a_{2}$}-- ++(-0.5,0);
         \draw [latex-] ($(plane) + (0.25,-2)$) node[anchor=west] {$b_{2}$}-- ++(-0.5,0);
-        \draw [latex-] ($(plane) + (0,-2.5)$) -- ++(-0.5,0) node[anchor=east] {$\Gamma_L$};
+        \draw [latex-] ($(plane) + (0,-2.5)$) -- ++(-0.5,0) node[anchor=east] {$\Gamma_{L,set}$};
     \end{tikzpicture}
     \caption{Generic block diagram \gls{elp}}
     \label{fig:elp}
@@ -607,7 +610,7 @@ load coefficient at baseband or \gls{if}. The basic principle of this \gls{elp} 
 can be seen in \cref{fig:elp}. A circulator is used to split the incident and
 reflected wave. The mixer \device{mix1} is used for shifting the spectrum to
 the baseband and for \gls{iq} demodulation. This \gls{iq} signal is then
-multiplied by the complex valued $\Gamma_{set}$ (\device{mul1}), thus creating a specific
+multiplied by the complex valued $\Gamma_{L,set}$ (\device{mul1}), thus creating a specific
 reflection coefficient $\Gamma_L$. Mixer \device{mix2} is used for modulating
 the \gls{iq} signal and upconverting the signal back to the desired \gls{rf} \cite{williams_experimental_2005}.
 
@@ -665,7 +668,7 @@ carrier signal, it can't be filtered out \cite{hashmi_agile_2010}.
               node[source,below=of upmix.center,scale=0.7] (upsource) {}
               node[rotate=90,anchor=south,font=\tiny] at (upsource.west) {$f_0$}
               node[rotate=90,anchor=north] at (upsource.east) {lo4}
-              node[below=of mul.center,fill=white] (gamma) {$\Gamma_{set} = X + jY$};
+              node[below=of mul.center,fill=white] (gamma) {$\Gamma_{L,set} = X + jY$};
 
         \draw ($(dut)!.5!(dirvna)$) node[coordinate] (plane) {};
 
@@ -1160,20 +1163,6 @@ at the digital input port. To fulfill the sampling theosubfigurerem, this sampli
 \gls{if}, therefore bandpass sampling was used. This necessitates that a bandpass
 filter is used as alias filter \device{bp1}.
 
-\Cref{fig:downconversion} explains the frequency spectra for the complete down
-conversion chain (including the digital mixer). The first plot sketches the
-spectrum of interest in \gls{rf} around the frequency $f_0$. After the mixer \device{mix1}, the
-spectrum of interest lies at \SI{70}{\mega\hertz} and $2f_0 + \SI{70}{\mega\hertz}$,
-which is caused by the analog mixer. Because of this, even if only single tones
-within the determined bandwith around $f_0$ are generated, at least a low pass
-has to be used as filter \device{bp1}. As mentioned earlier, the mixer also generates a \gls{dc} component, which is depicted as vertical dashed arrow. During sampling spectral aliases occur. These
-are located at $(n \SI{100}{\mega\hertz} + \SI{70}{\mega\hertz})$ and in mirrored form at
-$(n \SI{100}{\mega\hertz} + \SI{30}{\mega\hertz})$. This mirroring would cause mixing
-of frequency components around $(f_0 - \SI{40}{\mega\hertz})$ into the band of interest,
-if no bandpass filter is used. The last step is the digital mixer, which shifts
-the spectrum $\SI{30}{\mega\hertz}$ to the right. After that the band of interest lies around
-\SI{0}{\hertz} (see \cref{sec:digital}).
-
 \begin{figure}[htb]
     \centering
     \begin{tikzpicture}[every node/.style={font=\tiny},every path/.style={decoration={name=zigzag,segment length=2pt}}]
@@ -1249,6 +1238,20 @@ the spectrum $\SI{30}{\mega\hertz}$ to the right. After that the band of interes
     \caption{Down conversion frequency spectra ($f_s = \SI{100}{\mega\hertz}$).}
     \label{fig:downconversion}
 \end{figure}
+
+\Cref{fig:downconversion} explains the frequency spectra for the complete down
+conversion chain (including the digital mixer). The first plot sketches the
+spectrum of interest in \gls{rf} around the frequency $f_0$. After the mixer \device{mix1}, the
+spectrum of interest lies at \SI{70}{\mega\hertz} and $2f_0 + \SI{70}{\mega\hertz}$,
+which is caused by the analog mixer. Because of this, even if only single tones
+within the determined bandwith around $f_0$ are generated, at least a low pass
+has to be used as filter \device{bp1}. As mentioned earlier, the mixer also generates a \gls{dc} component, which is depicted as vertical dashed arrow. During sampling spectral aliases occur. These
+are located at $(n \SI{100}{\mega\hertz} + \SI{70}{\mega\hertz})$ and in mirrored form at
+$(n \SI{100}{\mega\hertz} + \SI{30}{\mega\hertz})$. This mirroring would cause mixing
+of frequency components around $(f_0 - \SI{40}{\mega\hertz})$ into the band of interest,
+if no bandpass filter is used. The last step is the digital mixer, which shifts
+the spectrum $\SI{30}{\mega\hertz}$ to the right. After that the band of interest lies around
+\SI{0}{\hertz} (see \cref{sec:digital}).
 
 The \gls{adc} chosen for this work was an LTC2274. This \SI{16}{\bit} \gls{adc}
 has an input bandwidth of \SI{700}{\mega\hertz} and is capable of
@@ -1339,34 +1342,30 @@ the same digital interface (see \cref{sec:digital}).
         \draw [-latex] ($(plane) + (0.25,-.5)$) node[anchor=west] {$a_2$}-- ++(-0.5,0);
         \draw [latex-] ($(plane) + (0.25,-1)$) node[anchor=west] {$b_2$}-- ++(-0.5,0);
         \draw [latex-] ($(plane) + (0,-1.5)$) -- ++(-0.5,0) node[anchor=east] {$\Gamma_L$};
+
+        {[densely dashdotdotted,latex-latex]
+            \draw ($(inbuf.north) + (0,1)$) -- ++(0,1) node [anchor=south] {\glsentryshort{pc}};
+        }
     \end{tikzpicture}
     \caption{Digital part}
     \label{fig:digital}
 \end{figure}
 
-The digital part consists of a single \SI{16}{\bit} digital signal processing
-chain operating at \SI{100}{\mega\samples\per\second}. Samples from
-the \gls{adc}, which represent the \gls{if} version of $b_2$ are stored in an input
-buffer \device{buffer1}. The buffer, which was designed for this work, has a configurable
-sample depth and is capable of averaging the samples from up to 8 consecutive sample
-periods. To shift the \gls{if} sampled data into baseband, the digital mixer $mix2$ was implemented
-after this buffer. The \gls{lo} generates the needed \SI{30}{\mega\hertz} (see \cref{fig:downconversion})
-sine and cosine waveforms using a fixed lookup table. This approach has the
-advantage of a highly accurate \gls{iq}-demodulation without any amplitude or
-phase imbalances. After base band conversion, a low pass filter would be needed to
-suppress the aliases generated from the sampling process, as can be seen in
-\cref{fig:downconversion}. To keep resource usage at a minimum, this filter was
-left out of the design, since this task can also be achieved with the configurable
-filter \device{fir1} in the next processing step. Since this filtering takes some time,
-the output sample buffer \device{buffer2}, with double buffering, is used to store
-the filtered results. This buffer enables the continuous playback of the signal, even
-during calculation of the next signal period. The last element in the processing chain
-is the complex multiplier \device{mul1}, which is responsible for the actual reflection
-generation. This multiplier allows adjusting the phase and amplitude of the reflection
-coefficient $\Gamma_L$ by varying $X$ and $Y$.
+The digital part in \cref{fig:digital} consists of a single \SI{16}{\bit} digital signal processing
+chain operating at \SI{100}{\mega\samples\per\second}. It is responsible
+for the reflection synthesis. This reflection synthesis is achieved with
+the filter \device{fir1} and the multiplicator \device{mul1}. Furthermore
+it contains the mixer \device{mix2}. This mixer is needed for \gls{iq}-demodulation
+and down conversion from \gls{if} to baseband. The filter \device{fir1}
+needs a static digital representation of the samples for the filter calculations.
+Therefore, the additional sample buffers \device{buffer1} and \device{buffer2} are
+included into the signal processing chain.
 
-The \gls{adc} LTC2274, has a JESD204 compliant high speed serial interface \cite{ltc2274}.
-This interface uses 8b/10b line coding over a \gls{lvds} connection \cite{jesd205B.01}. The line coding
+As can be seen in \cref{fig:digital}, a digital representation of the \gls{if}
+signal $b_2$ is provided by the analog part. As mentioned in \cref{sec:analog}
+a LTC2274 was chosen as \gls{adc}. This \gls{adc} has a
+JESD204 compliant high speed serial interface \cite{ltc2274}. This interface uses 8b/10b
+line coding over a \gls{lvds} connection \cite{jesd205B.01}. The line coding
 is responsible for keeping a balanced number of ones and zeros on the line, therefore keeping a long term
 \gls{dc} balance on the line. This allows transmitting the data stream through a high pass
 channel. Clock recovery is also possible, since this protocol ensures frequent transitions
@@ -1427,10 +1426,10 @@ in the bit stream.
               (out) ++(1.9,1.05) node[anchor=south west] {OK1}
               (out) ++(1.9,-0.3) node[anchor=north west] {TLP283};
 
-        \begin{scope}[every path/.style={decorate,decoration={brace,mirror}},every node/.style={font=\normalsize}]
-            \draw ($(lpower)-(0.5cm,0.7cm)$) -- ([xshift=0.5cm]\currentcoordinate -| rpower) node[midway,below,yshift=-2pt] {signal detection};
-            \draw ($(lthreshold)-(0.5cm,0.7cm)$) -- (\currentcoordinate -| rthreshold) node[midway,below,yshift=-2pt] {threshold};
-            \draw ($(ldelay)-(0.5cm,0.7cm)$) -- ([xshift=0.5cm]\currentcoordinate -| out+) node[midway,below,yshift=-2pt] {time delay};
+        \begin{scope}[every path/.style={decorate,decoration={brace,mirror,amplitude=5pt}},every node/.style={font=\Large}]
+            \draw ($(lpower)-(0.5cm,0.7cm)$) -- ([xshift=0.5cm]\currentcoordinate -| rpower) node[midway,below,yshift=-5pt] {signal detection};
+            \draw ($(lthreshold)-(0.5cm,0.7cm)$) -- (\currentcoordinate -| rthreshold) node[midway,below,yshift=-5pt] {threshold};
+            \draw ($(ldelay)-(0.5cm,0.7cm)$) -- ([xshift=0.5cm]\currentcoordinate -| out+) node[midway,below,yshift=-5pt] {time delay};
         \end{scope}
     \end{tikzpicture}
     }
@@ -1449,21 +1448,46 @@ via \device{$C_5$}, used as an \gls{ac} short to the TX+ pin of the \gls{sata} c
 needed for input matching. The TX-- pin of the \gls{sata} connector is directly connected to an \gls{sma} connector.
 This enables clocking the \gls{adc} board using a clock signal delivered by the \gls{fpga}. The second part
 is the comparator \device{IC1a}. This comparator was used to define a minimum threshold of \SI{194}{\milli\volt}
-for valid clock signals. The last part is a time delay. This time delay starts after a valid clock
+for valid clock signals. The last part is a time delay element. This time delay starts after a valid clock
 signal is detected and lasts for about \SI{25.7}{\milli\second}. During
 this time the pins \device{SYNC1} and \device{SYNC2} are connected via the optocoupler \device{OK1}, which
 enables the synchronization mode of the \gls{adc}. The implemented adapter circuit board atop the
 \gls{adc} evaluation board can be seen in \cref{fig:adc_adapter_circ}.
 
-The JESD204 also supports using a scrambler on the raw data, in order to lessen the
-noise caused by the digital transmission in the analog part. The scrambler implemented for
-this project is based on the generator polynomial given in \cref{eq:poly} \cite{jesd205B.01}. This scrambler can
-be bypassed if a different \gls{adc} is used. A more detailed explanation of the input interface
-can be found in \cref{sec:acquisition}.
-\begin{equation}
-    \label{eq:poly} g(x) = 1 + x^{14} + x^{15}
-\end{equation}
+Samples provided via this connection by the \gls{adc} are stored in the sample buffer
+\device{buffer1}. To be able to improve the \gls{snr} of the \gls{adc} this buffer
+was designed with an averaging capability\cite{ad_mt004}. This averaging was implemented by increasing
+the sample size of this buffer to \SI{19}{\bit}. Furthermore, samples can be accumulated
+from up to eight consecutive signal cycles. Averaged samples can then be read by dividing the
+accumulated samples by the number of cycles.
 
+After this buffer, the \gls{if} sampled data is \gls{iq}-demodulated into baseband
+with mixer $mix2$. The \gls{lo} \device{lo3} generates the needed
+\SI{30}{\mega\hertz} sine and cosine waveforms using a fixed lookup table. This
+approach has the advantage of a highly accurate
+\gls{iq}-demodulation without any amplitude or phase imbalances. After base band
+conversion, a low pass filter would be needed to
+suppress the aliases generated from the sampling process, as can be seen in
+\cref{fig:downconversion}. This task can also be achieved with the configurable
+filter \device{fir1} in the next processing step. Therefore the aliasing filter
+was left out of the design to keep resource usage at a minimum.
+
+Next in the signal processing chain is the filter \device{fir1}.
+As meantioned earlier this filter is needed to be able to synthesize a reflection coefficient
+$\Gamma_L$ over a frequency range of \SI{20}{\mega\hertz}. This filter is a causal \gls{fir} filter with
+the input $x[n]$, the length $n_{fft}$, the impulse response $h[n]$, and the output $y[n]$. The input samples
+$x[n]$ represent the samples in buffer \device{buffer1} and the output samples $y[n]$ the samples in buffer \device{buffer2}. This filter is
+implemented with linear convolution using the \gls{fft}:
+\begin{equation}
+    \begin{split}
+     \label{eq:circ} y[n] = h[n] * x[n] & = \sum_{k=0}^{n_{fft}-1} h[k]x[n-k]\\
+         & = \mathcal{DFT}^{-1}\left\{\mathcal{DFT}(x[n])\,\mathcal{DFT}(h[n])\right\}
+    \end{split}
+\end{equation}
+Since implementing the \gls{fft} in hardware uses a lot of resources, overlap add
+was used to allow for larger signal periods than $n_{fft}$. As shown by \cite{schaums_2011}
+this algorithm splits the signal $x[n]$ into non-overlapping
+subsequences of length $L$ (see \cref{fig:overlap_add}).
 \begin{figure}[htb]
     \centering
     \begin{tikzpicture}
@@ -1498,16 +1522,19 @@ can be found in \cref{sec:acquisition}.
             \draw (1,0.75em) node[coordinate] (circto) {};
             \draw (4.5,1.5em) node[coordinate] (y2t) {};
             \draw (0.5,1.5em) node[coordinate] (ynt) {};
+            \draw (0.5,0) node[coordinate] (ynb) {};
         \end{scope}
         \draw (0,0.75em) node[anchor=east] {$y[n]$};
         \draw (0,0) rectangle (5,1.5em);
         \draw [dashed,color=red] (5,0) rectangle (6,1.5em);
         \draw [dotted] (6,1.5em) rectangle (7,0em);
         \draw [latex-,color=red] (circto) parabola (5.5,1.5em);
+        \draw (0.5,1.5em) node[coordinate] (yt) {};
 
         \draw ($(y0b)!.5!(y1t)$) node {$+$};
         \draw ($(y1b)!.5!(y2t)$) node {$+$};
         \draw ($(y2b)!.5!(ynt)$) node {$+$};
+        \draw ($(ynb)!.5!(yt)$) node[color=red] {$+$};
         \draw [dotted]
               (0,1.5em) -- (0,13em)
               (1,1.5em) -- (1,9em)
@@ -1525,18 +1552,7 @@ can be found in \cref{sec:acquisition}.
     \caption{Overlap add algorithm (linear convolution, with circular in red). }
     \label{fig:overlap_add}
 \end{figure}
-The filter \device{fir1} (see \cref{fig:digital}) is a causal \gls{fir} filter with length $n_{fft}$, the impulse response $h[n]$, and the output $y[n]$. This filter is
-implemented with convolution using the \gls{fft}:
-\begin{equation}
-    \begin{split}
-     \label{eq:circ} y[n] = h[n] * x[n] & = \sum_{k=0}^{n_{fft}-1} h[k]x[n-k]\\
-         & = \mathcal{DFT}^{-1}\left\{\mathcal{DFT}(x[n])\,\mathcal{DFT}(h[n])\right\}
-    \end{split}
-\end{equation}
-Since implementing the \gls{fft} in hardware uses a lot of resources, overlap add
-was used to allow for higher signal periods than $n_{fft}$. As shown by \cite{schaums_2011}
-this algorithm splits the signal $x[n]$ into non-overlapping
-subsequences of length $L$ (see \cref{fig:overlap_add}). Therefore $x[n]$ can
+Therefore $x[n]$ can
 be expressed by a sum of shifted finite-length sequences:
 \begin{equation}
     \label{eq:sum_seq} x[n] = \sum_{i=0}^{\infty} x_i[n-iL] \qquad x_i[n] =\begin{cases}
@@ -1550,28 +1566,43 @@ Applying the linear convolution to this sum leads to
     \end{split}
 \end{equation}
 where $y_i[n]$ is the linear convolution of $x_i[n]$ with $h[n]$. Because every $y[n]$ is of length
-$N = L + n_{fft} -1$, the \cref{eq:circ} with n-point \glspl{fft} can be used to calculate them.
+$N = L + n_{fft} -1$, \cref{eq:circ} utilizing n-point \glspl{fft} can be used to calculate the results.
 Every convoluted subsequence $y_i[n]$ overlaps by $n_{fft} - L$. Since this overlapping
 points are summed up by \cref{eq:overlap_add_sum}, this method is called overlap
 add. A visualisation can be seen in \cref{fig:overlap_add}. The red part in the figure
 is the circular extension of the linear convolution, which is done by adding the
-$n_{fft} - L$ points after the sequence $y[n]$ to the beginning of $y[n]$. The hardware implementation
-of this algorithm can be found in \cref{sec:overlap_add}.
+$n_{fft} - L$ points after the sequence $y[n]$ to the beginning of $y[n]$.
 
-According to \cite{fsq_b17}, the digital \gls{iq} interface needed to communicate
-with the vector signal generator chosen for this \gls{elp} measurement
-system (see \cref{sec:analog}) is implemented according to the channel link serializer described in \cite{ds90cr485}. This
+As mentioned earlier the filter \device{fir1} needs a static image of the samples.
+Another requirement is, that samples are continously output to the \gls{dac}. This
+is needed to ensure that the \gls{dut} does not leave eventual bias points during
+measurements. Therefor the buffer \device{buffer2} after the filter was implemented
+with double buffering. This means that this sample buffer consists of an active
+and an inactive buffer. The active buffer is used to continuously play back the output
+signal, while the inactive buffer can be used during the filter calculations. After
+a new signal period has been computed the buffers can be swapped without interrupting
+the output signal.
+
+The last element in the processing chain is the complex multiplier \device{mul1}. This
+multiplier is responsible for the actual reflection generation. It allows
+adjusting the phase and amplitude of the reflection coefficient $\Gamma_{L,set}$ by
+varying $X$ and $Y$. Samples from \device{buffer2} are continuously multiplied
+with this reflection coefficient and output to the analog part as signal $a_2$.
+
+The digital interface needed to forward the processed samples to the analog part
+was implemented according to the digital \gls{iq} interface supported by the used
+SMBV100A signal generator from Rhode \& Schwarz. According to \cite{fsq_b17}, this interface is
+implemented according to the channel link serializer described in \cite{ds90cr485}. This
 serializer uses eight \gls{lvds} data lines and one \gls{lvds} clock line. Each of the lines
-is clocked at \SI{350}{\mega\hertz}. The translation from parallel to serial was implemented
-in the \gls{fpga} fabric, according to the data sheet \cite{ds90cr485} and used
-the bit mapping from the manual \cite{fsq_b17}. This interface provides a resolution of \SI{20}{\bit}.
-Since the digital signal processing chain in this work is only able to process \SI{16}{\bit},
-the lower \SI{4}{\bit} were tied to zero. One missing detail from the documentation,
+is clocked at \SI{700}{\mega\hertz} for a sample rate of \SI{100}{\mega\hertz}. An adapter
+board was developed for this work that allows connecting pin headers of an \gls{fpga} board with
+the needed mini D ribbon connector\cite{fsq_b17}. The connector and the wiring schema for the adapter
+were laid out according to the data sheet in \cite{fsq_b17}. One missing detail from the documentation,
 which was found out empirically during this work, is that the S\_CLK pin of the connector
-has to be connected to ground in order for the signal generator to recognize a connected
-device. Other vector signal generators with the same interface can be used as a drop in
-replacement. The detailed hardware implementation can be found in \cref{sec:smbv_interface} and
-a photo of the implemented pin header to digital \gls{iq} adapter can be seen in \cref{fig:iq_adapter_circ}.
+has to be connected to ground. This signal is marked for future use in the data sheet \cite{fsq_b17}.
+Without this ground connection the SMBV100A signal generator does not recognize a connected peripheral
+at the digital \gls{iq} port. A photo of the implemented pin header to digital \gls{iq} adapter including
+the fix can be seen in \cref{fig:iq_adapter_circ}.
 
 \begin{figure}[htb]
     \begin{subfigure}[c]{.45\linewidth}
@@ -1604,6 +1635,10 @@ a photo of the implemented pin header to digital \gls{iq} adapter can be seen in
     \caption{Photos of implemented adapter boards}
     \label{fig:adapters}
 \end{figure}
+
+The complete digital signal processing chain described in this section was implemented
+in an \gls{fpga}. A detailed description of the digital hardware implementation can
+be seen in \cref{chap:fpga}.
 
 % ===========================================================================
 
@@ -1842,6 +1877,17 @@ After the GTX transceiver, the \device{descrambler} module descrambles the data
 according to the data sheet of the \gls{adc}\cite{ltc2274}. This descrambler
 can be bypassed, therefore allowing the use of \glspl{adc} that do not support
 this feature.
+
+%TODO
+The JESD204 also supports using a scrambler on the raw data, in order to lessen the
+noise caused by the digital transmission in the analog part. The scrambler implemented for
+this project is based on the generator polynomial given in \cref{eq:poly} \cite{jesd205B.01}. This scrambler can
+be bypassed if a different \gls{adc} is used. A more detailed explanation of the input interface
+can be found in \cref{sec:acquisition}.
+\begin{equation}
+    \label{eq:poly} g(x) = 1 + x^{14} + x^{15}
+\end{equation}
+%TODO
 
 Averaging the data is handled by the \device{average\_mem} module. This module
 consists of the above mentioned \SI[product-units=brackets]{19 x 49152}{\bit} memory. Averaging is achieved
@@ -2869,7 +2915,7 @@ result of three exemplary points can be seen in \cref{tab:vna}.
 The results are highly dependent on the used oscilloscope and calibration kit. The standard error
 depends notably on the performance of the oscilloscope. Therefore these
 results are only valid for the used oscilloscope in this work. Additionally care should be taken, to
-always use a strong enough signal power, in order to achieve the best possible oscilloscope resolution.
+always use a strong enough signal power, in order to achieve the best possible oscilloscope resolution. %Oppenheimer p196 SNR-=6db for amplitude/2
 The difference to the results from the Agilent \gls{vna} is mainly caused by the used calibration kit.
 
 % ---------------------------------------------------------------------------
