@@ -746,9 +746,15 @@ uses direct conversion, which creates additional \gls{dc} components in the \gls
 signals. Since these have to be removed by filters, the band around \SI{0}{\hertz} is
 not usable for reflection generation. Additionally it uses a variable delay line in
 the \gls{fpga}, to compensate the phase difference of multiple carriers. The design presented in
-\cref{fig:overall_hf} was within this thesis keeping these limitations in mind. Instead of direct
-conversion a superheterodyne design is used. Furthermore the delay line was replaced by
-a fully configurable filter \device{fir1}. The setup consists of three distinct parts:
+\cref{fig:overall_hf} was designed within this thesis keeping these limitations in mind. Instead of direct
+conversion a superheterodyne design was used. Furthermore the delay line was replaced by
+a fully configurable filter \device{fir1}. This filter allows synthesizing reflections with the required bandwidth
+of \SI{20}{\mega\hertz}. It is needed to compensate the frequency response of the rest of the setup.
+Without this filter the reflection coefficient $\Gamma_L$ would not be constant over the bandwidth. This
+is caused by the frequency responses of the different components. Furthermore the different frequencies
+equal different wavelengths which in turn experience different phase shifts. Those phase shifts are caused by the geometric
+dimensions of the setup and delays introduced by buffering.
+The setup consists of three distinct parts:
 
 \begin{enumerate}
     \item A one port \gls{vna}, to be able to measure the current $\Gamma_L$. This part is
