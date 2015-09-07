@@ -1375,7 +1375,7 @@ in the bit stream.
             to[short,o-] (0.8,4) -- ++(0.4,0) node[contact] (innode) {}
             to[capacitor={info=$C_5$,farad'=10n}] ++(1.8,0) node[draw,right,text width=6em,minimum height=11em] (ad8361) {}
             node[right,font=\tiny] {RFIN} node[above left] {3}
-            (innode |- down) node[rground] {} to[resistor={info sloped=$R_{10}$,ohm' sloped=66}] (innode)
+            (innode |- down) node[rground] (lpower) {} to[resistor={info sloped=$R_{10}$,ohm' sloped=66}] (innode)
         ([yshift=-4.5em]ad8361.west) node[right,font=\tiny] {PWDN} node[above left]  {4} -| (2.5,0) node[rground] {}
         ([yshift= 1.5em]ad8361.east) node[left,font=\tiny]  {FLTR} node[above right] {6} -- ++(0.5,0)
         ([yshift=   3em]ad8361.east) node[left,font=\tiny]  {IREF} node[above right] {2} -- ++(0.5,0) -- (\currentcoordinate |- up) node[vcc] {} node[anchor=south,rotate=90] {\SI{+3.3}{\volt}}
@@ -1383,17 +1383,17 @@ in the bit stream.
             (\currentcoordinate |- 0,3) node[contact] (lvcap1) {} -- ++(1.8,0) node[coordinate] (rvcap1) {}
             (lvcap1 |- down) node[rground] {} to[capacitor={info sloped=$C_1$,farad' sloped=100p}] (lvcap1)
             (rvcap1 |- down) node[rground] {} to[capacitor={info sloped=$C_2$,farad' sloped=10n}] (rvcap1)
-        ([yshift=  -3em]ad8361.east) node[left,font=\tiny]  {SREF} node[above right] {8} -- ++(0.5,0) -- (\currentcoordinate |- down) node[rground] {}
+        ([yshift=  -3em]ad8361.east) node[left,font=\tiny]  {SREF} node[above right] {8} -- ++(0.5,0) -- (\currentcoordinate |- down) node[rground] (rpower) {}
         ([yshift=-4.5em]ad8361.east) node[left,font=\tiny]  {COMM} node[above right] {5} -- ++(0.5,0) node[contact] {}
                        (ad8361.east) node[left,font=\tiny]  {VRMS} node[above right] {7} -- ++(5.5,0) node[op amp,anchor=+,yscale=-1] (op1) {}
         (op1.+) node[above] {3}
         (op1.-) node[above] {2} -- ++(-0.5,0) node[contact] (op1-) {}
-        (op1- |- down) node[rground] {} to[resistor={info sloped=$R_2$,ohm' sloped=1k}] (op1-) to[resistor={info sloped=$R_1$,ohm' sloped=33k}] (op1- |- up) node[vcc] {} node[anchor=south,rotate=90] {\SI{+3.3}{\volt}}
+        (op1- |- down) node[rground] (lthreshold) {} to[resistor={info sloped=$R_2$,ohm' sloped=1k}] (op1-) to[resistor={info sloped=$R_1$,ohm' sloped=33k}] (op1- |- up) node[vcc] {} node[anchor=south,rotate=90] {\SI{+3.3}{\volt}}
         (op1.down) node[right,yshift=3pt] {8} -- (op1.up |- up) node[vcc] {} node[anchor=south,rotate=90] {\SI{+3.3}{\volt}}
         (op1.up) node[right,yshift=-3pt] {4} -- (op1.down |- down) node[rground] {}
         ++(1.2,0) node[rground] {} to[capacitor={info sloped=$C_3$,farad' sloped=100n}] (op1- -| \currentcoordinate) |- (op1.down |- vcc1) node[contact] {}
-        (op1.out) node[above left] {1} -- ++(1.5,0) node[contact] (op2+) {} -- ++(2,0) node[op amp,anchor=+] (op2) {}
-        (op2+ |- down) node[rground] {} to[capacitor={info sloped=$C_4$,farad' sloped=100n}] ($(\currentcoordinate)!.5!(op2+)$)
+        (op1.out) node[above left] (rthreshold) {1} -- ++(1.5,0) node[contact] (op2+) {} -- ++(2,0) node[op amp,anchor=+] (op2) {}
+        (op2+ |- down) node[rground] (ldelay) {} to[capacitor={info sloped=$C_4$,farad' sloped=100n}] ($(\currentcoordinate)!.5!(op2+)$)
             to[resistor={info sloped=$R_3$,ohm' sloped=91}] (op2+) -- (op2+ |- vcc1) node[contact] (op2+a) {}
             to[resistor={info sloped=$R_4$,ohm' sloped=330k}] (op2+a |- up) node[vcc] {} node[anchor=south,rotate=90] {\SI{+3.3}{\volt}}
         (op2.+) node[above] {5}
@@ -1418,6 +1418,12 @@ in the bit stream.
               (ad8361) node[below left,yshift=-2.2cm] {AD8361}
               (out) ++(1.9,1.05) node[anchor=south west] {OK1}
               (out) ++(1.9,-0.3) node[anchor=north west] {TLP283};
+
+        \begin{scope}[every path/.style={decorate,decoration={brace,mirror}},every node/.style={font=\normalsize}]
+            \draw ($(lpower)-(0.5cm,0.7cm)$) -- ([xshift=0.5cm]\currentcoordinate -| rpower) node[midway,below,yshift=-2pt] {signal detection};
+            \draw ($(lthreshold)-(0.5cm,0.7cm)$) -- (\currentcoordinate -| rthreshold) node[midway,below,yshift=-2pt] {threshold};
+            \draw ($(ldelay)-(0.5cm,0.7cm)$) -- ([xshift=0.5cm]\currentcoordinate -| out+) node[midway,below,yshift=-2pt] {time delay};
+        \end{scope}
     \end{tikzpicture}
     }
     \caption{Synchronization signal generator for \gls{adc}}
