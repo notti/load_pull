@@ -1424,38 +1424,30 @@ in the bit stream.
     \label{fig:adc_adapter}
 \end{figure}
 
-To minimize the hardware developement time, a Linear Technology DC1151A-D eval board was used
-for this work. This eval board consists of a \gls{sma} connector for the analog input, two \gls{sma}
+To minimize the hardware development time, a Linear Technology DC1151A-D evaluation board was used
+in this work. This board consists of a \gls{sma} connector for the analog input, two \gls{sma}
 connectors for data+ and data-- of the \gls{lvds} connection, an \gls{sma} connector for clock input
-and two pins to enable synchronization mode. For easier cable management, an adapter circuit
-board was developed to be able to use a \gls{sata} cable for clock and data. Furthermore the synchronization
-circuit in \cref{fig:adc_adapter} was developed, to start a synchronization cycle by briefly stopping the clock
-signal. This synchronization circuit consists of the power detector \device{IC1}, which is connected
-via \device{$C_5$}, used as an \gls{ac} short to the TX+
-pin of the \gls{sata} connector. \device{$R_{10}$} is needed for input matching. The TX-- pin of the \gls{sata} connector is directly connected to
-an \gls{sma} connector. This enables supplying the \gls{adc} board with a clock signal from the \gls{fpga}. After
-the power detector, the output signal \device{VRMS} is compared to \SI{97}{\milli\volt},
-produced by the voltage divider $R_1$ and $R_2$. This is carried out by the comparator \device{IC2A}. Therefore a minimum voltage
-swing of about \SI{194}{\milli\volt} is needed to recognize a valid clock signal. The comparator
-\device{IC2} features an open collector output, thus draining the capacitor $C_2$ through
-$R_3$, if no clock signal is present. Furthermore, this causes \device{IC2B} to connect the output
-to ground, which in turn connects \device{SYNC1} and \device{SYNC2} via the optocoupler \device{OK1}.
-Right after a valid clock signal is detected, $C_2$ starts to charge via $R_4$ and $R_3$. After
-about \SI{25.7}{\milli\second} this combination reaches the switching threshold of \SI{1.6}{\volt}. This
-switching threshold is set by the voltage divider $R_5$/$R_6$. After reaching this threshold at the input pin 5 of \device{IC2B},
-the output transistor of \device{IC2B} is switched off. Since this disconnects \device{OK1} from ground, the synchronization
-signal stops.  This provides the \gls{adc} with a \SI{25.7}{\milli\second} long synchronization
-request after a clock signal is detected. The resistor $R_7$ enables a more stable operation and prevents \device{IC2B} from
-oscillating near the switching threshold. The implemented adapter circuit board atop the \gls{adc}
-eval board can be seen in \cref{fig:adc_adapter_circ}.
+and two pins to enable the synchronization mode. For easier wiring an adapter circuit
+board was designed to be able to use a \gls{sata} cable for clock and data. Furthermore the synchronization
+circuit in \cref{fig:adc_adapter} was developed, to start a synchronization cycle by shortly suspending the clock
+signal. The synchronization circuit consists of three parts. The power detector \device{IC1} which is connected
+via \device{$C_5$}, used as an \gls{ac} short to the TX+ pin of the \gls{sata} connector. \device{$R_{10}$} is
+needed for input matching. The TX-- pin of the \gls{sata} connector is directly connected to an \gls{sma} connector.
+This enables clocking the \gls{adc} board using a clock signal delivered by the \gls{fpga}. The second part
+is the comparator \device{IC1a}. This comparator was used to define a minimum threshold of \SI{194}{\milli\volt}
+for valid clock signals. The last part is a time delay. This time delay starts after a valid clock
+signal is detected and lasts for about \SI{25.7}{\milli\second}. During
+this time the pins \device{SYNC1} and \device{SYNC2} are connected via the optocoupler \device{OK1}, which
+enables the synchronization mode of the \gls{adc}. The implemented adapter circuit board atop the
+\gls{adc} evaluation board can be seen in \cref{fig:adc_adapter_circ}.
 
-The JESD204 also encourages using a scrambler on the raw data, in order to lessen the
+The JESD204 also supports using a scrambler on the raw data, in order to lessen the
 noise caused by the digital transmission in the analog part. The scrambler implemented for
-this project is based on the polynomial given in \cref{eq:poly} \cite{jesd205B.01}. This scrambler can
+this project is based on the generator polynomial given in \cref{eq:poly} \cite{jesd205B.01}. This scrambler can
 be bypassed if a different \gls{adc} is used. A more detailed explanation of the input interface
 can be found in \cref{sec:acquisition}.
 \begin{equation}
-    \label{eq:poly} 1 + x^{14} + x^{15}
+    \label{eq:poly} g(x) = 1 + x^{14} + x^{15}
 \end{equation}
 
 \begin{figure}[htb]
@@ -1519,7 +1511,7 @@ can be found in \cref{sec:acquisition}.
     \caption{Overlap add algorithm (linear convolution, with circular in red). }
     \label{fig:overlap_add}
 \end{figure}
-The filter $f2$ is a causal \gls{fir} filter with length $n_{fft}$, the impulse response $h[n]$, and the output $y[n]$. This filter is
+The filter \device{fir1} (see \cref{fig:digital}) is a causal \gls{fir} filter with length $n_{fft}$, the impulse response $h[n]$, and the output $y[n]$. This filter is
 implemented with convolution using the \gls{fft}:
 \begin{equation}
     \begin{split}
