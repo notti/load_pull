@@ -28,7 +28,6 @@
 \usetikzlibrary{shadows}
 \usetikzlibrary{shapes.geometric}
 \usetikzlibrary{shapes.misc}
-\usepackage{tikz-timing}
 \include{rfsymbols}
 \makeatletter
 \newcommand\currentcoordinate{\the\tikz@lastxsaved,\the\tikz@lastysaved}
@@ -1648,13 +1647,12 @@ be seen in \cref{chap:fpga}.
 \label{chap:fpga}
 
 The digital part, as described in \cref{sec:digital}, was realized in \gls{vhdl}.
-It was specifically tailored to a Xilinx Virtex5 FXT. This \gls{fpga}
-provides the necessary high speed transceivers, sufficient block \gls{ram},
-and dedicated digital signal processing hardware \cite{virtex5}.
-In order to minimize the development time the ML507
-evaluation board was used, which contains the
-\gls{sata} connector needed for the \gls{adc} to be connected to a high speed GTX transceiver of the \gls{fpga}. Furthermore, high speed differential
-pin headers, which can be used for the digital \gls{iq} interface, are also present. Additionally, the board contains an
+It was specifically tailored to a Xilinx Virtex5 FXT on a ML507 evaluation board.
+The \gls{fpga} model XC5VFX70T on this evaluation board provides the necessary
+high speed transceivers, sufficient block \glspl{ram}, and dedicated digital
+signal processing hardware \cite{virtex5ds}. Furthermore the ML507 board contains
+the \gls{sata} connector needed for the \gls{adc} and high speed differential
+pin headers which can be used for the digital \gls{iq} interface. Additionally, the board contains an
 Ethernet port enabling high speed data exchange with a \gls{pc}. Although, according to
 \cite{ml507}, the \gls{sata} headers are only rated up to \SI{1.5}{\giga\bit\per\second},
 it was confirmed during tests that the necessary \SI{2}{\giga\bit\per\second}, as required
@@ -1662,10 +1660,10 @@ by the \gls{adc} \cite{ltc2274}, are also technically feasible. This \gls{fpga} 
 hardwired PowerPC \gls{cpu}, which was used for controlling the digital components
 and as a communication bridge to the \gls{pc}. The complete source codes can be found in \cref{sec:sources}.
 
-\tikzset{inbuf/.style={color=Dark2-4-1}}
-\tikzset{core/.style={color=Dark2-4-2}}
-\tikzset{outbuf/.style={color=Dark2-4-3}}
-\tikzset{pc/.style={color=Dark2-4-4}}
+\tikzset{inbuf/.style={color=Set1-4-1}}
+\tikzset{core/.style={color=Set1-4-2}}
+\tikzset{outbuf/.style={color=Set1-4-3}}
+\tikzset{pc/.style={color=Set1-4-4}}
 
 \begin{figure}[htb]
     \centering
@@ -1787,30 +1785,137 @@ and as a communication bridge to the \gls{pc}. The complete source codes can be 
     \label{fig:fpga_overview}
 \end{figure}
 
-The design overview, as can be seen in \cref{fig:fpga_overview}, describes
+The design overview, as can be seen in \cref{fig:fpga_modules}, describes
+the high level modules of the design and connections between them. The overall
+design was split into two parts. The digital signal processing chain
+in \cref{fig:digital_chain} (see \cref{sec:digital}) implemented in the
+\device{main} module. The \device{main} module is described in
+\cref{sec:digital_processing}. The second part is the \device{processor} module
+which contains a complete system on chip. This module was used to be able to
+implement the necessary protocols for communicating with a \gls{pc} in software.
+It is described in \cref{sec:processor}.
+
+This design uses the unrelated clocks from the \gls{plb} and the \gls{adc}.
+Therefore clock synchronization was needed to minimize the chance of metastable
+processes. This was achieved using a two-stage synchronizer as the base
+synchronization circuit. Signals with short pulses were synchronized with an
+additional pulse shaping to prevent lost pulses. Signal buses were synchronized
+with an open loop approach. This approach leaves out the acknowledgement of the
+synchronization which is sufficient for this design because the
+\device{processor} module is not fast enough to change the bus value within the
+synchronization period. Block \gls{ram} in the used \gls{fpga} are true dual port
+memories. Therefore no synchronization is necessary for read access. If one port
+writes to the memory the other port must not access the same location at the same
+time\cite{virtex5}. Care was taken to avoid this situation by disallowing
+memory access from the other port during writes.
+
+% ---------------------------------------------------------------------------
+
+\section[Digital Signal Processing Chain]{Digital Signal Processing Chain - main}
+\label{sec:digital_processing}
+
+The design overview, as can be seen in \cref{fig:main_overview}, describes
 the high level modules of the design and connections between them. The modules \device{inbuf},
 \device{core}, \device{outbuf}, and \device{auto} contain the filtering functionality as described in
 \cref{sec:digital}. Those modules, which are described in more detail in \cref{sec:acquisition,sec:overlap_add,sec:smbv_interface,sec:auto},
 are packed into the \device{core}-module in order to separate the signal processing functionality from
 the rest of the \gls{fpga} design. A \device{Processor Interface} module, consisting of a memory controller,
 a register implementation, and an interrupt controller enables the \gls{cpu} to interact with the
-\device{core} module. This module is described in \cref{sec:processor_interface}.
-The remaining embedded processor design, consisting of the \gls{cpu} and the
-peripherals connected to the \gls{plb}, is described in \cref{sec:processor}.
+\device{core} module.
 
-Since this design uses the unrelated clocks from the \gls{plb} and the
-\gls{adc} clock synchronization was needed to minimize
-the chance of metastable processes. This was achieved using two-stage synchronizers and
-additional pulse shaping, where necessary. Block
-\gls{ram}, which needed to be accessed from two different clock domains, was
-utilized using two ports where possible (eg. in module \device{outbuf}), or
-clock multiplexing using dedicated \gls{fpga} resources (eg. in module \device{inbuf}). Undefined behaviour
-can occur in the block \gls{ram}, if the timing conditions of the address signals are violated
-while the enable signal is high. This can lead to memory corruption
-even if write enable is not asserted\cite{virtex5}. Therefore, the
-enable signal of the block \gls{ram} is switched to low during clock transitions.
-Since this is not possible for an unstable sample clock, the validity of
-the sample buffers is not guaranteed during port operation of the \gls{adc} data connection.
+\begin{figure}[htb]
+    \centering
+    \begin{subfigure}[c]{.49\linewidth}
+        \centering
+        \begin{tikzpicture}[every node/.style={minimum width=5em},latex-latex]
+            \node[coordinate] (pint) {};
+            \matrix (internal)[matrix of nodes,column sep=1em,row sep=0.2em,nodes={draw,anchor=center},right=of pint]
+            {
+                |[inbuf]| inbuf \\
+                |[core]| core \\
+                |[outbuf]| outbuf \\
+                auto \\
+            };
+            \node[draw,right=1.5em of internal-3-1] (digiq) {Digital IQ};
+            \node[draw,right=1.5em of internal-1-1] (adc) {ADC};
+            \node[coordinate] at ($(pint.east) + (2em,0)$) (l) {};
+            \foreach \i in {1,...,4}
+            {
+                \draw (pint) -- (l) |- (internal-\i-1);
+            };
+            \draw[inbuf,latex-] (internal-1-1) -- (adc);
+            \draw[outbuf,-latex] (internal-3-1) -- (digiq);
+            \node[draw,fit=(internal-1-1) (internal-4-1) (l),inner xsep=0.5em,label=main] (main) {};
+            \node[fit=(main),inner xsep=0.5em] (fpga) {};
+            \draw[dashed,-] ($(fpga.south east) - (0,1em)$) -- ($(fpga.north east)+(0,1em)$);
+
+        \end{tikzpicture}
+        \caption{Overview of the \device{main} module}
+        \label{fig:main}
+    \end{subfigure}%
+    ~
+    \begin{subfigure}[c]{.49\linewidth}
+        \centering
+        \begin{tikzpicture}
+            \tikzpicturedependsonfile{rfsymbols.tex}
+            \tikzstyle{every node}=[font=\footnotesize]
+            \draw (0,-1.5cm) node[coordinate,label=left:Dig IQ] (dac) {}
+
+                  (0,1.5cm) node[coordinate,label=left:ADC] (adc) {}
+                  node[empty,right=of adc,label=below:buffer1,inbuf] (inbuf) {}
+                  node[mixer,right=of inbuf,core] (shift) {}
+                  node[rotate=90,anchor=north] at (shift.east) {mix2}
+
+                  (dac -| inbuf) node[mixer,label=above:mul1,outbuf] (mul) {}
+                  node[empty,right=of mul,outbuf] (outbuf) {}
+                  node[rotate=90,anchor=north] at (outbuf.east) {buffer2}
+
+                  ($(shift)!.5!(outbuf)$) node[allpass,rotate=90,core] (H) {}
+                  node[rotate=90,anchor=north] at (H.south) {fir1}
+
+                  node[source,above=of shift.center,scale=0.7,core] (shiftsource) {}
+                  node[rotate=90,anchor=south,font=\tiny] at (shiftsource.west) {$\SI{30}{\mega\hertz}$}
+                  node[rotate=90,anchor=north] at (shiftsource.east) {lo3}
+                  node[below=of mul.center,fill=white] (gamma) {$\Gamma_{set} = X + jY$};
+
+            { [on background layer,every path/.style={dashed}]
+                \draw ($(adc.east)!.5!(mul.west) + (0,4)$) -- ++(0,-8.5) node[coordinate] (rightsplit) {};
+            }
+            { [-latex]
+                \draw [double,core] (shiftsource) -- (shift);
+                \draw [outbuf] (gamma) -- (mul);
+            }
+            { [start chain,every on chain/.style={join=by -latex}]
+                \chainin (adc);
+                { [every on chain/.style={join=by {inbuf,-latex}}]
+                    \chainin (inbuf);
+                }
+                \chainin (shift);
+                { [every on chain/.style={join=by {double,-latex}}]
+                    { [every on chain/.style={join=by {double,core,-latex}}]
+                        \chainin (H);
+                    }
+                    \chainin (outbuf);
+                    { [every on chain/.style={join=by {double,outbuf,-latex}}]
+                        \chainin (mul);
+                        \chainin (dac);
+                    }
+                }
+            }
+
+            \draw (rightsplit) node[anchor=base west] {Digital}
+                  node[anchor=base east] {Analog};
+
+            {[densely dashdotdotted,latex-latex,pc]
+                \draw ($(inbuf.north) + (0,1)$) -- ++(0,1) node [anchor=south] {\glsentryshort{pc}};
+            }
+        \end{tikzpicture}
+        \caption{Digital signal processing chain}
+        \label{fig:digital_chain1}
+    \end{subfigure}
+    \caption{\device{core} module overview and digital signal processing chain with color coded modules.}
+    \label{fig:main_overview}
+\end{figure}
 
 Necessary bit width truncations throughout the digital signal processing chain use
 convergent rounding. This rounding mode was used to prevent \gls{dc} offsets. It rounds
@@ -1845,7 +1950,7 @@ be found in \cref{sec:sources}.
 
 % ---------------------------------------------------------------------------
 
-\section[Data Acquisition]{Data Acquisition - inbuf}
+\subsection[Data Acquisition]{Data Acquisition - inbuf}
 \label{sec:acquisition}
 
 The \device{inbuf} module is responsible for serial to parallel conversion
@@ -1995,9 +2100,17 @@ jiffy counter which marks the time the first sample of the current acquisition
 was acquired. This is needed to be able to generate the \SI{30}{\mega\hertz}
 signal for the \gls{iq} demodulation (see \cref{sec:digital,sec:overlap_add}).
 
+%TODO
+Undefined behaviour can occur in the block \gls{ram}, if the timing conditions of the address signals are violated
+while the enable signal is high. This can lead to memory corruption
+even if write enable is not asserted\cite{virtex5}. Therefore, the
+enable signal of the block \gls{ram} is switched to low during clock transitions.
+Since this is not possible for an unstable sample clock, the validity of
+the sample buffers is not guaranteed during port operation of the \gls{adc} data connection.
+
 % ---------------------------------------------------------------------------
 
-\section[Overlap Add]{Overlap Add - core}
+\subsection[Overlap Add]{Overlap Add - core}
 \label{sec:overlap_add}
 
 \begin{figure}[htb]
@@ -2275,7 +2388,7 @@ and complex multiplication.
 
 % ---------------------------------------------------------------------------
 
-\section[SMBV Interface]{SMBV Interface - outbuf}
+\subsection[SMBV Interface]{SMBV Interface - outbuf}
 \label{sec:smbv_interface}
 
 The \device{outbuf} module consists of two independent sample buffers
@@ -2379,7 +2492,7 @@ DS90CR485 channel link serializer with switched off \gls{dc} Balance mode.
 
 % ---------------------------------------------------------------------------
 
-\section{Auto module}
+\subsection{Auto module}
 \label{sec:auto}
 
 For the complete signal computation, the previously described blocks
