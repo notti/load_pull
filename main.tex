@@ -15,6 +15,7 @@
 \usetikzlibrary{backgrounds}
 \usetikzlibrary{bending}
 \usetikzlibrary{calc}
+\usetikzlibrary{colorbrewer}
 \usetikzlibrary{chains}
 \usetikzlibrary{circuits.ee.IEC}
 \usetikzlibrary{decorations.pathmorphing}
@@ -50,6 +51,7 @@
 \usepgfplotslibrary{units}
 \usepgfplotslibrary{fillbetween}
 \usepgfplotslibrary{statistics}
+\usepgfplotslibrary{colorbrewer}
 \pgfplotsset{unit code/.code 2 args={\si{#1#2}}}
 
 \usepgfplotslibrary{external}
@@ -1660,56 +1662,128 @@ by the \gls{adc} \cite{ltc2274}, are also technically feasible. This \gls{fpga} 
 hardwired PowerPC \gls{cpu}, which was used for controlling the digital components
 and as a communication bridge to the \gls{pc}. The complete source codes can be found in \cref{sec:sources}.
 
+\tikzset{inbuf/.style={color=Dark2-4-1}}
+\tikzset{core/.style={color=Dark2-4-2}}
+\tikzset{outbuf/.style={color=Dark2-4-3}}
+\tikzset{pc/.style={color=Dark2-4-4}}
+
 \begin{figure}[htb]
     \centering
-    \resizebox{\linewidth}{!}{
-    \begin{tikzpicture}[every node/.style={minimum width=5em},latex-latex]
-        \matrix (peripherals)[matrix of nodes,column sep=1.5em,row sep=0.2em,nodes={draw,anchor=center},ampersand replacement=\&]
-        {
-            DRAM \& \shortstack{DRAM\\Controller} \\
-            Ethernet \& \shortstack{Ethernet\\Controller} \\
-            RS232 \& \shortstack{RS232\\Interface} \\
-            Storage \& Sys ACE \\
-            \shortstack{LEDs\\Switches} \& GPIO \\
-        };
-        \node[draw,minimum size=5em,above right=0em of peripherals] (cpu) {CPU};
-        \draw (peripherals-1-1) -- (peripherals-1-2);
-        \draw (peripherals-1-2) -| ([xshift=-2.5em]cpu);
-        \draw ([yshift=1em]peripherals-2-2) -| ([xshift=-1.5em]cpu);
-        \foreach \i in {2,...,5}
-        {
-            \draw (peripherals-\i-1) -- (peripherals-\i-2);
-            \draw (peripherals-\i-2) -- (peripherals-\i-2 -| cpu);
-        }
-        \draw[ultra thick,-] (peripherals-5-2 -| cpu) ++(0,-1em) node[below] (plb) {PLB} -- (cpu);
-        \node[draw] at ($(peripherals-5-2)!2!(peripherals-5-2 -| cpu)$) (bram) {RAM};
-        \draw (peripherals-5-2 -| cpu) -- (bram);
-        \node[draw] at ($(peripherals-2-2)!2!(peripherals-2-2 -| cpu)$) (pint) {\shortstack{Processor\\Interface}};
-        \draw (peripherals-2-2 -| cpu) -- (pint);
-        \matrix (internal)[matrix of nodes,column sep=1em,row sep=0.2em,nodes={draw,anchor=center},right=of pint]
-        {
-            inbuf \\
-            core \\
-            outbuf \\
-            auto \\
-        };
-        \node[draw,right=1.5em of internal-3-1] (digiq) {Digital I/Q};
-        \node[draw,right=1.5em of internal-1-1] (adc) {ADC};
-        \node[coordinate] at ($(pint.east) + (2em,0)$) (l) {};
-        \foreach \i in {1,...,4}
-        {
-            \draw (pint.east) -- (l) |- (internal-\i-1);
-        };
-        \draw (internal-1-1) -- (adc);
-        \draw (internal-3-1) -- (digiq);
-        \node[draw,fit=(cpu) (peripherals-5-2) (plb) (bram),inner xsep=0.5em,label=processor] (processor) {};
-        \node[coordinate] at ($(processor.north) + (0,1em)$) (u) {};
-        \node[draw,fit=(internal-1-1) (internal-4-1) (l),inner xsep=0.5em,label=main] (main) {};
-        \node[draw,fit=(processor) (main) (u),inner xsep=0.5em,label=top] (fpga) {};
+    \begin{subfigure}[c]{.69\linewidth}
+        \centering
+        \resizebox{\linewidth}{!}{
+        \begin{tikzpicture}[every node/.style={minimum width=5em},latex-latex]
+            \matrix (peripherals)[matrix of nodes,column sep=1.5em,row sep=0.2em,nodes={draw,anchor=center},ampersand replacement=\&]
+            {
+                DRAM \& \shortstack{DRAM\\Controller} \\
+                |[pc]| Ethernet \& \shortstack{Ethernet\\Controller} \\
+                |[pc]| RS232 \& \shortstack{RS232\\Interface} \\
+                Storage \& Sys ACE \\
+                \shortstack{LEDs\\Switches} \& GPIO \\
+            };
+            \node[draw,minimum size=5em,above right=0em of peripherals] (cpu) {CPU};
+            \draw (peripherals-1-1) -- (peripherals-1-2);
+            \draw (peripherals-1-2) -| ([xshift=-2.5em]cpu);
+            \draw ([yshift=1em]peripherals-2-2) -| ([xshift=-1.5em]cpu);
+            \foreach \i in {2,...,5}
+            {
+                \draw (peripherals-\i-1) -- (peripherals-\i-2);
+                \draw (peripherals-\i-2) -- (peripherals-\i-2 -| cpu);
+            }
+            \draw[ultra thick,-] (peripherals-5-2 -| cpu) ++(0,-1em) node[below] (plb) {PLB} -- (cpu);
+            \node[draw] at ($(peripherals-5-2)!2!(peripherals-5-2 -| cpu)$) (bram) {RAM};
+            \draw (peripherals-5-2 -| cpu) -- (bram);
+            \node[draw] at ($(peripherals-2-2)!2!(peripherals-2-2 -| cpu)$) (pint) {\shortstack{Processor\\Interface}};
+            \draw (peripherals-2-2 -| cpu) -- (pint);
+            \matrix (internal)[matrix of nodes,column sep=1em,row sep=0.2em,nodes={draw,anchor=center},right=of pint]
+            {
+                |[inbuf]| inbuf \\
+                |[core]| core \\
+                |[outbuf]| outbuf \\
+                auto \\
+            };
+            \node[draw,right=1.5em of internal-3-1] (digiq) {Digital IQ};
+            \node[draw,right=1.5em of internal-1-1] (adc) {ADC};
+            \node[coordinate] at ($(pint.east) + (2em,0)$) (l) {};
+            \foreach \i in {1,...,4}
+            {
+                \draw (pint.east) -- (l) |- (internal-\i-1);
+            };
+            \draw[inbuf,latex-] (internal-1-1) -- (adc);
+            \draw[outbuf,-latex] (internal-3-1) -- (digiq);
+            \node[draw,fit=(cpu) (peripherals-5-2) (plb) (bram),inner xsep=0.5em,label=processor] (processor) {};
+            \node[coordinate] at ($(processor.north) + (0,1em)$) (u) {};
+            \node[draw,fit=(internal-1-1) (internal-4-1) (l),inner xsep=0.5em,label=main] (main) {};
+            \node[draw,fit=(processor) (main) (u),inner xsep=0.5em,label=top] (fpga) {};
 
-    \end{tikzpicture}
-    }
-    \caption{\gls{fpga} design overview.}
+        \end{tikzpicture}
+        }
+        \caption{\gls{fpga} modules and interconnections}
+        \label{fig:fpga_modules}
+    \end{subfigure}%
+    ~
+    \begin{subfigure}[c]{.29\linewidth}
+        \centering
+        \resizebox{\linewidth}{!}{
+        \begin{tikzpicture}
+            \tikzpicturedependsonfile{rfsymbols.tex}
+            \tikzstyle{every node}=[font=\footnotesize]
+            \draw (0,-1.5cm) node[coordinate,label=left:Dig IQ] (dac) {}
+
+                  (0,1.5cm) node[coordinate,label=left:ADC] (adc) {}
+                  node[empty,right=of adc,label=below:buffer1,inbuf] (inbuf) {}
+                  node[mixer,right=of inbuf,core] (shift) {}
+                  node[rotate=90,anchor=north] at (shift.east) {mix2}
+
+                  (dac -| inbuf) node[mixer,label=above:mul1,outbuf] (mul) {}
+                  node[empty,right=of mul,outbuf] (outbuf) {}
+                  node[rotate=90,anchor=north] at (outbuf.east) {buffer2}
+
+                  ($(shift)!.5!(outbuf)$) node[allpass,rotate=90,core] (H) {}
+                  node[rotate=90,anchor=north] at (H.south) {fir1}
+
+                  node[source,above=of shift.center,scale=0.7,core] (shiftsource) {}
+                  node[rotate=90,anchor=south,font=\tiny] at (shiftsource.west) {$\SI{30}{\mega\hertz}$}
+                  node[rotate=90,anchor=north] at (shiftsource.east) {lo3}
+                  node[below=of mul.center,fill=white] (gamma) {$\Gamma_{set} = X + jY$};
+
+            { [on background layer,every path/.style={dashed}]
+                \draw ($(adc.east)!.5!(mul.west) + (0,4)$) -- ++(0,-8.5) node[coordinate] (rightsplit) {};
+            }
+            { [-latex]
+                \draw [double,core] (shiftsource) -- (shift);
+                \draw [outbuf] (gamma) -- (mul);
+            }
+            { [start chain,every on chain/.style={join=by -latex}]
+                \chainin (adc);
+                { [every on chain/.style={join=by {inbuf,-latex}}]
+                    \chainin (inbuf);
+                }
+                \chainin (shift);
+                { [every on chain/.style={join=by {double,-latex}}]
+                    { [every on chain/.style={join=by {double,core,-latex}}]
+                        \chainin (H);
+                    }
+                    \chainin (outbuf);
+                    { [every on chain/.style={join=by {double,outbuf,-latex}}]
+                        \chainin (mul);
+                        \chainin (dac);
+                    }
+                }
+            }
+
+            \draw (rightsplit) node[anchor=base west] {Digital}
+                  node[anchor=base east] {Analog};
+
+            {[densely dashdotdotted,latex-latex,pc]
+                \draw ($(inbuf.north) + (0,1)$) -- ++(0,1) node [anchor=south] {\glsentryshort{pc}};
+            }
+        \end{tikzpicture}
+        }
+        \caption{Digital signal processing chain}
+        \label{fig:digital_chain}
+    \end{subfigure}
+    \caption{\gls{fpga} design overview and digital signal processing chain with color coded modules.}
     \label{fig:fpga_overview}
 \end{figure}
 
