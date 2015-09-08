@@ -1809,19 +1809,28 @@ writes to the memory the other port must not access the same location at the sam
 time\cite{virtex5}. Care was taken to avoid this situation by disallowing
 memory access from the other port during writes.
 
+All hardware source codes and project files, which are needed to generate the hardware, can
+be found in \cref{sec:sources}.
+
 % ---------------------------------------------------------------------------
 
 \section[Digital Signal Processing Chain]{Digital Signal Processing Chain - main}
 \label{sec:digital_processing}
 
-The design overview, as can be seen in \cref{fig:main_overview}, describes
-the high level modules of the design and connections between them. The modules \device{inbuf},
-\device{core}, \device{outbuf}, and \device{auto} contain the filtering functionality as described in
-\cref{sec:digital}. Those modules, which are described in more detail in \cref{sec:acquisition,sec:overlap_add,sec:smbv_interface,sec:auto},
-are packed into the \device{core}-module in order to separate the signal processing functionality from
-the rest of the \gls{fpga} design. A \device{Processor Interface} module, consisting of a memory controller,
-a register implementation, and an interrupt controller enables the \gls{cpu} to interact with the
-\device{core} module.
+The \device{main} module contains the digital signal processing chain. As can be seen
+in \cref{fig:main_overview} the different parts of the processing chain (\cref{fig:digital_chain1}) are mapped
+to three modules (\cref{fig:main}). The module \device{inbuf} contains the digital receive interface
+for the \gls{adc} and the sample buffer \device{buffer1}. This module is described
+in \cref{sec:acquisition}. The \device{core} module contains the frequency
+mixer \device{mix2}, the \gls{lo} \device{lo3}, and the digital filter \device{fir1}.
+A detailed description can be seen in \cref{sec:overlap_add}. The third part
+is the \device{outbuf} module. This module contains the sample buffer \device{buffer2},
+the multiplier \device{mul1}, and the digital \gls{iq} interface and is described in \cref{sec:smbv_interface}. The
+filter \device{fir1} is not capable of handling a continuous data stream (see
+\cref{sec:overlap_add}). Therefore the \device{auto} module was implemented to emulate
+continuous behaviour by sequentially activating the modules \device{inbuf}, \device{core},
+and \device{outbuf}. A more detailed description of the \device{auto} module can be seen
+in \cref{sec:auto}.
 
 \begin{figure}[htb]
     \centering
@@ -1913,7 +1922,7 @@ a register implementation, and an interrupt controller enables the \gls{cpu} to 
         \caption{Digital signal processing chain}
         \label{fig:digital_chain1}
     \end{subfigure}
-    \caption{\device{core} module overview and digital signal processing chain with color coded modules.}
+    \caption{\device{main} module overview and digital signal processing chain with color coded modules.}
     \label{fig:main_overview}
 \end{figure}
 
@@ -1940,13 +1949,11 @@ and the \gls{fft} implementation. Using this memory layout only a 2-to-1 multipl
 for the output is needed. Since the highest address line can
 be used as selection between both block \glspl{ram}, no address decoder is needed. This ensures fast operation of the
 overall memory. In one bit mode only \SI{32}{\kilo\bit} (\SI{16}{\kilo\bit})
-are available. This leads to a theoretical buffer depth of 49152 samples. If circular
-convolution is used for the \gls{fir} filter, the full buffer depth is not usable. This
-is caused by the implementation as will be described in \cref{sec:overlap_add}, which needs an
-additional buffer space of at least $L - n_{fft}$ samples after the signal (see \cref{fig:overlap_add}).
-
-All hardware source codes and project files, which are needed to generate the hardware, can
-be found in \cref{sec:sources}.
+are available. This leads to a theoretical buffer depth of 49152 samples. However as
+will be explained in \cref{sec:overlap_add} (see also \cref{sec:digital}), if circular convolution
+with a block size of $L$ and an \gls{fft} size of $n_{fft}$ is used for the \gls{fir} filter,
+the full buffer depth is not usable. This is caused by the implementation of the overlap add
+algorithm which needs additional buffer space of $L - n_{fft}$ samples after the signal.
 
 % ---------------------------------------------------------------------------
 
