@@ -2014,6 +2014,10 @@ the time, which is needed for the \gls{iq} demodulation that will be explained i
 
         \node[draw,fit=(average) (receiver) (trigger) (wallclk.north),inner ysep=2em,inner xsep=0.5em,label=inbuf] (inbuf) {};
         \draw[dashed] (inbuf.south east) ++(0.5em,-1em) -- (\currentcoordinate |- inbuf.north) -- ++(0,1em);
+
+        \draw[dotted,-,decorate,decoration=random steps,segment length=2mm] ($(prepare)!.5!(trigger) - (0,6em)$) node[coordinate] (clk) {} |- ($(trigger.north) + (0,0.5em)$) -| ($(mux)!.5!(adder)$) -- ++(0,6em);
+        \node[anchor=base east,font=\small] at (clk) {\gls{plb} clock};
+        \node[anchor=base west,font=\small] at (clk) {\gls{adc} clock};
     \end{tikzpicture}
     \caption{Block diagram of the \device{inbuf} module}
     \label{fig:inbuf}
@@ -2060,39 +2064,42 @@ K28.5. If no comma is detected during a further \SI{41}{\milli\second} period th
 synchronization re-starts from the beginning.
 
 Succeeding the GTX transceiver, the \device{descrambler} module descrambles the data
-according to the data sheet of the \gls{adc}\cite{ltc2274}. This descrambler
-can be bypassed, therefore allowing the use of \glspl{adc} that do not support
-this feature.
-
-%TODO
-The JESD204 also supports using a scrambler on the raw data, in order to lessen the
-noise caused by the digital transmission in the analog part. The scrambler implemented for
-this project is based on the generator polynomial given in \cref{eq:poly} \cite{jesd205B.01}. This scrambler can
-be bypassed if a different \gls{adc} is used. A more detailed explanation of the input interface
-can be found in \cref{sec:acquisition}.
+according to the data sheet of the \gls{adc}\cite{ltc2274}. Data scrambling is
+used to lessen the noise caused by the digital transmission in the analog part. The
+scrambler implemented in the \gls{adc} is based on the generator polynomial given
+in \cref{eq:poly} \cite{jesd205B.01}. This scrambler can be bypassed if a
+different \gls{adc} is used.
 \begin{equation}
     \label{eq:poly} g(x) = 1 + x^{14} + x^{15}
 \end{equation}
-%TODO
 
 Averaging the data is handled by the \device{average\_mem} module. This module
 consists of the above mentioned \SI[product-units=brackets]{19 x 49152}{\bit} memory. Averaging is achieved
 by reading the appropriate sample from the buffer and adding it to the current value.
 For the first run the read sample is replaced with the value zero. Using this method
-the sampled values are accumulated over a configurable number of rounds of zero, two,
+the sampled values are accumulated over a configurable number of zero, two,
 four or eight rounds. Averaging is achieved during memory access from outside the module
 by shifting the accessed values by zero, one, two or three bit. This is equal to dividing
-the samples by the number of rounds used for averaging. This method needs
-both ports of the memory. Therefore the memory interface to the rest of the \gls{fpga}
-shares the ports with the rest of the implementation. Since both access needs do
-not share the same clock, the above mentioned clock multiplexing was implemented.
+the samples by the number of rounds used for averaging. This method needs to read
+the sample from the last round from the buffer while writing the current sample
+to the buffer. Therefore both ports of the memory are needed by the implementation.
+Hence the synchronization technique using different ports for the different clock
+domains as described above is not feasible. Therefore the memory interface allowing
+access to the sample buffer from outside the \device{inbuf} module needs to share
+the ports with the averaging mechanism. Since those two parts don't share the same
+clock, clock multiplexing with dedicated \gls{fpga} hardware was implemented.
 
 If the data acquisition is not in use, the \device{average\_mem} is powered by
-the \gls{fpga} clock. Before data acquisition starts, the \device{prepare} module
-takes care of disabling the block \gls{ram} during the clock switching operation.
-During data acquisition the \device{average\_mem} is powered by the sampling clock
-which was recovered from the received data stream. After the data acquisition finishes, the
-\device{prepare} module transitions the clock signal back to the system clock.
+the \gls{plb} clock. Before data acquisition, the \device{prepare} module
+transitions the clock signal to the \gls{adc} clock. Undefined behaviour can
+occur if the timing conditions of the address signals of the block \gls{ram}
+are violated while the enable signal is high. This can lead to memory corruption
+even if write enable is not asserted\cite{virtex5}. Therefore, the enable signal
+of the block \gls{ram} is switched to low by the \device{prepare} module before
+the clock transition. Since this is not possible for an unstable \gls{adc} clock,
+the validity of the sample buffers is not guaranteed after connecting or
+disconnecting an \gls{adc}. After the data acquisition finishes, the
+\device{prepare} module transitions the clock signal back to the \gls{plb} clock.
 Write operations to the memory are ignored during data acquisition. Read operations
 during data acquisition don't interfere with the process but the read out data is invalid.
 
@@ -2104,16 +2111,10 @@ successful trigger, consecutive triggers are only generated at multiples of the 
 
 Subsequent to a trigger event, the \device{wallclk} module takes a snapshot of the
 jiffy counter which marks the time the first sample of the current acquisition
-was acquired. This is needed to be able to generate the \SI{30}{\mega\hertz}
-signal for the \gls{iq} demodulation (see \cref{sec:digital,sec:overlap_add}).
-
-%TODO
-Undefined behaviour can occur in the block \gls{ram}, if the timing conditions of the address signals are violated
-while the enable signal is high. This can lead to memory corruption
-even if write enable is not asserted\cite{virtex5}. Therefore, the
-enable signal of the block \gls{ram} is switched to low during clock transitions.
-Since this is not possible for an unstable sample clock, the validity of
-the sample buffers is not guaranteed during port operation of the \gls{adc} data connection.
+was acquired. The \SI{30}{\mega\hertz} signal for the \gls{iq} demodulation
+is not generated in real time. Therefore the snapshot of the jiffy counter is necessary
+for the \device{core} module to generate the \SI{30}{\mega\hertz} signal with the
+correct phase (see \cref{sec:digital,sec:overlap_add}).
 
 % ---------------------------------------------------------------------------
 
