@@ -1810,6 +1810,13 @@ writes to the memory the other port must not access the same location at the sam
 time\cite{virtex5}. Care was taken to avoid this situation by disallowing
 memory access from the other port during writes.
 
+To ease software development a full \gls{os} was used as software for the
+\gls{cpu}. Linux was chosen as the \gls{os} for the \device{processor} module, because
+it is freely available and can be configured specifically for this target. As will
+be discussed in \cref{sec:processor} the \device{processor} design includes the modules
+needed to be able to use Linux. An overview of the complete Linux implementation
+can be seen in \cref{chap:software}.
+
 All hardware source codes and project files, which are needed to generate the hardware, can
 be found in \cref{sec:sources}.
 
@@ -1955,6 +1962,16 @@ will be explained in \cref{sec:overlap_add} (see also \cref{sec:digital}), if ci
 with a block size of $L$ and an \gls{fft} size of $n_{fft}$ is used for the \gls{fir} filter,
 the full buffer depth is not usable. This is caused by the implementation of the overlap add
 algorithm which needs additional buffer space of $L - n_{fft}$ samples after the signal.
+
+The memory busses of the \device{inbuf} module and the \device{outbuf} module are
+connected to the \device{core} module. The same bus connections are also exposed
+via a memory interface of the \device{core} module. To prevent access violations
+the exposed memory interface can't access the internal modules while one of
+the internal modules is active. Further module activations are also not possible
+during this period. With these restrictions in place no memory corruptions can
+occur. The \device{core} module also exposes every configuration and status signal
+of the internal modules. These signals are used by the processor interface described
+in \cref{sec:processor_interface} for controlling the whole signal processing chain.
 
 % ---------------------------------------------------------------------------
 
@@ -2117,13 +2134,14 @@ is not generated in real time. Therefore the snapshot of the jiffy counter is ne
 for the \device{core} module to generate the \SI{30}{\mega\hertz} signal with the
 correct phase (see \cref{sec:digital,sec:overlap_add}).
 
-The \device{inbuf} module is fully runtime configureable. Changing the active receiver
+The \device{inbuf} module is fully runtime configurable. Changing the active receiver
 or connecting an \gls{adc} resets the whole module automatically. This prevents undefined
 behaviour which could result from the clock change. Since the trigger source is only
 decisive for the first trigger event changing the source is only possible if the \device{trigger}
 module has not fired yet. Therefore the trigger module should be reset after changing
-the source. The memory interface of the inbuf module has a \SI{16}{\bit} wide data bus,
-a \SI{16}{\bit} wide address bus and a read access time of 2 cycles. Accessing samples
+the source. Trigger events, averaging finished, and \gls{adc} connection status are reported
+with separate signals. The memory interface of the \device{inbuf} module has a \SI{16}{\bit} wide data bus,
+a \SI{16}{\bit} wide address bus and a read access latency of 2 cycles. Accessing samples
 at addresses \num{>= 49152} results in undefined behaviour.
 
 % ---------------------------------------------------------------------------
@@ -2433,8 +2451,8 @@ seen in \cref{fig:outbuf}.
 \begin{figure}[htb]
     \centering
     \begin{tikzpicture}
-        \node[draw] (mem0) {mem\_0};
-        \node[draw,below=of mem0] (mem1) {mem\_1};
+        \node[draw,fill=white] (mem0) {mem\_0};
+        \node[draw,below=of mem0,fill=white] (mem1) {mem\_1};
         \node[coordinate] at ($(mem0.west)+(-4em,0)$) (out) {};
 
         \draw[double] ($(mem0.west)-(1em,0)$) -- ($(mem1.west)-(2em,0)$)  node[coordinate] (out2) {};
@@ -2457,6 +2475,12 @@ seen in \cref{fig:outbuf}.
 
         \node[draw,fit=(mem0) (r) (transmitter) (out2),inner xsep=0.5em,label=outbuf] (outbuf) {};
         \draw[dashed] (outbuf.south east) ++(0.5em,-1em) -- (\currentcoordinate |- outbuf.north) -- ++(0,1em);
+
+        {[on background layer]
+            \draw[dotted,-,decorate,decoration=random steps,segment length=2mm] ($(mem0.center) - (0,8em)$) node[coordinate] (clk) {} -- ($(mem0.center) + (0,3em)$);
+            \node[anchor=base east,font=\small] at (clk) {\gls{plb} clock};
+            \node[anchor=base west,font=\small] at (clk) {\gls{adc} clock};
+        }
     \end{tikzpicture}
     \caption{Block diagram of the \device{outbuf} module}
     \label{fig:outbuf}
@@ -2481,7 +2505,8 @@ and the \device{inactive} buffer can be initiated by asserting the toggle\_buf
 signal for one cycle. To prevent signal distortion, the actual swapping occurs
 only before reading sample zero from the buffer. Accesses to the sample buffers
 during this operation result in undefined behaviour and can corrupt the buffer
-content.
+content. This is prevented by the access protection mechanism implemented
+in the \device{core} module.
 
 The complex multiplier, between the multiplexer and the \device{transmitter}
 module in \cref{fig:outbuf}, is responsible for the
@@ -2521,6 +2546,14 @@ necessary clock rate to \SI{350}{\mega\hertz} for the \gls{oserdes}. Furthermore
 \SI{175}{\mega\hertz}. By connecting a test implementation of the transmitter,
 it was verified, that the Rhode \& Schwarz digital \gls{iq} interface uses the
 DS90CR485 channel link serializer with switched off \gls{dc} Balance mode.
+
+The \device{outbuf} module is runtime configurable. After changing the signal
+length $n$ the \device{outbuf} module has to be reset or a \device{resync} operation
+needs to be initiated. Overflows from the multiplicator are reported with a status
+signal which has to be manually reset. This prevents interrupt storms if the signal is
+used as an interrupt. The memory interface of the \device{outbuf}
+module has a \SI{16}{\bit} wide data bus, a \SI{16}{\bit} wide address bus and a read access
+latency of 2 cycles. Accessing samples at addresses \num{>= 49152} results in undefined behaviour.
 
 % ---------------------------------------------------------------------------
 
@@ -2655,6 +2688,8 @@ write and enable signals from the chip select and write request signals of the
 processor interface. Special care was taken to allow multi cycle requests as
 described above.
 
+A description of a Linux kernel module implementation operating this interface
+and the needed infrastructure can be seen in \cref{chap:software}.
 
 % ===========================================================================
 
