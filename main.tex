@@ -150,6 +150,7 @@ pdfpagelabels %,hidelinks
 \newacronym{if}{IF}{intermediate frequency}
 \newacronym{iq}{IQ}{in-phase/quadrature-phase}
 \newacronym{led}{LED}{light emitting diode}
+\newacronym{lut}{LUT}{lookup table}
 \newacronym{lo}{LO}{local oscillator}
 \newacronym{lp}{LP}{load-pull}
 \newacronym{lvds}{LVDS}{low voltage differential signalling}
@@ -2146,7 +2147,7 @@ correct phase (see \cref{sec:digital,sec:overlap_add}).
         \draw[double,-latex] (mul) -- (scratch);
         \draw[double,-latex] (scratch.east) -| ++(1em,2em) -| ($(fft.west) - (1em,0)$) -- (fft);
 
-        \node[circle,draw,below=of scratch] (add) {$+$};
+        \node[circle,draw,below=1em of scratch] (add) {$+$};
 
         \draw[double,-latex] (scratch.east) -- ++(1em,0) node[coordinate] (r) {} |- (add);
         \draw[double,-latex] (fft.east) -- ++(2em,0) |- (add);
@@ -2162,9 +2163,7 @@ correct phase (see \cref{sec:digital,sec:overlap_add}).
     \label{fig:core}
 \end{figure}
 
-The digital filter \device{fir1}, as described in \cref{sec:digital}, was
-realized in \gls{vhdl} without any software components. This module is named
-\device{core} in the source codes and a general overview can be seen in \cref{fig:core}.
+An overview of the \device{core} module can be seen in \cref{fig:core}.
 It consists of the buffer \device{H}, which is needed to store the transfer
 function, and the module \device{overlap\_add}, which contains the signal
 processing. The \device{overlap\_add}
@@ -2177,28 +2176,44 @@ The \gls{iq} demodulation module \device{wave} consists of a hard coded look up
 table, that generates a \SI{30}{\mega\hertz} sine and cosine waveform for
 a sampling rate of \SI{100}{\mega\hertz}. Furthermore it contains multipliers,
 which multiply the incoming samples with the sine and cosine waveforms, for
-converting the signal into I and Q samples. Since this is not performed
-at real time, but during filter execution, the generated sine and
-cosine waveforms are evaluated at the calculated point in time from the
-jiffy counter, contained in the \device{wallclk} module (see \cref{sec:acquisition}), and the current sample position.
+converting the signal into I and Q samples. Instead of performing this demodulation
+in real time, it is performed during filter processing. To insure the correct phase
+of the \SI{30}{\mega\hertz} waveform it is evaluated at the point in time calculated
+from the jiffy counter and the position of the currently processed sample. The jiffy
+counter is contained in the \device{wallclk} module as explained in
+\cref{sec:acquisition}. This counter marks the time the first sample of the current
+signal was taken.
 
 A Xilinx LogiCore IP was used as the \device{fft} module \cite{xilinx_fft}. In
-order to minimize block \gls{ram} usage and increase the performance, the
-pipelined version with three stages in block \gls{ram}, which is the minimum
-setting, was used for this work. Furthermore it was set to allow a modification of the
+order to minimize block \gls{ram} usage and increase the performance the
+pipelined version was used. A further reduction in block \gls{ram} usage was achieved
+by limiting the IP core to the minimum setting of three stages in block \gls{ram}. The
+remaining stages needed for this configuration are implemented in distributed \gls{ram} which
+results in a higher \gls{lut} usage of the \device{fft}\cite{xilinx_fft,virtex5}. Distributed
+\gls{ram} was preferred over block \gls{ram} because \gls{lut} usage was not a limiting factor
+in this design. The \device{fft} implementation was set to allow a modification of the
 \gls{fft} length at runtime, with a maximum length of 4096. A further runtime configuration
 setting is, that this core can be switched between \gls{fft} and inverse \gls{fft}. This
 allowed using only one \device{fft} module, therefore reducing the resource usage further. Every
-computational part of the \gls{fft}, called a butterfly, consists of a multiplication
-and addition. This increases the needed bit width after every butterfly.
-Keeping every bit for \gls{fft} lengths of this size is not possible with this hardware
-because of resource constraints. Therefore scaling was used and is implemented
-with a divider after every group, where one group consists of two butterflies.
-Every divider can divide the samples by one, two, four or eight. The correct
-scaling schedule for the \gls{fft} and inverse \gls{fft} is found by incrementing
-the divider schedule by one until the computation stops overflowing. Input
-data for the \gls{fft} core needs to be in natural order. Output data is in
-bit reversed order.
+computational part of the \gls{fft}, called a butterfly, consists of an addition. This
+increases the needed bit width after every butterfly by one bit to be able to represent every
+possible value. Additionally every butterfly contains a multiplicator that rotates the input
+in the complex domain. This rotation can result in an overall bit with growth of one bit for the
+whole \gls{fft}. Combining both factors leads to \cref{eq:bit_growth} given in \cite{xilinx_fft}.
+\begin{equation}
+    \label{eq:bit_growth}
+    bits_{out} = bits_{in} + \underbrace{\log_2\left(n_{fft}\right)}_{\text{addition per butterfly}} + \underbrace{1}_{\text{complex rotation}}
+\end{equation}
+According to \cref{eq:bit_growth}, keeping every bit for an \gls{fft} length $n_{fft}$ of 4096
+and input width $bits_{in}$ of \SI{16}{\bit} would result in a maximum output width $bits_{out}$
+of \SI{29}{\bit}. Using such high bit widths is not possible because of resource constraints.
+Therefore scaling was used and is implemented with a divider after every group, where one group
+consists of two butterflies. Every divider can divide the samples by one, two, four or eight.
+Since the possibility of overflows depends on the input data the right scaling schedule can't
+be determined beforehand. According to \cite{xilinx_fft} the best scaling schedule for the
+\gls{fft} and inverse \gls{fft} is found by starting with a divider schedule of one and incrementing
+the divider schedule until the computation stops overflowing. Input data for the \gls{fft} core
+needs to be in natural order and output data is in bit reversed order \cite{xilinx_fft}.
 
 The complex multiplier was implemented with a runtime changeable scaling schedule. This
 schedule can be set to shift the result by 14 to 17 bits. Therefore the transfer function
@@ -2228,7 +2243,7 @@ complex multiplier and after that the inverse \gls{fft}.
             \draw[double] (mul) -- (scratch);
             \draw[double] (scratch.east) -| ++(1em,2em) -| ($(fft.west) - (1em,0)$) -- (\currentcoordinate |- fft);
 
-            \node[circle,draw,below=of scratch] (add) {$+$};
+            \node[circle,draw,below=1em of scratch] (add) {$+$};
 
             \draw[double] (scratch.east) -- ++(1em,0) node[coordinate] (r) {} |- (add);
             \draw[double] (fft.east) -- ($(fft.east)!.5!(mul.west)$) |- (add);
@@ -2263,7 +2278,7 @@ complex multiplier and after that the inverse \gls{fft}.
             \node[draw,right=of mul,black] (scratch) {scratch};
             \draw[double] (scratch.east) -| ++(1em,2em) -| ($(fft.west) - (1em,0)$) -- (fft);
 
-            \node[circle,draw,below=of scratch] (add) {$+$};
+            \node[circle,draw,below=1em of scratch] (add) {$+$};
 
             \draw[double] (scratch.east) -- ++(1em,0) node[coordinate] (r) {} |- (add);
             \draw[double] (fft.east) -- ($(fft.east)!.5!(mul.west)$) |- (add);
@@ -2302,7 +2317,7 @@ complex multiplier and after that the inverse \gls{fft}.
             \node[draw,right=of mul,black] (scratch) {scratch};
             \draw[double] (mul) -- ($(mul.east)!.5!(scratch.west)$);
 
-            \node[circle,draw,below=of scratch] (add) {$+$};
+            \node[circle,draw,below=1em of scratch] (add) {$+$};
 
             \draw[double] (scratch.east) -- ++(1em,0) node[coordinate] (r) {} |- (add);
             \draw[double] (fft.east) -- ($(fft.east)!.5!(mul.west)$) |- (add);
@@ -2341,7 +2356,7 @@ complex multiplier and after that the inverse \gls{fft}.
             \draw[double] (mul) -- (scratch);
             \draw[double] (scratch.east) -| ++(1em,2em) -| ($(fft.west) - (1em,0)$) -- (fft);
 
-            \node[circle,draw,below=of scratch,black] (add) {$+$};
+            \node[circle,draw,below=1em of scratch,black] (add) {$+$};
 
             \draw[double] (fft.east) -- ($(fft.east)!.5!(mul.west)$) -- (\currentcoordinate |- add) -| ($(mul.east)!.5!(scratch.west)$) -- (scratch);
 
@@ -2360,8 +2375,8 @@ complex multiplier and after that the inverse \gls{fft}.
     \label{fig:overlap_add_machine}
 \end{figure}
 
-The overlap add algorithm, was implemented with two separate state machines.
-This allows speeding up the process since some parts can be calculated in parallel.
+The overlap add algorithm as explained in \cref{sec:digital}, was implemented with
+two separate state machines. This allows speeding up the process since some parts can be calculated in parallel.
 The first state machine controls the \gls{fft} and the complex multiplication part of the
 algorithm. It is called \device{fftncmul}. Inverse \gls{fft} and complex
 addition is handled by \device{ifftnadd}. The overall process is described in
@@ -2383,7 +2398,7 @@ of the current block has finished. This means, that the \gls{fft} module compute
 the samples of two different blocks at the same time. With this technique, the
 duration of the overlap add algorithm is reduced by one stage per $L$ sized block.
 If the circular mode is enabled, then the block after the signal is added to the
-beginning (see \cref{fig:overlap_add}). Since this process needs $L - n_{fft}$ samples
+beginning (see \cref{sec:digital}). Since this process needs $L - n_{fft}$ samples
 after the end of the signal, the sample buffer can't be used to the full extent.
 
 The overall module is freely configurable and accepts \gls{fft} sizes 8, 16,
