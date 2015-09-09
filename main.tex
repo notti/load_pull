@@ -2117,6 +2117,15 @@ is not generated in real time. Therefore the snapshot of the jiffy counter is ne
 for the \device{core} module to generate the \SI{30}{\mega\hertz} signal with the
 correct phase (see \cref{sec:digital,sec:overlap_add}).
 
+The \device{inbuf} module is fully runtime configureable. Changing the active receiver
+or connecting an \gls{adc} resets the whole module automatically. This prevents undefined
+behaviour which could result from the clock change. Since the trigger source is only
+decisive for the first trigger event changing the source is only possible if the \device{trigger}
+module has not fired yet. Therefore the trigger module should be reset after changing
+the source. The memory interface of the inbuf module has a \SI{16}{\bit} wide data bus,
+a \SI{16}{\bit} wide address bus and a read access time of 2 cycles. Accessing samples
+at addresses \num{>= 49152} results in undefined behaviour.
+
 % ---------------------------------------------------------------------------
 
 \subsection[Overlap Add]{Overlap Add - core}
