@@ -1445,11 +1445,11 @@ connectors for data+ and data-- of the \gls{lvds} connection, an \gls{sma} conne
 and two pins to enable the synchronization mode. For easier wiring an adapter circuit
 board was designed to be able to use a \gls{sata} cable for clock and data. Furthermore the synchronization
 circuit in \cref{fig:adc_adapter} was developed, to start a synchronization cycle by shortly suspending the clock
-signal. The synchronization circuit consists of three parts. The power detector \device{IC1} which is connected
-via \device{$C_5$}, used as an \gls{ac} short to the TX+ pin of the \gls{sata} connector. \device{$R_{10}$} is
-needed for input matching. The TX-- pin of the \gls{sata} connector is directly connected to an \gls{sma} connector.
+signal. The synchronization circuit consists of three parts. The first part is the power detector \device{IC1}
+which is connected via \device{$C_5$} to the TX+ pin of the \gls{sata} connector. The TX-- pin of the
+\gls{sata} connector is directly connected to an \gls{sma} connector.
 This enables clocking the \gls{adc} board using a clock signal delivered by the \gls{fpga}. The second part
-is the comparator \device{IC1a}. This comparator was used to define a minimum threshold of \SI{194}{\milli\volt}
+is the comparator \device{IC1a}. It is used to define a minimum threshold of \SI{194}{\milli\volt}
 for valid clock signals. The last part is a time delay element. This time delay starts after a valid clock
 signal is detected and lasts for about \SI{25.7}{\milli\second}. During
 this time the pins \device{SYNC1} and \device{SYNC2} are connected via the optocoupler \device{OK1}, which
@@ -1804,14 +1804,14 @@ additional pulse shaping to prevent lost pulses. Signal buses were synchronized
 with an open loop approach. This approach leaves out the acknowledgement of the
 synchronization which is sufficient for this design because the
 \device{processor} module is not fast enough to change the bus value within the
-synchronization period. Block \gls{ram} in the used \gls{fpga} are true dual port
+synchronization period. Block \glspl{ram} in the used \gls{fpga} are true dual port
 memories. Therefore no synchronization is necessary for read access. If one port
 writes to the memory the other port must not access the same location at the same
 time\cite{virtex5}. Care was taken to avoid this situation by disallowing
 memory access from the other port during writes.
 
 To ease software development a full \gls{os} was used as software for the
-\gls{cpu}. Linux was chosen as the \gls{os} for the \device{processor} module, because
+\gls{cpu}. Linux was chosen as the \gls{os} for the \device{processor} module, since
 it is freely available and can be configured specifically for this target. As will
 be discussed in \cref{sec:processor} the \device{processor} design includes the modules
 needed to be able to use Linux. An overview of the complete Linux implementation
@@ -1967,7 +1967,7 @@ The memory busses of the \device{inbuf} module and the \device{outbuf} module ar
 connected to the \device{core} module. The same bus connections are also exposed
 via a memory interface of the \device{core} module. To prevent access violations
 the exposed memory interface can't access the internal modules while one of
-the internal modules is active. Further module activations are also not possible
+them is active. Also further module activations are not possible
 during this period. With these restrictions in place no memory corruptions can
 occur. The \device{core} module also exposes every configuration and status signal
 of the internal modules. These signals are used by the processor interface described
@@ -2138,11 +2138,11 @@ The \device{inbuf} module is fully runtime configurable. Changing the active rec
 or connecting an \gls{adc} resets the whole module automatically. This prevents undefined
 behaviour which could result from the clock change. Since the trigger source is only
 decisive for the first trigger event changing the source is only possible if the \device{trigger}
-module has not fired yet. Therefore the trigger module should be reset after changing
+module has not fired yet. Therefore, the trigger module should be reset after changing
 the source. Trigger events, averaging finished, and \gls{adc} connection status are reported
 with separate signals. The memory interface of the \device{inbuf} module has a \SI{16}{\bit} wide data bus,
-a \SI{16}{\bit} wide address bus and a read access latency of 2 cycles. Accessing samples
-at addresses \num{>= 49152} results in undefined behaviour.
+a \SI{16}{\bit} wide address bus, and a read access latency of 2 cycles. Accessing samples
+at addresses \num{>= 49152} result in undefined behaviour.
 
 % ---------------------------------------------------------------------------
 
@@ -2234,7 +2234,7 @@ whole \gls{fft}. Combining both factors leads to \cref{eq:bit_growth} given in \
 According to \cref{eq:bit_growth}, keeping every bit for an \gls{fft} length $n_{fft}$ of 4096
 and input width $bits_{in}$ of \SI{16}{\bit} would result in a maximum output width $bits_{out}$
 of \SI{29}{\bit}. Using such high bit widths is not possible because of resource constraints.
-Therefore scaling was used and is implemented with a divider after every group, where one group
+Therefore, scaling was used and is implemented with a divider after every group, where one group
 consists of two butterflies. Every divider can divide the samples by one, two, four or eight.
 Since the possibility of overflows depends on the input data the right scaling schedule can't
 be determined beforehand. According to \cite{xilinx_fft} the best scaling schedule for the
@@ -2407,7 +2407,7 @@ two separate state machines. This allows speeding up the process since some part
 The first state machine controls the \gls{fft} and the complex multiplication part of the
 algorithm. It is called \device{fftncmul}. Inverse \gls{fft} and complex
 addition is handled by \device{ifftnadd}. The overall process is described in
-\cref{fig:overlap_add_machine}. Every block of size $L$ (see \cref{fig:overlap_add})
+\cref{fig:overlap_add_machine}. Every block of size $L$
 needs to be processed within four steps. In the first step (\cref{fig:stage1}),
 the \device{fft} module is loaded with $L$ \gls{iq} demodulated samples from the source memory $x$. According to
 the overlap add algorithm, after $L$ samples the data input of the \device{fft}
@@ -2552,8 +2552,8 @@ length $n$ the \device{outbuf} module has to be reset or a \device{resync} opera
 needs to be initiated. Overflows from the multiplicator are reported with a status
 signal which has to be manually reset. This prevents interrupt storms if the signal is
 used as an interrupt. The memory interface of the \device{outbuf}
-module has a \SI{16}{\bit} wide data bus, a \SI{16}{\bit} wide address bus and a read access
-latency of 2 cycles. Accessing samples at addresses \num{>= 49152} results in undefined behaviour.
+module has a \SI{16}{\bit} wide data bus, a \SI{16}{\bit} wide address bus, and a read access
+latency of 2 cycles. Accessing samples at addresses \num{>= 49152} result in undefined behaviour.
 
 % ---------------------------------------------------------------------------
 
@@ -2688,7 +2688,7 @@ write and enable signals from the chip select and write request signals of the
 processor interface. Special care was taken to allow multi cycle requests as
 described above.
 
-A description of a Linux kernel module implementation operating this interface
+A description of a Linux kernel module implementation using this interface
 and the needed infrastructure can be seen in \cref{chap:software}.
 
 % ===========================================================================
