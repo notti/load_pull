@@ -3033,10 +3033,10 @@ instruments can be seen in \cref{sec:instruments}.
 
         { [rounded corners=2pt]
             \draw (dut) -- (dirvna) -- (dircirc.A1);
-            \draw [-latex] (dircirc.A2) |- (downmix);
+            \draw [-latex] (dircirc.A2) |- (downmix) node[above,near end] {$b_2$};
             \draw (dirvna.A2) -- (oszivna.A1);
             \draw (dirvna.B2) |- ($(dirvna.B2)!.7!(oszivna.A2)$) node[coordinate] (oszimiddle) {} -| (oszivna.A2);
-            \draw [-latex] (att) -- (dircirc.B1);
+            \draw [-latex] (att) -- (dircirc.B1) node[midway,above] {$a_2$};
         }
         { [-latex]
             \draw (downsource) -- (downmix);
@@ -3100,20 +3100,29 @@ instruments can be seen in \cref{sec:instruments}.
             \draw (sig.south) -- ++(0,-0.5) node [anchor=north] {\gls{pc}};
             \draw ([xshift=-0.5cm]oszivna.north) -- ++(0,1) node [anchor=south] {\gls{pc}};
         }
+
+        \draw [decorate,decoration={brace,mirror,amplitude=5pt}] ([yshift=-6pt]leftsplit) -- (\currentcoordinate -| fpga.south east) node[midway,below,yshift=-6pt] {reflection generation};
     \end{tikzpicture}
     }
     \caption{Measurement system verification test setup}
     \label{fig:test_setup}
 \end{figure}
 
-Since the overall setup consists of two independent systems, namely the one port %which systems?
-\gls{vna} and the reflection generation, those two were verified separately. The
-one port \gls{vna} verification can be found in \cref{sec:vna_verify} and the
-reflection generation, consisting of the analog part (see \cref{sec:analog}) and
-the digital part (see \cref{sec:digital}), can be found in \cref{sec:reflection}.
-During these measurements, a noticeable phase drift was observed, and therefore
-an additional measurement was acquired, as seen in \cref{sec:drift}, to verify the origin
-of this phase drift.
+The overall setup consists of two independent systems. The one port \gls{vna} and
+the reflection generation consisting of the analog and the digital part. The
+one port \gls{vna} is needed to be able to measure the current $\Gamma_L$ (see
+\cref{sec:vna}). Verification of this part can be found in \cref{sec:vna_verify}. As
+described in \cref{sec:analog}, the analog part is responsible for separating the
+incident wave $b_2$, converting it to \gls{if}, and digitally sampling the signal.
+Furthermore it handles digital-to-analog conversion, up-conversion to \gls{rf} and
+feeding back the reflected wave $a_2$ to the \gls{dut}. The digital part as described
+in \cref{sec:digital} handles filtering the signal to enable broadband reflection
+synthesis and applying the reflection coefficient $\Gamma_{L,set}$. Since analog and
+digital part can't be verified seperately, verification of the combined reflection
+generation part can be found in \cref{sec:reflection}. During these measurements,
+a noticeable phase drift was observed, and therefore an additional measurement was
+acquired, as seen in \cref{sec:drift}, to verify the origin
+of this phase drift. A list of the used instruments can be seen in \cref{sec:instruments}.
 
 % ---------------------------------------------------------------------------
 
