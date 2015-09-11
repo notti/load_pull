@@ -1300,7 +1300,7 @@ the same digital interface (see \cref{sec:digital}).
               node[source,above=of shift.center,scale=0.7] (shiftsource) {}
               node[rotate=90,anchor=south,font=\tiny] at (shiftsource.west) {$\SI{30}{\mega\hertz}$}
               node[rotate=90,anchor=north] at (shiftsource.east) {lo3}
-              node[below=of mul.center,fill=white] (gamma) {$\Gamma_{set} = X + jY$};
+              node[below=of mul.center,fill=white] (gamma) {$\Gamma_{L,set} = X + jY$};
 
         \draw ($(dut)!.4!(circ)$) node[coordinate] (plane) {};
 
@@ -1744,7 +1744,7 @@ and as a communication bridge to the \gls{pc}. The complete source codes can be 
                   node[source,above=of shift.center,scale=0.7,core] (shiftsource) {}
                   node[rotate=90,anchor=south,font=\tiny] at (shiftsource.west) {$\SI{30}{\mega\hertz}$}
                   node[rotate=90,anchor=north] at (shiftsource.east) {lo3}
-                  node[below=of mul.center,fill=white] (gamma) {$\Gamma_{set} = X + jY$};
+                  node[below=of mul.center,fill=white] (gamma) {$\Gamma_{L,set} = X + jY$};
 
             { [on background layer,every path/.style={dashed}]
                 \draw ($(adc.east)!.5!(mul.west) + (0,4)$) -- ++(0,-8.5) node[coordinate] (rightsplit) {};
@@ -1893,7 +1893,7 @@ in \cref{sec:auto}.
                   node[source,above=of shift.center,scale=0.7,core] (shiftsource) {}
                   node[rotate=90,anchor=south,font=\tiny] at (shiftsource.west) {$\SI{30}{\mega\hertz}$}
                   node[rotate=90,anchor=north] at (shiftsource.east) {lo3}
-                  node[below=of mul.center,fill=white] (gamma) {$\Gamma_{set} = X + jY$};
+                  node[below=of mul.center,fill=white] (gamma) {$\Gamma_{L,set} = X + jY$};
 
             { [on background layer,every path/.style={dashed}]
                 \draw ($(adc.east)!.5!(mul.west) + (0,4)$) -- ++(0,-8.5) node[coordinate] (rightsplit) {};
@@ -3027,7 +3027,7 @@ instruments can be seen in \cref{sec:instruments}.
               node[source,below=of upmix.center,scale=0.7] (upsource) {}
               node[rotate=90,anchor=south,font=\tiny] at (upsource.west) {$\SI{900}{\mega\hertz}$}
               node[rotate=90,anchor=north] at (upsource.east) {lo4}
-              node[below=of mul.center,fill=white] (gamma) {$\Gamma_{set}$};
+              node[below=of mul.center,fill=white] (gamma) {$\Gamma_{L,set}$};
 
         \draw ($(dut)!.5!(dirvna)$) node[coordinate] (plane) {};
 
