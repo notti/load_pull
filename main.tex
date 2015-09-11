@@ -112,6 +112,8 @@
 \usepackage{booktabs} % nicer tables
 \usepackage{cite}
 \usepackage{register}
+\usepackage{metalogo} % \LuaLaTeX
+\usepackage{longtable}
 
 \usepackage{scrlayer-scrpage}
 \pagestyle{scrheadings}
@@ -171,6 +173,13 @@ pdfpagelabels %,hidelinks
 \newacronym{vhdl}{VHDL}{VHSIC Hardware Description Language}
 \newacronym{vna}{VNA}{vector network analyzer}
 \newacronym{xps}{XPS}{Xilinx Platform Studio}
+
+\newglossaryentry{blocksize}%
+{%
+    name={\ensuremath{L}},
+    description={Overlapp add block size},
+    sort={L}
+}
 
 \makeglossaries
 
@@ -249,6 +258,11 @@ pdfpagelabels %,hidelinks
 \end{abstract}
 
 \tableofcontents
+\cleardoublepage
+\listoffigures
+\printacronyms
+\printglossary[title={List of Symbols}]
+
 
 \chapter{Introduction}
 \pagenumbering{arabic}
@@ -1489,7 +1503,7 @@ implemented with linear convolution using the \gls{fft}:
 Since implementing the \gls{fft} in hardware uses a lot of resources, overlap add
 was used to allow for larger signal periods than $n_{fft}$. As shown by \cite{schaums_2011}
 this algorithm splits the signal $x[n]$ into non-overlapping
-subsequences of length $L$ (see \cref{fig:overlap_add}).
+subsequences of length \gls{blocksize} (see \cref{fig:overlap_add}).
 \begin{figure}[htb]
     \centering
     \begin{tikzpicture}
@@ -1557,8 +1571,8 @@ subsequences of length $L$ (see \cref{fig:overlap_add}).
 Therefore $x[n]$ can
 be expressed by a sum of shifted finite-length sequences:
 \begin{equation}
-    \label{eq:sum_seq} x[n] = \sum_{i=0}^{\infty} x_i[n-iL] \qquad x_i[n] =\begin{cases}
-        x[n+iL] & n = 0, 1, \ldots, L-1\\
+    \label{eq:sum_seq} x[n] = \sum_{i=0}^{\infty} x_i[n-i\gls{blocksize}] \qquad x_i[n] =\begin{cases}
+        x[n+i\gls{blocksize}] & n = 0, 1, \ldots, \gls{blocksize}-1\\
         0 & \text{else} \end{cases}
 \end{equation}
 Applying the linear convolution to this sum leads to
@@ -3118,7 +3132,7 @@ Furthermore it handles digital-to-analog conversion, up-conversion to \gls{rf} a
 feeding back the reflected wave $a_2$ to the \gls{dut}. The digital part as described
 in \cref{sec:digital} handles filtering the signal to enable broadband reflection
 synthesis and applying the reflection coefficient $\Gamma_{L,set}$. Since analog and
-digital part can't be verified seperately, verification of the combined reflection
+digital part can't be verified separately, verification of the combined reflection
 generation part can be found in \cref{sec:reflection}. During these measurements,
 a noticeable phase drift was observed, and therefore an additional measurement was
 acquired, as seen in \cref{sec:drift}, to verify the origin
@@ -3668,10 +3682,41 @@ the different parts of the measurement setup. %improve; which freq from which, .
 
 \appendix
 \chapter{References}
-\section{Sources}
+\section{Source Codes}
 \label{sec:sources}
+
+The \gls{vhdl} sources and project files needed to generate the hardware can be found at
+\url{https://github.com/notti/load_pull-hw}. Buildroot configuration files needed to build
+the \gls{os} necessary for the integrated processor design can be found at
+\url{https://github.com/notti/load_pull-buildroot}. The kernel module necessary for controlling
+the developed hardware, web interface and protocol server, Matlab source codes, raw verification results
+can be found at \url{https://github.com/notti/load_pull-sw}. The complete \LuaLaTeX~source code
+and processed verification results necessary to build this document can be found at
+\url{https://github.com/notti/load_pull}.
+
 \section{Used Instruments}
 \label{sec:instruments}
+
+\begin{longtable}{ll}
+    Directional Coupler \device{dir1} & Krytar Model 1850\\
+    Directional Coupler \device{dir2} & Krytar Model 1850\\
+    Attenuator \device{att1}          & \SI{10}{\deci\bel} Mini-Circuits VAT-10W2+\\
+    Frequency mixer \device{mix1}     & Hittite HMC208MS8E \\
+    Low pass filter \device{lp2}      & Mini-Circuits SLP-90+\\
+    \gls{adc} \device{adc1}           & Linear Technology 1151A-D Eval Board (LTC2274) \\
+    \gls{fpga}                        & Xilinx ML507 Eval Board (XC5VFX70T) \\
+    Vector signal generator           & Rhode \& Schwarz SMBV100a \\
+    \gls{lo} \device{lo1}             & Rhode \& Schwarz SMIQ 06B \\
+    \gls{lo} \device{lo2}             & Rhode \& Schwarz SMGU \\
+    Oscilloscope                      & Agilent Technologies MSO7104A \\
+    2. Oscilloscope                   & Agilent Technologies MSO7104A \\
+    Trigger                           & Hewlett Packard 33120A \\
+    Stub tuner                        & Maury Microwave 1819B \\
+    Calibration Kit                   & Rhode \& Schwarz ZV-Z132 (female) \\
+    \gls{vna} (\gls{dut})             & Agilent Technologies E8364A\\
+    \hspace{2em} calibrated with      & Agilent Technologies N4433A\\
+\end{longtable}
+
 \section{Register Assignment}
 \label{sec:registers}
 %TODO:
@@ -3852,10 +3897,6 @@ the different parts of the measurement setup. %improve; which freq from which, .
 \chapter{Build Instructions}
 \section{Hardware}
 \section{Software}
-
-\printglossary[type=\acronymtype]
-
-\listoffigures
 
 \bibliographystyle{IEEEtran}
 \bibliography{main}

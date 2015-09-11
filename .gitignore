@@ -31,4 +31,7 @@ main.pdf
 *.nav
 *.snm
 *.vrb
+*.sbl
+*.slg
+*.sym
 tmp
