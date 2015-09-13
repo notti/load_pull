@@ -3267,18 +3267,25 @@ faster calibration. The measurement result of three exemplary points can be seen
     \label{tab:vna}
 \end{table}
 
-The standard error depends notably on the performance of the oscilloscope. Therefore these
-results are only valid for the used oscilloscope in this work. According to \cite{Oppenheim} the
-\gls{snr} caused by quantization noise of \gls{adc} depends on the bit width and
-the amplitude. Therefore care should be taken, to always use a strong enough signal power,
-in order to achieve the best possible oscilloscope resolution. A small \gls{GammaL}
-value implies a small reflected wave and therefore a higher \gls{snr}. Therefore, the
-resolution decreases for small \gls{GammaL}. The difference to the results from the
-Agilent \gls{vna} are mainly caused by the used calibration kit. This is caused by
-the performance of the error box as described in \cref{sec:vna} which was used
-to correct the systematic errors. The calibration of the error box depends
-only on measurements of the calibration standard. Therefore, the performance can
+The setup of the one port \gls{vna} consists of an oscilloscope and only passive components.
+Therefore the standard error depends notably on the performance of the oscilloscope. It is
+mainly caused by the \glspl{adc} contained in the oscilloscope and imperfections in the
+triggering and sampling. This also means that these results are only valid for the
+used oscilloscope in this work.
+
+The difference to the results from the Agilent \gls{vna} are mainly caused by the
+used calibration kit. This is caused by the performance of the error box as described in
+\cref{sec:vna} which was used to correct the systematic errors. The calibration of the error
+box depends only on measurements of the calibration standard. Therefore, the performance can
 be increased with a better calibration kit or by additional calibration measurements.
+
+Further care should be taken to always ensure a strong enough signal power at the
+oscilloscope \glspl{adc}. According to \cite{Oppenheim} the \gls{snr} caused by quantization
+noise of \gls{adc} depends on the bit width and the amplitude. Therefore small signals cause
+a high \gls{snr}. A small \gls{GammaL} value implies a small reflected wave and therefore a
+higher \gls{snr}. Therefore, the resolution decreases for small \gls{GammaL}. This could
+be compensated with averaging which would increase the effective bit width at the cost
+of longer measurement times \cite{ad_mt004}.
 
 % ---------------------------------------------------------------------------
 
