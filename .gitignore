@@ -22,7 +22,7 @@
 *.mtc1
 *.out
 *.synctex.gz
-main.pdf
+*.pdf
 *.fls
 *.fdb_latexmk
 *.brf

@@ -4,6 +4,10 @@
 
 \usepackage[ngerman,english]{babel}
 
+\usepackage{ifthen}
+
+\providecommand{\NoExternal}{false}
+
 %drawings
 
 \usepackage{graphicx}
@@ -55,7 +59,11 @@
 
 \usepgfplotslibrary{external}
 \tikzsetexternalprefix{figures/}
-\tikzexternalize[mode=list and make]
+\ifthenelse{\equal{\NoExternal}{true} }{
+
+}{
+    \tikzexternalize[mode=list and make]
+}
 \tikzexternalwritetomakefile{}
 \tikzexternalwritetomakefile{.DELETE_ON_ERROR:}
 \tikzexternalwritetomakefile{}
