@@ -89,6 +89,7 @@
 \usepackage{gensymb}
 
 \providecommand{\abs}[1]{\lvert#1\rvert}
+\providecommand{\mean}[1]{\overline{#1}}
 
 %source
 
@@ -3175,13 +3176,15 @@ of this phase drift. A list of the used instruments can be seen in \cref{sec:ins
 
 % ---------------------------------------------------------------------------
 
-\section{One Port \glsentryshort{vna}}
+\section{One Port \glsentryshort{vna} verification}
 \label{sec:vna_verify}
 
 For the calibration and verification of the one port \gls{vna}, the modulator of
-the vector signal generator was turned off. Stepping through the frequency range %why turned off?
+the vector signal generator was turned off. Stepping through the frequency range
 was achieved by stepping the local oscillator \device{lo4} (see \cref{fig:test_setup}).
-A ZV-Z132 (female) calibration kit from Rhode \& Schwarz was used for the calibration
+This allowed for easier test automation since only the vector signal generator had to
+be controlled. The vector signal generator was set to an output power of \SI{0}{\deci\belm}
+which results in about \SI{-10}{\deci\belm} at the load reference plane (see \cref{fig:test_setup}). A ZV-Z132 (female) calibration kit from Rhode \& Schwarz was used for the calibration
 setup in place of the \gls{dut}. Since the calibration is only valid for a single frequency, the full
 calibration measurements were acquired for 21 $\Delta{}\gls{f}$-aligned points within a
 \SI{25}{\mega\hertz} range at a center frequency of \SI{900}{\mega\hertz}. This
@@ -3195,48 +3198,91 @@ For the verification of the calibration, a stub tuner from Maury Microwave was t
 then measured utilizing the one port \gls{vna} in this work. Measurements were acquired over
 the whole \SI{25}{\mega\hertz} bandwidth at the calibrated points. Additional measurements
 were acquired at an offset of $\frac{1}{2}\Delta{}\gls{f}$, to be able to test the performance
-of the chosen window function, and additionally between the calibrated points, to test the %describe three measurements more cleary
-performance of the interpolation. To be able to verify the $\gls{GammaL}$ which was measured using the
+of the chosen window function. The performance of the interpolation was tested by further
+measurements between the calibrated points. To be able to verify the $\gls{GammaL}$ which was measured using the
 above described setup, those measurements were compared to a measurement acquired using a
-commercially available \gls{vna}. %which vna? which calkit? vna settings vna datasheet!
-%describe standard error
+commercially available \gls{vna}. The \gls{vna} used for verification was an Agilent Technologies E8364A,
+calibrated with an Agilent Technologies N4433A calibration kit (see \cref{sec:instruments}). \gls{vna}
+settings used were \SI{-10}{\deci\belm} test port power, \SI{35}{\kilo\hertz} \gls{if} bandwidth, and
+1601 measurement points.
+
+Every point was measured 100 times to be able to quantify the non systematic errors. With those
+$N$ observations of every point, the measured samples $x$, and the mean of the measured samples
+$\mean{x}$ the corrected sample standard deviation $s$ was calculated according to \cref{eq:std}.
+With the standard deviation $s$ the standard error $SE$ was calculated according to \cref{eq:stderr}.
+
+\begin{align}
+    \label{eq:std} s &= \sqrt{\frac{1}{N-1} \sum^N_{i=1} (x_i - \mean{x})^2} \\
+    \label{eq:stderr} SE &= \frac{s}{\sqrt{N}}
+\end{align}
+
+The standard error and the difference to the results from the Agilent \gls{vna} stay roughly the
+same over the complete \SI{25}{\mega\hertz} range. There is also no noticeable difference between
+the three different types of points. Thus, the linear interpolation and the chosen window function
+seem to be appropriate for this type of measurement. Since there are only passive parts involved
+in the one port \gls{vna}, it should also be possible to use less calibration points to achieve a
+faster calibration. The measurement result of three exemplary points can be seen in \cref{tab:vna}.
 
 \begin{table}[htb]
     \centering
-    \begin{tabular}{rrrr}
-        \toprule
-        \shortstack[r]{\textbf{frequency} \\ \si{\mega\hertz}} & \shortstack[r]{887.5\\(cal)} & \shortstack[r]{887.505\\($\frac{1}{2}\Delta{}\gls{f}$)} & \shortstack[r]{888.095\\(between cal)} \\
-        \midrule
-        \shortstack[r]{\textbf{magnitude}\\ 1} & \num{581.0232e-003} & \num{581.0589e-003} & \num{582.3070e-003} \\
-            standard error & \num{37.6e-006}     & \num{38.2e-006}     & \num{36.56e-006} \\
-           $\Delta$Agilent \gls{vna} & \num{2.1e-003} & \num{2.1e-003} & \num{2.2e-003} \\
-        \shortstack[r]{\textbf{angle}\\\si{\degree}}     & \num{-157.5029}     & \num{-157.4787}     & \num{-157.7972} \\
-            standard error & \num{8.7e-003}      & \num{8.1e-003}      & \num{9.7e-003} \\
-           $\Delta$Agilent \gls{vna} & \num{2.2} & \num{2.3} & \num{2.3} \\
-        \bottomrule
-    \end{tabular}
+    \begin{subtable}[b]{\linewidth}
+        \centering
+        \begin{tabular}{
+            S[table-format=3.3]
+            l
+            S[table-format=3.4e1]
+            S[table-format=2.1e1]
+            S[table-format=1.1e1]}
+            \toprule
+            \multicolumn{2}{c}{{\textbf{frequency}}} & {mean} & {standard error} & {$\Delta$\gls{vna}} \\
+            {\si{\mega\hertz}} &  & {1} & {1} & {1} \\
+            \midrule
+            887.5   & (cal)                          & 581.0232e-3 & 37.6e-6 & 2.1e-3 \\
+            887.505 & ($\frac{1}{2}\Delta{}\gls{f}$) & 581.0589e-3 & 38.2e-6 & 2.2e-3 \\
+            888.095 &(between cal)                   & 582.3070e-3 & 36.6e-6 & 2.1e-3 \\%\midrule
+            \bottomrule
+        \end{tabular}
+        \caption{Magnitude}
+    \end{subtable}\vspace{1em}\\
+    \begin{subtable}[b]{\linewidth}
+        \centering
+        \begin{tabular}{
+            S[table-format=3.3]
+            l
+            S[table-format=+3.4]
+            S[table-format=1.1e1]
+            S[table-format=1.1]}
+            \toprule
+            \multicolumn{2}{c}{{\textbf{frequency}}} & {mean} & {standard error} & {$\Delta$\gls{vna}} \\
+            {\si{\mega\hertz}} &  & {\si{\degree}} & {\si{\degree}} & {\si{\degree}} \\
+            \midrule
+            887.5   & (cal)                          & -157.5029 & 8.7e-3 & 2.2 \\
+            887.505 & ($\frac{1}{2}\Delta{}\gls{f}$) & -157.4787 & 8.1e-3 & 2.3 \\
+            888.095 &(between cal)                   & -157.7972 & 9.7e-3 & 2.3 \\
+            \bottomrule
+        \end{tabular}
+        \caption{Angle}
+    \end{subtable}
     \caption{Measured reflection coefficient with standard error and difference to Agilent \gls{vna}}
     \label{tab:vna}
 \end{table}
-%fix table (decimal dots, distinction)
 
-No noticeable difference has been observed for the standard error and the difference to the results from the Agilent \gls{vna} for the three
-different types of points over the complete \SI{25}{\mega\hertz} range. %more clearly which differences
-Thus, the linear interpolation and the chosen window function seem to be appropriate for this type of
-measurement. Since there are only passive parts involved in the one port \gls{vna}, it should
-also be possible to use less calibration points to achieve a faster calibration. The measurement
-result of three exemplary points can be seen in \cref{tab:vna}.
-
-The results are highly dependent on the used oscilloscope and calibration kit. The standard error
-depends notably on the performance of the oscilloscope. Therefore these
-results are only valid for the used oscilloscope in this work. Additionally care should be taken, to
-always use a strong enough signal power, in order to achieve the best possible oscilloscope resolution. %Oppenheimer p196 SNR-=6db for amplitude/2
-The difference to the results from the Agilent \gls{vna} is mainly caused by the used calibration kit.
-%write more clearly why
+The standard error depends notably on the performance of the oscilloscope. Therefore these
+results are only valid for the used oscilloscope in this work. According to \cite{Oppenheim} the
+\gls{snr} caused by quantization noise of \gls{adc} depends on the bit width and
+the amplitude. Therefore care should be taken, to always use a strong enough signal power,
+in order to achieve the best possible oscilloscope resolution. A small \gls{GammaL}
+value implies a small reflected wave and therefore a higher \gls{snr}. Therefore, the
+resolution decreases for small \gls{GammaL}. The difference to the results from the
+Agilent \gls{vna} are mainly caused by the used calibration kit. This is caused by
+the performance of the error box as described in \cref{sec:vna} which was used
+to correct the systematic errors. The calibration of the error box depends
+only on measurements of the calibration standard. Therefore, the performance can
+be increased with a better calibration kit or by additional calibration measurements.
 
 % ---------------------------------------------------------------------------
 
-\section{Reflection Measurements}
+\section{Reflection Generation Verification}
 \label{sec:reflection}
 
 The reflection measurements were carried out using a test setup as displayed in \cref{fig:test_setup}.
