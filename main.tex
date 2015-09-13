@@ -7,6 +7,7 @@
 \usepackage{ifthen}
 
 \providecommand{\NoExternal}{false}
+\providecommand{\PrintVersion}{false}
 
 %drawings
 
@@ -59,7 +60,7 @@
 
 \usepgfplotslibrary{external}
 \tikzsetexternalprefix{figures/}
-\ifthenelse{\equal{\NoExternal}{true} }{
+\ifthenelse{\equal{\NoExternal}{true} \or \equal{\PrintVersion}{true} }{
 
 }{
     \tikzexternalize[mode=list and make]
@@ -130,12 +131,19 @@
 
 \def\device#1{\textit{#1}}
 
+\ifthenelse{\equal{\PrintVersion}{true}}{
+    \def\HideLinks{hidelinks,}
+}{
+    \def\HideLinks{}
+}
+
 \usepackage[colorlinks,hyperindex,plainpages=false,
 linkcolor=red!60!black,
 pdftitle={FPGA-based Load-Pull Measurement System},
 pdfauthor={Gernot Vormayr},
 pdfsubject={Diploma thesis},
-pdfpagelabels %,hidelinks
+pdfpagelabels,
+\HideLinks
 ]{hyperref}
 
 % lots of acronyms
