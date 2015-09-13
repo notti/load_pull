@@ -174,12 +174,30 @@ pdfpagelabels %,hidelinks
 \newacronym{vna}{VNA}{vector network analyzer}
 \newacronym{xps}{XPS}{Xilinx Platform Studio}
 
-\newglossaryentry{blocksize}%
-{%
-    name={\ensuremath{L}},
-    description={Overlapp add block size},
-    sort={L}
-}
+\newcommand{\newMsymbol}[4]{\newglossaryentry{#1}{name={\ensuremath{#2}},description={#3},sort={#4}}}
+
+\newMsymbol{L}{L}{overlap add block size}{L}
+\newMsymbol{S}{S}{scattering parameters}{S}
+\newMsymbol{a}{a}{incident wave}{a}
+\newMsymbol{b}{b}{reflected wave}{b}
+\newMsymbol{Z}{Z}{complex impedance}{Z}
+\newMsymbol{Z0}{Z_0}{complex characteristic impedance}{Z0}
+\newMsymbol{ZL}{Z_L}{complex load impedance}{ZL}
+\newMsymbol{Gamma}{\Gamma}{complex reflection coefficient}{G}
+\newMsymbol{GammaL}{\Gamma_L}{complex load reflection coefficient}{GL}
+\newMsymbol{j}{j}{imaginary unit}{j}
+\newMsymbol{f}{f}{frequency}{f}
+\newMsymbol{fs}{f_s}{sample frequency}{fs}
+\newMsymbol{f0}{f_0}{fundamental frequency, center frequency}{f0}
+\newMsymbol{n}{n}{number of samples, periodicity of signal}{n}
+\newMsymbol{nfft}{n_{fft}}{fast Fourier transform size}{nfft}
+\newMsymbol{DFT}{\mathcal{DFT}}{discrete Fourier transform}{dft}
+\newMsymbol{FFT}{\mathcal{FFT}}{fast Fourier transform}{fft}
+\newMsymbol{xn}{x[n]}{sampled signal of length $n$ or at sample position $n$}{xn}
+\newMsymbol{angle}{m \angle \phi}{complex value with magnitude $m$ and angle $\phi$}{angle}
+
+\newcommand{\XN}{\glsdisp{xn}{[n]}}
+\newcommand{\Angle}{\glsdisp{angle}{\angle}}
 
 \makeglossaries
 
@@ -277,11 +295,11 @@ and introduces the concept of forward and backward traveling power waves.
 
 For this reason, instead of impedance- and admittance matrices, \glspl{sparam}
 are commonly used in \gls{rf} and \gls{mw} circuit engineering to describe
-$N$-ports (see \cref{fig:sparam,eq:sparam} for a 2-port). $a_n$ denotes the incident and
-$b_n$ the reflected power wave. Complex valued $S_{nn}$ represents the
-part of $a_n$ that gets reflected at port $n$, where as $S_{nm}$ is the part of $a_m$ that
-is transmitted to $b_n$. A set of \glspl{sparam} is only valid for a specific frequency, a
-characteristic impedance $Z_0$, and a well defined reference plane (port 1 and port 2 in \cref{fig:sparam}).
+N-ports (see \cref{fig:sparam,eq:sparam} for a 2-port). $\gls{a}[_k]$ denotes the incident and
+$\gls{b}[_k]$ the reflected power wave. Complex valued $\gls{S}[_{kk}]$ represents the
+part of $\gls{a}[_k]$ that gets reflected at port $k$, where as $\gls{S}[_{kl}]$ is the part of $\gls{a}[_l]$ that
+is transmitted to $\gls{b}[_k]$. A set of \glspl{sparam} is only valid for a specific frequency, a
+characteristic impedance \gls{Z0}, and a well defined reference plane (port 1 and port 2 in \cref{fig:sparam}).
 
 \begin{figure}[htb]
     \centering
@@ -296,16 +314,16 @@ characteristic impedance $Z_0$, and a well defined reference plane (port 1 and p
             |[coordinate]| & &[4cm] & |[coordinate]| \\
             |[coordinate]| & & & |[coordinate]| \\
         };
-        \draw[-latex] (box-1-1) node[anchor=east] {$a_1$} -- (box-1-2);
-        \draw[-latex] (box-1-2) -- node[above] {$S_{21}$} (box-1-3);
-        \draw[-latex] (box-1-3) -- (box-1-4) node[anchor=west] {$b_2$};
+        \draw[-latex] (box-1-1) node[anchor=east] {$\gls{a}[_1]$} -- (box-1-2);
+        \draw[-latex] (box-1-2) -- node[above] {$\gls{S}[_{21}]$} (box-1-3);
+        \draw[-latex] (box-1-3) -- (box-1-4) node[anchor=west] {$\gls{b}[_2]$};
 
-        \draw[latex-] (box-2-1) node[anchor=east] {$b_1$} -- (box-2-2);
-        \draw[latex-] (box-2-2) -- node[above] {$S_{12}$} (box-2-3);
-        \draw[latex-] (box-2-3) -- (box-2-4) node[anchor=west] {$a_2$};
+        \draw[latex-] (box-2-1) node[anchor=east] {$\gls{b}[_1]$} -- (box-2-2);
+        \draw[latex-] (box-2-2) -- node[above] {$\gls{S}[_{12}]$} (box-2-3);
+        \draw[latex-] (box-2-3) -- (box-2-4) node[anchor=west] {$\gls{a}[_2]$};
 
-        \draw[-latex] (box-1-2) to[bend left=30] node[right] {$S_{11}$} (box-2-2);
-        \draw[latex-] (box-1-3) to[bend right=30] node[left] {$S_{22}$} (box-2-3);
+        \draw[-latex] (box-1-2) to[bend left=30] node[right] {$\gls{S}[_{11}]$} (box-2-2);
+        \draw[latex-] (box-1-3) to[bend right=30] node[left] {$\gls{S}[_{22}]$} (box-2-3);
 
         \draw ($(box-1-2) + (0,0.7cm)$) rectangle ($(box-2-3) - (0,0.7cm)$);
 
@@ -321,31 +339,31 @@ characteristic impedance $Z_0$, and a well defined reference plane (port 1 and p
 
 \begin{equation}
     \label{eq:sparam}
-    \begin{pmatrix} b_1 \\ b_2 \end{pmatrix} = \begin{pmatrix} S_{11} & S_{12} \\ S_{21} & S_{22} \end{pmatrix} \begin{pmatrix} a_1 \\ a_2 \end{pmatrix}
+    \begin{pmatrix} \gls{b}[_1] \\ \gls{b}[_2] \end{pmatrix} = \begin{pmatrix} \gls{S}[_{11}] & \gls{S}[_{12}] \\ \gls{S}[_{21}] & \gls{S}[_{22}] \end{pmatrix} \begin{pmatrix} \gls{a}[_1] \\ \gls{a}[_2] \end{pmatrix}
 \end{equation}
 
-For a 1-port there is only the parameter $S_{11}$, which is equivalent to the reflection
-coefficient $\Gamma$ and can be also expressed by the input impedance $Z_{in}$ (see
+For a 1-port there is only the parameter $\gls{S}[_{11}]$, which is equivalent to the reflection
+coefficient \gls{Gamma} and can be also expressed by the input impedance $\gls{Z}[_{in}]$ (see
 \cref{eq:s11ref} as shown in \cite{pozar_mw_engineering_2011}). This does not necessarily hold for 2-ports, since for a generic
 multi-port configuration, also reflections from the devices connected at the other ports
 can be seen.
 \begin{equation}
-    \label{eq:s11ref} \Gamma = S_{11} = \frac{Z_{in}-Z_0}{Z_{in}+Z_0}
+    \label{eq:s11ref} \gls{Gamma} = \gls{S}[_{11}] = \frac{\gls{Z}[_{in}]-\gls{Z0}}{\gls{Z}[_{in}]+\gls{Z0}}
 \end{equation}
 
 One way to evaluate the \glspl{sparam} at a specific frequency would be connecting
-the reference impedance $Z_0$ to the other ports. To measure e.g. $S_{11}$ a matching impedance, equal to the ports reference impedance, has to
-be connected to port 2. According to \cref{eq:s11ref} the reflected wave $a_2$
+the reference impedance \gls{Z0} to the other ports. To measure e.g. $\gls{S}[_{11}]$ a matching impedance, equal to the ports reference impedance, has to
+be connected to port 2. According to \cref{eq:s11ref} the reflected wave $\gls{a}[_2]$
 at port 2 is zero in this case. This means that measurements at port 1 can only see the
-reflections caused by $S_{11}$. Consequently $S_{11}$ can now be calculated by measuring the incident
+reflections caused by $\gls{S}[_{11}]$. Consequently $\gls{S}[_{11}]$ can now be calculated by measuring the incident
 and reflected wave at port 1 (see \cref{eq:s11}) \cite{agilent_an_154}.
 \begin{align}
-    \label{eq:s11} S_{11} & = \left.\frac{b_1}{a_1} \right\rvert_{a_2 = 0}\\
-    \label{eq:s21} S_{21} & = \left.\frac{b_2}{a_1} \right\rvert_{a_2 = 0}
+    \label{eq:s11} \gls{S}[_{11}] & = \left.\frac{\gls{b}[_1]}{\gls{a}[_1]} \right\rvert_{\gls{a}[_2] = 0}\\
+    \label{eq:s21} \gls{S}[_{21}] & = \left.\frac{\gls{b}[_2]}{\gls{a}[_1]} \right\rvert_{\gls{a}[_2] = 0}
 \end{align}
 Because of connectors and cabling it is often impossible to connect exact matches. Therefor
 \glspl{sparam} are measured by sending a power wave into port 1 of the \gls{dut}, measuring
-$a_n$ and $b_n$. After that the measurement is repeated with port 2. With measurements from
+$\gls{a}[_k]$ and $\gls{b}[_k]$. After that the measurement is repeated with port 2. With measurements from
 both ports and calibration measurements, which are necessary to account for systematic errors in the measurement setup,
 it is possible to determine every \gls{sparam}. \Glspl{vna} use this method
 and can make automated measurements at various frequencies.
@@ -375,7 +393,7 @@ allows to test the \gls{dut} under realistic operational conditions.
               node[tuner,right=of source,label=above:{fixed input tuner}] (ituner) {}
               node[dut,right=of ituner] (dut) {}
               node[tuner,right=2 of dut,label=above:{output tuner}] (otuner) {}
-              node[match,right=of otuner,label=above:{$Z_0$}] (match) {}
+              node[match,right=of otuner,label=above:{\gls{Z0}}] (match) {}
               node[rground,right=0.3 of match,rotate=90,anchor=center] (ground) {};
         \draw ($(dut)!.5!(otuner)$) node[coordinate] (plane) {};
 
@@ -383,28 +401,28 @@ allows to test the \gls{dut} under realistic operational conditions.
 
         \draw [dashed] ($(plane) + (0,2)$) node[anchor=south] {Load Reference Plane} -- ($(plane) - (0,2.5)$);
 
-        \draw [latex-] ($(plane) + (0,1.5)$) -- ++(-0.5,0) node[anchor=east] {$Z_L$};
+        \draw [latex-] ($(plane) + (0,1.5)$) -- ++(-0.5,0) node[anchor=east] {$\gls{ZL}$};
 
-        \draw [-latex] ($(plane) + (0.25,-1)$) node[anchor=west] {$a_2$}-- ++(-0.5,0);
-        \draw [latex-] ($(plane) + (0.25,-1.5)$) node[anchor=west] {$b_2$}-- ++(-0.5,0);
-        \draw [latex-] ($(plane) + (0,-2)$) -- ++(-0.5,0) node[anchor=east] {$\Gamma_L$};
+        \draw [-latex] ($(plane) + (0.25,-1)$) node[anchor=west] {$\gls{a}[_2]$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0.25,-1.5)$) node[anchor=west] {$\gls{b}[_2]$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0,-2)$) -- ++(-0.5,0) node[anchor=east] {$\gls{GammaL}$};
 
     \end{tikzpicture}
     \caption{Load reflection coefficient}
     \label{fig:load_coeff}
 \end{figure}
 
-The \cref{eq:gl,eq:zl} show the relations between the load reflection coefficient $\Gamma_L$,
-the incident wave $a_2$, the reflected
-wave $b_2$, and the load impedance $Z_L$ at port 2 of \cref{fig:sparam,fig:load_coeff}. $Z_0$
+The \cref{eq:gl,eq:zl} show the relations between the load reflection coefficient $\gls{GammaL}$,
+the incident wave $\gls{a}[_2]$, the reflected
+wave $\gls{b}[_2]$, and the load impedance $\gls{ZL}$ at port 2 of \cref{fig:sparam,fig:load_coeff}. \gls{Z0}
 is the characteristic impedance of the system \cite{hashmi_highly_2011}.
 \begin{align}
-    \label{eq:gl} \Gamma_L & = \frac{a_2}{b_2} \\
-    \label{eq:zl} \Gamma_L & = \frac{Z_L-Z_0}{Z_L+Z_0}
+    \label{eq:gl} \gls{GammaL} & = \frac{\gls{a}[_2]}{\gls{b}[_2]} \\
+    \label{eq:zl} \gls{GammaL} & = \frac{\gls{ZL}-\gls{Z0}}{\gls{ZL}+\gls{Z0}}
 \end{align}
-The output tuner in \cref{fig:load_coeff} synthesizes an appropriate $\Gamma_L$
-either by varying the phase and magnitude of the reflected wave $a_2$ or by varying
-the load impedance $Z_L$. This means, that it is possible to build a \gls{lp}
+The output tuner in \cref{fig:load_coeff} synthesizes an appropriate $\gls{GammaL}$
+either by varying the phase and magnitude of the reflected wave $\gls{a}[_2]$ or by varying
+the load impedance $\gls{ZL}$. This means, that it is possible to build a \gls{lp}
 setup by either using a passive tuner, or feeding a modified wave back to the
 \gls{dut}.
 
@@ -412,7 +430,7 @@ There are various types of \gls{lp} measurement setups, which have different
 characteristics. One important feature of a \gls{lp} setup is the repeatability of reflection
 coefficients. The repeatability is needed to ensure accurate application
 specific device models. Another important factor is the tuning range, which
-depicts the maximal achievable range of the reflection coefficient $\abs{\Gamma_L}$
+depicts the maximal achievable range of the reflection coefficient $\abs{\gls{GammaL}}$
 (e.g. \cref{fig:range_passive}). Usually passive \gls{lp}
 systems have a more limited tuning range than active ones, but provide a
 better repeatability \cite{ghannouchi_load-pull_2013}. Tuner speed and tuner
@@ -453,7 +471,7 @@ the desired measurements, additional circuit elements like directional couplers,
 power meters, and oscilloscopes are needed. For higher power measurements additional
 amplifiers, and attenuators to reduce the output power to acceptable levels might also
 be needed. These additional components, the cabling, and connectors add additional loss
-on the reflection path, leading to achievable reflection levels $\abs{\Gamma_L} < 1$ with
+on the reflection path, leading to achievable reflection levels $\abs{\gls{GammaL}} < 1$ with
 a maximum usually around 0.75 \cite{de_groote_introduction_2008} (see \cref{fig:range_passive}).
 
 Typically used tuners, consist of a transmission line and a probe that introduces a mismatch
@@ -463,7 +481,7 @@ Automated positioning can be achieved by adding motors. These tuners are called 
 Those have to be calibrated before use and achieve reflection levels like shown in
 \cref{fig:generic_emt} with up to 10000 points \cite{ghannouchi_load-pull_2013}.
 
-If higher $\abs{\Gamma_L}$-levels  are needed (even levels $> 1$), active \gls{lp} setups
+If higher $\abs{\gls{GammaL}}$-levels  are needed (even levels \num{> 1}), active \gls{lp} setups
 have to be used. There are two categories: closed- and open loop.
 
 \begin{figure}[htb]
@@ -481,27 +499,27 @@ have to be used. There are two categories: closed- and open loop.
         \draw (dut) -- (circ.A);
         \draw (circ.B) -- ($(circ.B |- att)!.5!(att)$) node[coordinate] (upper) {} -- (att) -- (phase) -- ++(1,0) |- (amp) -- ($(circ.C |- amp)!.5!(amp)$) node[coordinate] (lower) {} -- (circ.C);
 
-        \draw [-latex] ($(circ.B) + (-0.2,0.2)$) -- node[sloped,above] {$b_2$} ($(upper) + (-0.2,0.2)$);
-        \draw [latex-] ($(circ.C) + (-0.2,-0.2)$) -- node[sloped,below] {$a_2$} ($(lower) + (-0.2,-0.2)$);
+        \draw [-latex] ($(circ.B) + (-0.2,0.2)$) -- node[sloped,above] {$\gls{b}[_2]$} ($(upper) + (-0.2,0.2)$);
+        \draw [latex-] ($(circ.C) + (-0.2,-0.2)$) -- node[sloped,below] {$\gls{a}[_2]$} ($(lower) + (-0.2,-0.2)$);
 
         \draw [dashed] ($(plane) + (0,2)$) node[anchor=south] {Load Reference Plane} -- ($(plane) - (0,2.5)$);
 
-        \draw [latex-] ($(plane) + (0,1.5)$) -- ++(-0.5,0) node[anchor=east] {$Z_L$};
+        \draw [latex-] ($(plane) + (0,1.5)$) -- ++(-0.5,0) node[anchor=east] {$\gls{ZL}$};
 
-        \draw [-latex] ($(plane) + (0.25,-1)$) node[anchor=west] {$a_2$}-- ++(-0.5,0);
-        \draw [latex-] ($(plane) + (0.25,-1.5)$) node[anchor=west] {$b_2$}-- ++(-0.5,0);
-        \draw [latex-] ($(plane) + (0,-2)$) -- ++(-0.5,0) node[anchor=east] {$\Gamma_L$};
+        \draw [-latex] ($(plane) + (0.25,-1)$) node[anchor=west] {$\gls{a}[_2]$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0.25,-1.5)$) node[anchor=west] {$\gls{b}[_2]$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0,-2)$) -- ++(-0.5,0) node[anchor=east] {$\gls{GammaL}$};
     \end{tikzpicture}
     \caption{Active closed loop \gls{lp} block diagram}
     \label{fig:active_closed_loop}
 \end{figure}
 
-Active closed loop \gls{lp} setups generate a modified reflected wave $a_2$ by
-modifying the phase and magnitude of $b_2$ and feeding it back to the \gls{dut}.
+Active closed loop \gls{lp} setups generate a modified reflected wave $\gls{a}[_2]$ by
+modifying the phase and magnitude of $\gls{b}[_2]$ and feeding it back to the \gls{dut}.
 The functional block diagram, which can be seen in \Cref{fig:active_closed_loop},
 is an example of such an active closed loop \gls{lp} setup. With the circulator
-the power wave $b_2$ is fed to a variable attenuator, a phase shifter and an
-amplifier. These elements enable modifying the phase and the magnitude of $b_2$,
+the power wave $\gls{b}[_2]$ is fed to a variable attenuator, a phase shifter and an
+amplifier. These elements enable modifying the phase and the magnitude of $\gls{b}[_2]$,
 which is again fed back to the \gls{dut} with the circulator. Because of limited
 isolation provided by real world circulators this system will oscillate if the loop gain
 exceeds the isolation \cite{ghannouchi_load-pull_2013}. This can be circumvented with
@@ -522,15 +540,15 @@ is to introduce a bandpass filter into the loop.
         \draw ($(dut)!.5!(iso)$) node[coordinate] (plane) {};
 
         \draw (dut) -- (iso) -- (amp) -- (shift) -- (att) -- (source);
-        \draw [latex-] ($(iso.west) + (0.2,-0.2)$) -- node[below] {$a_2$} ($(amp.west) + (-0.2,-0.2)$);
+        \draw [latex-] ($(iso.west) + (0.2,-0.2)$) -- node[below] {$\gls{a}[_2]$} ($(amp.west) + (-0.2,-0.2)$);
 
         \draw [dashed] ($(plane) + (0,2)$) node[anchor=south] {Load Reference Plane} -- ($(plane) - (0,2.5)$);
 
-        \draw [latex-] ($(plane) + (0,1.5)$) -- ++(-0.5,0) node[anchor=east] {$Z_L$};
+        \draw [latex-] ($(plane) + (0,1.5)$) -- ++(-0.5,0) node[anchor=east] {$\gls{ZL}$};
 
-        \draw [-latex] ($(plane) + (0.25,-1)$) node[anchor=west] {$a_2$}-- ++(-0.5,0);
-        \draw [latex-] ($(plane) + (0.25,-1.5)$) node[anchor=west] {$b_2$}-- ++(-0.5,0);
-        \draw [latex-] ($(plane) + (0,-2)$) -- ++(-0.5,0) node[anchor=east] {$\Gamma_L$};
+        \draw [-latex] ($(plane) + (0.25,-1)$) node[anchor=west] {$\gls{a}[_2]$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0.25,-1.5)$) node[anchor=west] {$\gls{b}[_2]$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0,-2)$) -- ++(-0.5,0) node[anchor=east] {$\gls{GammaL}$};
     \end{tikzpicture}
     \caption{Active open loop \gls{lp} block diagram}
     \label{fig:active_open_loop}
@@ -541,10 +559,10 @@ an external signal generator (see \cref{fig:active_open_loop}). The open loop
 approach has the advantage, that it can't oscillate, since there is no closed loop.
 It works by generating a signal with a source, that is locked to the generator driving the
 source port of the \gls{dut}. Phase and magnitude can be adjusted with the attenuator and
-phase shifter. A disadvantage of the open loop system is that the generated waves $a_2$ are
-not derived from $b_2$. This implies that the reflection coefficient $\Gamma_L$ not only
+phase shifter. A disadvantage of the open loop system is that the generated waves $\gls{a}[_2]$ are
+not derived from $\gls{b}[_2]$. This implies that the reflection coefficient $\gls{GammaL}$ not only
 depends on the phase shifter and attenuator settings, but also on the \gls{dut} itself.
-Therefore, an iterative approach is needed to be able to achieve a specific $\Gamma_L$ \cite{muller_comparison_1994}.
+Therefore, an iterative approach is needed to be able to achieve a specific $\gls{GammaL}$ \cite{muller_comparison_1994}.
 
 Keeping in mind above discussions, in the course of the presented thesis the following chapters introduce an active closed loop \gls{lp} system, which
 is built with a digital attenuator, phase shifter, and loop filter implemented
@@ -584,13 +602,13 @@ and the problem of the \gls{if} calibration with a fully configurable digital \g
               ($(upmix)!.5!(downmix)$) node[mixer] (mul) {}
               node[rotate=90,anchor=south] at (mul.west) {mul}
 
-              node[right=0.5 of mul] (gamma) {$\Gamma_{L,set} = X + j Y$}
-              node[source,right=0.5 of gamma,scale=0.7,label=right:$f_0$] (lo) {};
+              node[right=0.5 of mul] (gamma) {$\glsdisp{GammaL}{\Gamma_{L,set}} = X + \gls{j} Y$}
+              node[source,right=0.5 of gamma,scale=0.7,label=right:\gls{f0}] (lo) {};
 
         \draw ($(dut)!.5!(circ)$) node[coordinate] (plane) {};
 
-        \draw [latex-] ($(amp.west |- uppernode) + (-0.2,0.2)$) -- node[sloped,above] {$b_2$} ($(uppernode) + (-0.4,0.2)$);
-        \draw [-latex] ($(amp.west) + (-0.2,-0.2)$) -- node[below] {$a_2$} ($(lowernode) + (-0.4,-0.2)$);
+        \draw [latex-] ($(amp.west |- uppernode) + (-0.2,0.2)$) -- node[sloped,above] {$\gls{b}[_2]$} ($(uppernode) + (-0.4,0.2)$);
+        \draw [-latex] ($(amp.west) + (-0.2,-0.2)$) -- node[below] {$\gls{a}[_2]$} ($(lowernode) + (-0.4,-0.2)$);
 
         { [rounded corners=2pt]
             \draw (dut) -- (circ.A);
@@ -611,11 +629,11 @@ and the problem of the \gls{if} calibration with a fully configurable digital \g
 
         \draw [dashed] ($(plane) + (0,2)$) node[anchor=south] {Load Reference Plane} -- ($(plane) - (0,3)$);
 
-        \draw [latex-] ($(plane) + (0,1.5)$) -- ++(-0.5,0) node[anchor=east] {$Z_L$};
+        \draw [latex-] ($(plane) + (0,1.5)$) -- ++(-0.5,0) node[anchor=east] {$\gls{ZL}$};
 
-        \draw [-latex] ($(plane) + (0.25,-1.5)$) node[anchor=west] {$a_{2}$}-- ++(-0.5,0);
-        \draw [latex-] ($(plane) + (0.25,-2)$) node[anchor=west] {$b_{2}$}-- ++(-0.5,0);
-        \draw [latex-] ($(plane) + (0,-2.5)$) -- ++(-0.5,0) node[anchor=east] {$\Gamma_{L,set}$};
+        \draw [-latex] ($(plane) + (0.25,-1.5)$) node[anchor=west] {$\gls{a}[_{2}]$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0.25,-2)$) node[anchor=west] {$\gls{b}[_{2}]$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0,-2.5)$) -- ++(-0.5,0) node[anchor=east] {$\glsdisp{GammaL}{\Gamma_{L,set}}$};
     \end{tikzpicture}
     \caption{Generic block diagram \gls{elp}}
     \label{fig:elp}
@@ -626,8 +644,8 @@ load coefficient at baseband or \gls{if}. The basic principle of this \gls{elp} 
 can be seen in \cref{fig:elp}. A circulator is used to split the incident and
 reflected wave. The mixer \device{mix1} is used for shifting the spectrum to
 the baseband and for \gls{iq} demodulation. This \gls{iq} signal is then
-multiplied by the complex valued $\Gamma_{L,set}$ (\device{mul1}), thus creating a specific
-reflection coefficient $\Gamma_L$. Mixer \device{mix2} is used for modulating
+multiplied by the complex valued $\glsdisp{GammaL}{\Gamma_{L,set}}$ (\device{mul1}), thus creating a specific
+reflection coefficient $\gls{GammaL}$. Mixer \device{mix2} is used for modulating
 the \gls{iq} signal and upconverting the signal back to the desired \gls{rf} \cite{williams_experimental_2005}.
 
 The multiplication can be done in the analog domain, as has been described
@@ -673,7 +691,7 @@ carrier signal, it can't be filtered out \cite{hashmi_agile_2010}.
               node[rotate=90,anchor=north] at (H.south) {fir1}
 
               node[source,above=of downmix.center,scale=0.7] (downsource) {}
-              node[rotate=90,anchor=south,font=\tiny] at (downsource.west) {$f_0 - \SI{70}{\mega\hertz}$}
+              node[rotate=90,anchor=south,font=\tiny] at (downsource.west) {$\gls{f0} - \SI{70}{\mega\hertz}$}
               node[rotate=90,anchor=north] at (downsource.east) {lo1}
               node[source,above=of adc.center,scale=0.7] (sample) {}
               node[rotate=90,anchor=south,font=\tiny] at (sample.west) {$\SI{100}{\mega\hertz}$}
@@ -682,9 +700,9 @@ carrier signal, it can't be filtered out \cite{hashmi_agile_2010}.
               node[rotate=90,anchor=south,font=\tiny] at (shiftsource.west) {$\SI{30}{\mega\hertz}$}
               node[rotate=90,anchor=north] at (shiftsource.east) {lo3}
               node[source,below=of upmix.center,scale=0.7] (upsource) {}
-              node[rotate=90,anchor=south,font=\tiny] at (upsource.west) {$f_0$}
+              node[rotate=90,anchor=south,font=\tiny] at (upsource.west) {$\gls{f0}$}
               node[rotate=90,anchor=north] at (upsource.east) {lo4}
-              node[below=of mul.center,fill=white] (gamma) {$\Gamma_{L,set} = X + jY$};
+              node[below=of mul.center,fill=white] (gamma) {$\glsdisp{GammaL}{\Gamma_{L,set}} = X + \gls{j}Y$};
 
         \draw ($(dut)!.5!(dirvna)$) node[coordinate] (plane) {};
 
@@ -735,23 +753,23 @@ carrier signal, it can't be filtered out \cite{hashmi_agile_2010}.
               (rightsplit) node[anchor=base west] {Digital}
               (rightsplit) node[anchor=base east] {Analog};
 
-%        \draw [-latex] ($(dirvna.A2) + (-0.2,0.1)$) -- node[base left] {$b_1$} ($(oszivna.A1 |- oszimiddle) - (0.2,0.1)$);
+%        \draw [-latex] ($(dirvna.A2) + (-0.2,0.1)$) -- node[base left] {$\gls{b}[_1]$} ($(oszivna.A1 |- oszimiddle) - (0.2,0.1)$);
 %        \begin{pgfonlayer}{foreground}
 %            \draw [-latex] ($(dirvna.B2) + (0.2,0.1)$) -- ($(oszimiddle -| dirvna.B2) + (0.2,-0.1)$);
 %        \end{pgfonlayer}
-%        \draw ($(oszimiddle -| dirvna.B2) + (0.2,-0.1)$) node[base right,fill=white] {$a_1$};
+%        \draw ($(oszimiddle -| dirvna.B2) + (0.2,-0.1)$) node[base right,fill=white] {$\gls{a}[_1]$};
 
         \draw [dashed] ($(plane) + (0,4)$) node[anchor=south] {Load Reference Plane} -- ($(plane) - (0,4.5)$);
 
-        \draw [latex-] ($(plane) + (0,1.5)$) -- ++(-0.5,0) node[anchor=east] {$Z_L$};
+        \draw [latex-] ($(plane) + (0,1.5)$) -- ++(-0.5,0) node[anchor=east] {$\gls{ZL}$};
 
-        \draw [-latex] ($(plane) + (0.25,-1.5)$) node[anchor=west] {$a_2$}-- ++(-0.5,0);
-        \draw [latex-] ($(plane) + (0.25,-2)$) node[anchor=west] {$b_2$}-- ++(-0.5,0);
-        \draw [latex-] ($(plane) + (0,-2.5)$) -- ++(-0.5,0) node[anchor=east] {$\Gamma_L$};
+        \draw [-latex] ($(plane) + (0.25,-1.5)$) node[anchor=west] {$\gls{a}[_2]$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0.25,-2)$) node[anchor=west] {$\gls{b}[_2]$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0,-2.5)$) -- ++(-0.5,0) node[anchor=east] {$\gls{GammaL}$};
 
         {[densely dashdotdotted,latex-latex]
-            \draw ($(inbuf.north) + (0,1)$) -- ++(0,1) node [anchor=south] {\glsentryshort{pc}};
-            \draw ([xshift=-0.5cm]oszivna.north) -- ++(0,1) node [anchor=south] {\glsentryshort{pc}};
+            \draw ($(inbuf.north) + (0,1)$) -- ++(0,1) node [anchor=south] {\acrshort{pc}};
+            \draw ([xshift=-0.5cm]oszivna.north) -- ++(0,1) node [anchor=south] {\acrshort{pc}};
         }
     \end{tikzpicture}
     }
@@ -769,15 +787,15 @@ the \gls{fpga}, to compensate the phase difference of multiple carriers. The des
 conversion a superheterodyne design was used. Furthermore the delay line was replaced by
 a fully configurable filter \device{fir1}. This filter allows synthesizing reflections with the required bandwidth
 of \SI{20}{\mega\hertz}. It is needed to compensate the frequency response of the rest of the setup.
-Without this filter the reflection coefficient $\Gamma_L$ would not be constant over the bandwidth. This
+Without this filter the reflection coefficient $\gls{GammaL}$ would not be constant over the bandwidth. This
 is caused by the frequency responses of the different components. Furthermore the different frequencies
 equal different wavelengths which in turn experience different phase shifts. Those phase shifts are caused by the geometric
 dimensions of the setup and delays introduced by buffering.
 The setup consists of three distinct parts:
 
 \begin{enumerate}
-    \item A one port \gls{vna}, to be able to measure the current $\Gamma_L$. This part is
-needed, to be able to reach a specific $\Gamma_{L,target}$ iteratively and is
+    \item A one port \gls{vna}, to be able to measure the current $\gls{GammaL}$. This part is
+needed, to be able to reach a specific $\glsdisp{GammaL}{\Gamma_{L,target}}$ iteratively and is
 described in detail in \cref{sec:vna}. The iterative algorithm can be found
 in \cref{sec:matlab}.
     \item The analog part, which contains the mixers for the frequency shifting operation, necessary
@@ -796,8 +814,8 @@ code, in \cref{chap:software}.
 
 The one port \gls{vna} in \cref{fig:vna_part} consists of a directional coupler
 \device{dir1} and an oscilloscope. The directional coupler is needed to split up
-the signal into the incident power wave $b_{2}$ and the reflected power
-wave $a_{2}$. With the help of oscilloscope both signals can be measured in the
+the signal into the incident power wave $\gls{b}[_{2}]$ and the reflected power
+wave $\gls{a}[_{2}]$. With the help of oscilloscope both signals can be measured in the
 time domain. Additionally a \gls{pc} connected to the oscilloscope is needed
 for extracting the wave parameters from the measured samples and the necessary
 error correction calculations, which are explained in the rest of this section.
@@ -834,38 +852,38 @@ error correction calculations, which are explained in the rest of this section.
         \draw (leftsplit) node[anchor=base east] {One Port \gls{vna}}
               (leftsplit) node[anchor=base west] {Analog};
 
-        \draw [-latex] ($(dirvna.A2) + (-0.2,0.1)$) -- node[base left] {$b_1$} ($(oszivna.A1 |- oszimiddle) - (0.2,0.1)$);
+        \draw [-latex] ($(dirvna.A2) + (-0.2,0.1)$) -- node[base left] {$\gls{b}[_1]$} ($(oszivna.A1 |- oszimiddle) - (0.2,0.1)$);
         \begin{pgfonlayer}{foreground}
             \draw [-latex] ($(dirvna.B2) + (0.2,0.1)$) -- node[coordinate] (a1) {} ($(oszimiddle -| dirvna.B2) + (0.2,-0.1)$);
         \end{pgfonlayer}
-        \draw (a1) node[base right,fill=white] {$a_1$};
+        \draw (a1) node[base right,fill=white] {$\gls{a}[_1]$};
 
         \draw [dashed] ($(plane) + (0,4)$) node[anchor=south] {Load Reference Plane} -- ($(plane) - (0,3)$);
 
-        \draw [latex-] ($(plane) + (0,1.5)$) -- ++(-0.5,0) node[anchor=east] {$Z_L$};
+        \draw [latex-] ($(plane) + (0,1.5)$) -- ++(-0.5,0) node[anchor=east] {$\gls{ZL}$};
 
-        \draw [-latex] ($(plane) + (0.25,-1.5)$) node[anchor=west] {$a_2$}-- ++(-0.5,0);
-        \draw [latex-] ($(plane) + (0.25,-2)$) node[anchor=west] {$b_2$}-- ++(-0.5,0);
-        \draw [latex-] ($(plane) + (0,-2.5)$) -- ++(-0.5,0) node[anchor=east] {$\Gamma_L$};
+        \draw [-latex] ($(plane) + (0.25,-1.5)$) node[anchor=west] {$\gls{a}[_2]$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0.25,-2)$) node[anchor=west] {$\gls{b}[_2]$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0,-2.5)$) -- ++(-0.5,0) node[anchor=east] {$\gls{GammaL}$};
 
         {[densely dashdotdotted,latex-latex]
-            \draw ([xshift=-0.5cm]oszivna.north) -- ++(0,1) node [anchor=south] {\glsentryshort{pc}};
+            \draw ([xshift=-0.5cm]oszivna.north) -- ++(0,1) node [anchor=south] {\acrshort{pc}};
         }
     \end{tikzpicture}
     \caption{One port \gls{vna} part}
     \label{fig:vna_part}
 \end{figure}
 
-As seen in \cref{eq:gl_phase} only $\frac{a_2}{b_2}$ is
-of interest for calculating $\Gamma$. Since only the fraction of the magnitudes
+As seen in \cref{eq:gl_phase} only $\frac{\gls{a}[_2]}{\gls{b}[_2]}$ is
+of interest for calculating $\gls{Gamma}$. Since only the fraction of the magnitudes
 and the phase difference is needed, the exact point in time, when the signals are
 taken does not matter, as long as both are measured at the same time, which is guaranteed
 by the use of the oscilloscope. Therefore no special triggering or synchronization is necessary.
 
 \begin{equation}\label{eq:gl_phase}
     \begin{split}
-        \Gamma_L & = \frac{a_2}{b_2} \\
-                 & = \frac{\abs{a_2}}{\abs{b_2}} e^{j(\arg{a_2}-\arg{b_2})}
+        \gls{GammaL} & = \frac{\gls{a}[_2]}{\gls{b}[_2]} \\
+                     & = \frac{\abs{\gls{a}[_2]}}{\abs{\gls{b}[_2]}} e^{\gls{j}(\arg{\gls{a}[_2]}-\arg{\gls{b}[_2]})}
     \end{split}
 \end{equation}
 
@@ -873,39 +891,39 @@ Magnitude and Phase of the measured waves can be calculated by using
 the \gls{dft}. If multiple frequency components are of interest, the computational
 power needed can be lowered by using the \gls{fft}. With both methods
 spectral leakage will occur, which caused by the windowing since only a limited number of samples is used \cite{harris_use_1978}.
-Another problem is that the frequency resolution $\Delta{}f$ is limited by the sampling
+Another problem is that the frequency resolution $\Delta{}\gls{f}$ is limited by the sampling
 frequency and the number of recorded samples (see \cref{eq:fres}). Higher resolutions
-can be achieved with a higher sample rate $f_{sample}$ and/or more samples $n$. Both are oscilloscope and setup
+can be achieved with a higher sample rate \gls{fs} and/or more samples \gls{n}. Both are oscilloscope and setup
 dependent parameters and potentially increase the time needed for transferring the data to the
 \gls{pc}. A preferably way to improve the results is applying a window function to the
 measured samples.
 
 \begin{equation}
-    \label{eq:fres} \Delta{}f = \frac{f_{sample}}{n}
+    \label{eq:fres} \Delta{}\gls{f} = \frac{\gls{fs}}{\gls{n}}
 \end{equation}
 
 The window function used in this work (see \cref{sec:matlab}) is the flat top window.
 This window function has a very high amplitude accuracy \cite{heinzel_spectrum_2002}.
-Since it's frequency response is very flat in a small frequency range around the selected $\Delta{}f$-bin, frequency components leak
-into the surrounding bins with the same amplitude as in the original bin. This enables acquiring frequency components, that are not $\Delta{}f$-aligned \cite{heinzel_spectrum_2002}.
+Since it's frequency response is very flat in a small frequency range around the selected $\Delta{}\gls{f}$-bin, frequency components leak
+into the surrounding bins with the same amplitude as in the original bin. This enables acquiring frequency components, that are not $\Delta{}\gls{f}$-aligned \cite{heinzel_spectrum_2002}.
 In this work, the periodic version of the built-in Matlab flat top window \lstinline$flattopwin$
 was used (see \cref{sec:matlab} and \cite{matlab_flattop}).
 
 \begin{align}
-    \label{eq:k} k & = \left\lfloor \frac{f}{\Delta{}f} \right\rfloor\\
-    \label{eq:win} w & = \lstinline|flattopwin($n$, 'periodic')| \\
-    \label{eq:A} A[n] & = \mathcal{DFT}(a[n]\,w) \\
-    \label{eq:B} B[n] & = \mathcal{DFT}(b[n]\,w) \\
-    \label{eq:gamma_lf} \Gamma_{L,f} & = \frac{A[k]}{B[k]}
+    \label{eq:k} k & = \left\lfloor \frac{\gls{f}}{\Delta{}\gls{f}} \right\rfloor\\
+    \label{eq:win} w & = \lstinline|flattopwin(|\gls{n}\lstinline|, 'periodic')| \\
+    \label{eq:A} A\XN & = \gls{DFT}(\gls{a}\XN\,w) \\
+    \label{eq:B} B\XN & = \gls{DFT}(\gls{b}\XN\,w) \\
+    \label{eq:gamma_lf} \glsdisp{GammaL}{\Gamma_{L,f}} & = \frac{A\glsdisp{xn}{[k]}}{B\glsdisp{xn}{[k]}}
 \end{align}
 
-Using \cref{eq:fres,eq:k,eq:win,eq:A,eq:B,eq:gamma_lf} the reflection coefficient $\Gamma_L$ at
-frequency $f$, with the measured $n$ samples $a[n]$ of wave $a_2$ and $b[n]$ of wave $b_2$, can be calculated.
-First, the frequency resolution $\Delta{}f$ is needed, to be able
-to calculate the index $k$ of the frequency bin, which contains the frequency $f$. Next, the window function $w$ with
-length $n$ is obtained with the Matlab function \lstinline$flattopwin$ as meantioned earlier. The spectrum of the window function has to be convoluted with the
+Using \cref{eq:fres,eq:k,eq:win,eq:A,eq:B,eq:gamma_lf} the reflection coefficient $\gls{GammaL}$ at
+frequency \gls{f}, with the measured \gls{n} samples $\gls{a}\XN$ of wave $\gls{a}[_2]$ and $\gls{b}\XN$ of wave $\gls{b}[_2]$, can be calculated.
+First, the frequency resolution $\Delta{}\gls{f}$ is needed, to be able
+to calculate the index $k$ of the frequency bin, which contains the frequency \gls{f}. Next, the window function $w$ with
+length \gls{n} is obtained with the Matlab function \lstinline$flattopwin$ as mentioned earlier. The spectrum of the window function has to be convoluted with the
 spectrum of the samples. This is done with element-wise multiplication in \Cref{eq:A,eq:B} before applying
-the \gls{dft}. After the transformation $A[n]$ and $B[n]$ contain the signals in the frequency domain. Because of the linearity of the \gls{dft}
+the \gls{dft}. After the transformation $A\XN$ and $B\XN$ contain the signals in the frequency domain. Because of the linearity of the \gls{dft}
 \cite{pearson_discrete}, the value at index $k$ can be directly used in \Cref{eq:gl_phase} leading to \cref{eq:gamma_lf}.
 
 The measurements acquired using this type of setup contain systematic errors. These are caused by mismatches and
@@ -929,18 +947,18 @@ use this model to remove the systematic errors from the subsequent measurements
             |[coordinate]| & &[4cm] & & |[coordinate]| \\
             |[coordinate]| & & & & |[coordinate]| \\
         };
-        \draw[-latex] (box-1-1) node[anchor=east] {$a_{1}$} -- (box-1-2);
+        \draw[-latex] (box-1-1) node[anchor=east] {$\gls{a}[_{1}]$} -- (box-1-2);
         \draw[-latex] (box-1-2) -- node[above] {$1$} (box-1-3);
-        \draw[-latex] (box-1-3) -- node[above] {$b_{2}$} (box-1-4);
+        \draw[-latex] (box-1-3) -- node[above] {$\gls{b}[_{2}]$} (box-1-4);
 
-        \draw[latex-] (box-2-1) node[anchor=east] {$b_{1}$} -- (box-2-2);
-        \draw[latex-] (box-2-2) -- node[above] {$S_{12}$} (box-2-3);
-        \draw[latex-] (box-2-3) -- node[above] {$a_{2}$} (box-2-4);
+        \draw[latex-] (box-2-1) node[anchor=east] {$\gls{b}[_{1}]$} -- (box-2-2);
+        \draw[latex-] (box-2-2) -- node[above] {$\gls{S}[_{12}]$} (box-2-3);
+        \draw[latex-] (box-2-3) -- node[above] {$\gls{a}[_{2}]$} (box-2-4);
 
-        \draw[-latex] (box-1-2) to[bend left=30] node[right] {$S_{11}$} (box-2-2);
-        \draw[latex-] (box-1-3) to[bend right=30] node[left] {$S_{22}$} (box-2-3);
+        \draw[-latex] (box-1-2) to[bend left=30] node[right] {$\gls{S}[_{11}]$} (box-2-2);
+        \draw[latex-] (box-1-3) to[bend right=30] node[left] {$\gls{S}[_{22}]$} (box-2-3);
 
-        \draw[-latex] (box-1-4) to[bend left=30] node[right] {$\Gamma_L$} (box-2-4);
+        \draw[-latex] (box-1-4) to[bend left=30] node[right] {$\gls{GammaL}$} (box-2-4);
 
         \draw ($(box-1-2) + (0,0.7cm)$) rectangle ($(box-2-3) - (0,0.7cm)$);
         \draw ($(box-1-4) + (0,0.7cm)$) rectangle ($(box-2-5) - (0,0.7cm)$);
@@ -962,28 +980,28 @@ use this model to remove the systematic errors from the subsequent measurements
 consists of the \gls{dut} and an error box, containing all the systematic errors of the measurement
 system. This error model can cancel out three different errors:
 \begin{enumerate}
-    \item Source match $S_{22}$, the mismatch between the measurement system and the \gls{dut}.
-    \item Directivity $S_{11}$, caused by reflections received by the oscilloscope that are
+    \item Source match $\gls{S}[_{22}]$, the mismatch between the measurement system and the \gls{dut}.
+    \item Directivity $\gls{S}[_{11}]$, caused by reflections received by the oscilloscope that are
         not caused by the \gls{dut}.
-    \item Reflection tracking $S_{12}$, which characterizes the difference in the frequency response
+    \item Reflection tracking $\gls{S}[_{12}]$, which characterizes the difference in the frequency response
         between the two oscilloscope ports, including loss in the couplers, transmission lines, and
         other components.
 \end{enumerate}
 
 From the error model in \cref{fig:errorbox} the following equations can be derived:
 \begin{align}
-    \label{eq:b2} b_{2} & = a_{1} + S_{22} a_{2}\\
-    \label{eq:b1} b_{1} & = S_{11} a_{1} + S_{12} a_{2} \\
-    \label{eq:a2} a_{2} & = \Gamma_L b_{2}
+    \label{eq:b2} \gls{b}[_{2}] & = \gls{a}[_{1}] + \gls{S}[_{22}] \gls{a}[_{2}]\\
+    \label{eq:b1} \gls{b}[_{1}] & = \gls{S}[_{11}] \gls{a}[_{1}] + \gls{S}[_{12}] \gls{a}[_{2}] \\
+    \label{eq:a2} \gls{a}[_{2}] & = \gls{GammaL} \gls{b}[_{2}]
 \end{align}
 \Cref{eq:b2,eq:b1,eq:a2,eq:gamma_lf} can be combined into the single \cref{eq:gamma_err}.
-With the help of this equation the corrected reflection coefficient $\Gamma_L$ can be calculated.
-$\Gamma_{L,f}$ is the measured value from the oscilloscope (see \cref{eq:gamma_lf}) and $S_{22}$, $S_{11}$, and $S_{12}$ denote the different
-error terms meantioned above, that have to be measured and calculated, which is discussed in the following paragraphs.
+With the help of this equation the corrected reflection coefficient $\gls{GammaL}$ can be calculated.
+$\glsdisp{GammaL}{\Gamma_{L,f}}$ is the measured value from the oscilloscope (see \cref{eq:gamma_lf}) and $\gls{S}[_{22}]$, $\gls{S}[_{11}]$, and $\gls{S}[_{12}]$ denote the different
+error terms mentioned above, that have to be measured and calculated, which is discussed in the following paragraphs.
 \begin{equation}\label{eq:gamma_err}
     \begin{split}
-        \Gamma_{L,corr} & = \frac{S_{11} - \frac{b_1}{a_1}}{S_{11} S_{22} - S_{22}\frac{b_1}{a_1} - S_{12}} \\
-                        & = \frac{S_{11} - \Gamma_{L,f}^{-1}}{S_{11} S_{22}\Gamma_{L,f}^{-1} - S_{22} - S_{12}}
+        \glsdisp{GammaL}{\Gamma_{L,corr}} & = \frac{\gls{S}[_{22}] - \frac{\gls{b}[_1]}{\gls{a}[_1]}}{\gls{S}[_{11}] \gls{S}[_{22}] - \gls{S}[_{11}]\frac{\gls{b}[_1]}{\gls{a}[_1]} - \gls{S}[_{12}]} \\
+        & = \frac{\gls{S}[_{22}] - \glsdisp{GammaL}{\Gamma_{L,f}^{-1}}}{\gls{S}[_{11}] \gls{S}[_{22}] - \glsdisp{GammaL}{\Gamma_{L,f}^{-1}}\gls{S}[_{11}] - \gls{S}[_{12}]}
     \end{split}
 \end{equation}
 
@@ -1006,50 +1024,50 @@ specifications, but instead of a capacitance a frequency-dependent inductance is
 needed (see \cref{eq:lref}). For loads, a shunt capacitance, a series inductance,
 a resistance, and the transmission line length are needed.
 \begin{align}
-    \label{eq:cref} C & = C_0 + C_1 f + C_2 f^2 + C_3 f^3 \\
-    \label{eq:lref} L & = L_0 + L_1 f + L_2 f^2 + L_3 f^3
+    \label{eq:cref} C & = C_0 + C_1 \gls{f} + C_2 \gls{f}[^2] + C_3 \gls{f}[^3] \\
+    \label{eq:lref} L & = L_0 + L_1 \gls{f} + L_2 \gls{f}[^2] + L_3 \gls{f}[^3]
 \end{align}
 Because of the inherent transmission line, the impedance on the input of this
 line has to be calculated. As shown in \cite{pozar_mw_engineering_2011} this
 can be achieved using \cref{eq:beta,eq:move}. In these equations the impedances
 calculated from the capacitance/inductance provided by \cref{eq:cref,eq:lref},
-the material dependent propagation velocity $c$, the frequency $f$ and the transmission line
+the material dependent propagation velocity $c$, the frequency $\gls{f}$ and the transmission line
 length $l$ are needed. Therefore the actual frequency dependent impedances can
 be calculated using the values from the data sheet of the used calibration kit.
 \begin{align}
-    \label{eq:beta} \beta & = \frac{2 \pi}{\lambda} = \frac{2 \pi f}{c}\\
-    \label{eq:move} Z_{in} & = Z_0 \frac{Z_L + j Z_0 \tan(\beta l)}{Z_0 + j Z_L \tan(\beta l)}
+    \label{eq:beta} \beta & = \frac{2 \pi}{\lambda} = \frac{2 \pi \gls{f}}{c}\\
+    \label{eq:move} \gls{Z}[_{in}] & = \gls{Z0} \frac{\gls{ZL} + \gls{j} \gls{Z0} \tan(\beta l)}{\gls{Z0} + \gls{j} \gls{ZL} \tan(\beta l)}
 \end{align}
 
 These values don't incorporated eventual adapters needed for the measurements.
 Hence it is important to use the calibration kit with the correct (the same as the \gls{dut}) gendered connectors, or
 the connectors have to be additionally accounted for in the error corrections.
 
-By using three different $\Gamma_{L,f}$ measurements, acquired with each of the three different calibration standards in place of the \gls{dut} in \cref{fig:vna_part},
+By using three different $\glsdisp{GammaL}{\Gamma_{L,f}}$ measurements, acquired with each of the three different calibration standards in place of the \gls{dut} in \cref{fig:vna_part},
 a system of three \cref{eq:gls,eq:glo,eq:glm} can be set up from \cref{eq:gamma_err}. The
-three different $\Gamma_L$ and $\Gamma_{L,f}$ represent the short ($\Gamma_S$),
-the open ($\Gamma_O$) and the match ($\Gamma_M$) calibration standard.
+three different $\gls{GammaL}$ and $\glsdisp{GammaL}{\Gamma_{L,f}}$ represent the short ($\gls{Gamma}[_S]$),
+the open ($\gls{Gamma}[_O]$) and the match ($\gls{Gamma}[_M]$) calibration standard.
 \begin{align}
-    \label{eq:gls} \Gamma_{L_S} & = \frac{S_{11} - \Gamma_{L,f_S}^{-1}}{S_{11} S_{22}\Gamma_{L,f_S}^{-1} - S_{22} - S_{12}} \\
-    \label{eq:glo} \Gamma_{L_O} & = \frac{S_{11} - \Gamma_{L,f_O}^{-1}}{S_{11} S_{22}\Gamma_{L,f_O}^{-1} - S_{22} - S_{12}} \\
-    \label{eq:glm} \Gamma_{L_M} & = \frac{S_{11} - \Gamma_{L,f_M}^{-1}}{S_{11} S_{22}\Gamma_{L,f_M}^{-1} - S_{22} - S_{12}}
+    \label{eq:gls} \glsdisp{GammaL}{\Gamma_{L_S}} & = \frac{\gls{S}[_{22}] - \glsdisp{GammaL}{\Gamma_{L,f_S}^{-1}}}{\gls{S}[_{11}] \gls{S}[_{22}] - \glsdisp{GammaL}{\Gamma_{L,f_S}^{-1}}\gls{S}[_{11}] - \gls{S}[_{12}]} \\
+    \label{eq:glo} \glsdisp{GammaL}{\Gamma_{L_O}} & = \frac{\gls{S}[_{22}] - \glsdisp{GammaL}{\Gamma_{L,f_O}^{-1}}}{\gls{S}[_{11}] \gls{S}[_{22}] - \glsdisp{GammaL}{\Gamma_{L,f_O}^{-1}}\gls{S}[_{11}] - \gls{S}[_{12}]} \\
+    \label{eq:glm} \glsdisp{GammaL}{\Gamma_{L_M}} & = \frac{\gls{S}[_{22}] - \glsdisp{GammaL}{\Gamma_{L,f_M}^{-1}}}{\gls{S}[_{11}] \gls{S}[_{22}] - \glsdisp{GammaL}{\Gamma_{L,f_M}^{-1}}\gls{S}[_{11}] - \gls{S}[_{12}]}
 \end{align}
 
-Solving these equations for the error terms $S_{11}$, $S_{12}$ and $S_{22}$
+Solving these equations for the error terms $\gls{S}[_{11}]$, $\gls{S}[_{12}]$ and $\gls{S}[_{22}]$
 leads to \cref{eq:S11err,eq:S12err,eq:S22err} with the common term $g$ from
-\cref{eq:g_replace} and $\Gamma_1$ from \cref{eq:gamma_replace}. Those terms
+\cref{eq:g_replace} and $\gls{Gamma}[_1]$ from \cref{eq:gamma_replace}. Those terms
 were used to enable a more compact representation. These equations were
 derived using Wolfram Mathematica and are implemented in a Wolfram Mathematica generated
 Mathworks Matlab module (see \cref{sec:matlab}).
 
 \begin{align}
-    \label{eq:gamma_replace} \Gamma_1 & = \frac{a_1}{b_1} = \Gamma_{L,f} \\
+    \label{eq:gamma_replace} \gls{Gamma}[_1] & = \frac{\gls{a}[_1]}{\gls{b}[_1]} = \glsdisp{GammaL}{\Gamma_{L,f}} \\
     \begin{split}
-    \label{eq:g_replace} g & = (\Gamma_{1_O} - \Gamma_{1_S}) \Gamma_{1_M} \Gamma_{L_O} \Gamma_{L_S} + \Gamma_{L_M} ((\Gamma_{1_M} - \Gamma_{1_O}) \Gamma_{1_S} \Gamma_{L_O} + (\Gamma_{1_S} - \Gamma_{1_M}) \Gamma_{1_O} \Gamma_{L_S})
+    \label{eq:g_replace} g & = (\gls{Gamma}[_{1_O}] - \gls{Gamma}[_{1_S}]) \gls{Gamma}[_{1_M}] \glsdisp{GammaL}{\Gamma_{L_O}} \glsdisp{GammaL}{\Gamma_{L_S}} + \glsdisp{GammaL}{\Gamma_{L_M}} ((\gls{Gamma}[_{1_M}] - \gls{Gamma}[_{1_O}]) \gls{Gamma}[_{1_S}] \glsdisp{GammaL}{\Gamma_{L_O}} + (\gls{Gamma}[_{1_S}] - \gls{Gamma}[_{1_M}]) \gls{Gamma}[_{1_O}] \glsdisp{GammaL}{\Gamma_{L_S}})
     \end{split}\\
-    \label{eq:S11err} S_{11} & = \frac{(\Gamma_{1_O} - \Gamma_{1_S}) \Gamma_{L_O} \Gamma_{L_S} + \Gamma_{L_M} ((\Gamma_{1_M} - \Gamma_{1_O}) \Gamma_{L_O} + (\Gamma _{1_S} - \Gamma _{1_M}) \Gamma_{L_S})}{g} \\
-    \label{eq:S12err} S_{12} & = \frac{(\Gamma_{1_O} - \Gamma_{1_M}) (\Gamma_{1_M} - \Gamma_{1_S}) (\Gamma_{1_O} - \Gamma_{1_S}) (\Gamma_{L_M} - \Gamma_{L_O}) (\Gamma_{L_M} - \Gamma_{L_S}) (\Gamma_{L_O} - \Gamma_{L_S})}{g^2} \\
-    \label{eq:S22err} S_{22} & = \frac{(\Gamma_{1_S} - \Gamma_{1_O}) \Gamma_{1_M} \Gamma_{L_M} + (\Gamma_{1_M} - \Gamma_{1_S}) \Gamma_{1_O} \Gamma_{L_O} + (\Gamma_{1_O} - \Gamma_{1_M}) \Gamma_{1_S} \Gamma_{L_S}}{g}
+    \label{eq:S11err} S_{11} & = \frac{(\gls{Gamma}[_{1_O}] - \gls{Gamma}[_{1_S}]) \glsdisp{GammaL}{\Gamma_{L_O}} \glsdisp{GammaL}{\Gamma_{L_S}} + \glsdisp{GammaL}{\Gamma_{L_M}} ((\gls{Gamma}[_{1_M}] - \gls{Gamma}[_{1_O}]) \glsdisp{GammaL}{\Gamma_{L_O}} + (\gls{Gamma}[_{1_S}] - \gls{Gamma}[_{1_M}]) \glsdisp{GammaL}{\Gamma_{L_S}})}{g} \\
+    \label{eq:S12err} S_{12} & = \frac{(\gls{Gamma}[_{1_O}] - \gls{Gamma}[_{1_M}]) (\gls{Gamma}[_{1_M}] - \gls{Gamma}[_{1_S}]) (\gls{Gamma}[_{1_O}] - \gls{Gamma}[_{1_S}]) (\glsdisp{GammaL}{\Gamma_{L_M}} - \glsdisp{GammaL}{\Gamma_{L_O}}) (\glsdisp{GammaL}{\Gamma_{L_M}} - \glsdisp{GammaL}{\Gamma_{L_S}}) (\glsdisp{GammaL}{\Gamma_{L_O}} - \glsdisp{GammaL}{\Gamma_{L_S}})}{g^2} \\
+    \label{eq:S22err} S_{22} & = \frac{(\gls{Gamma}[_{1_S}] - \gls{Gamma}[_{1_O}]) \gls{Gamma}[_{1_M}] \glsdisp{GammaL}{\Gamma_{L_M}} + (\gls{Gamma}[_{1_M}] - \gls{Gamma}[_{1_S}]) \gls{Gamma}[_{1_O}] \glsdisp{GammaL}{\Gamma_{L_O}} + (\gls{Gamma}[_{1_O}] - \gls{Gamma}[_{1_M}]) \gls{Gamma}[_{1_S}] \glsdisp{GammaL}{\Gamma_{L_S}}}{g}
 \end{align}
 
 % ---------------------------------------------------------------------------
@@ -1081,13 +1099,13 @@ Mathworks Matlab module (see \cref{sec:matlab}).
               node[coordinate,right=of adc] (inbuf) {}
 
               node[source,above=of downmix.center,scale=0.7] (downsource) {}
-              node[rotate=90,anchor=south,font=\tiny] at (downsource.west) {$f_0 - \SI{70}{\mega\hertz}$}
+              node[rotate=90,anchor=south,font=\tiny] at (downsource.west) {$\gls{f0} - \SI{70}{\mega\hertz}$}
               node[rotate=90,anchor=north] at (downsource.east) {lo1}
               node[source,above=of adc.center,scale=0.7] (sample) {}
               node[rotate=90,anchor=south,font=\tiny] at (sample.west) {$\SI{100}{\mega\hertz}$}
               node[rotate=90,anchor=north] at (sample.east) {lo2}
               node[source,below=of upmix.center,scale=0.7] (upsource) {}
-              node[rotate=90,anchor=south,font=\tiny] at (upsource.west) {$f_0$}
+              node[rotate=90,anchor=south,font=\tiny] at (upsource.west) {$\gls{f0}$}
               node[rotate=90,anchor=north] at (upsource.east) {lo4};
 
         \draw ($(dut)!.4!(circ.A)$) node[coordinate] (plane) {};
@@ -1137,11 +1155,11 @@ Mathworks Matlab module (see \cref{sec:matlab}).
 
         \draw [dashed] ($(plane) + (0,4)$) node[anchor=south] {Load Reference Plane} -- ($(plane) - (0,4.5)$);
 
-        \draw [latex-] ($(plane) + (0,1.5)$) -- ++(-0.5,0) node[anchor=east] {$Z_L$};
+        \draw [latex-] ($(plane) + (0,1.5)$) -- ++(-0.5,0) node[anchor=east] {$\gls{ZL}$};
 
-        \draw [-latex] ($(plane) + (0.25,-.5)$) node[anchor=west] {$a_2$}-- ++(-0.5,0);
-        \draw [latex-] ($(plane) + (0.25,-1)$) node[anchor=west] {$b_2$}-- ++(-0.5,0);
-        \draw [latex-] ($(plane) + (0,-1.5)$) -- ++(-0.5,0) node[anchor=east] {$\Gamma_L$};
+        \draw [-latex] ($(plane) + (0.25,-.5)$) node[anchor=west] {$\gls{a}[_2]$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0.25,-1)$) node[anchor=west] {$\gls{b}[_2]$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0,-1.5)$) -- ++(-0.5,0) node[anchor=east] {$\gls{GammaL}$};
 
         \node [draw,fit=(amp) (dac) (upsource),rounded corners=4pt,inner xsep=6pt,inner ysep=14pt,label={above:Vector Signal Generator}] {};
     \end{tikzpicture}
@@ -1153,12 +1171,12 @@ The analog part, which was designed for the \gls{elp} system can be seen in
 \cref{fig:analog}. It consists of everything needed to prepare the signal
 for analog-to-digital conversion and back. Furthermore it contains a
 circulator (\device{circ1}), which is needed for uncoupling the
-incident power wave $b_2$ and the reflected power wave $a_2$. Instead of a
+incident power wave $\gls{b}[_2]$ and the reflected power wave $\gls{a}[_2]$. Instead of a
 circulator a directional coupler could be used (see
 \cref{chap:verification} for an example) \cite{ghannouchi_load-pull_2013}.
 
 The upper analog processing chain in \cref{fig:analog} handles the
-incident power wave $b_2$. It is responsible for shifting the frequency spectrum
+incident power wave $\gls{b}[_2]$. It is responsible for shifting the frequency spectrum
 of the power wave from \gls{rf} to an \gls{if} of \SI{70}{\mega\hertz}. This
 superheterodyn design, with baseband mixing implemented in the digital
 part (see \cref{sec:digital}), was chosen, because it exhibits no amplitude
@@ -1175,7 +1193,7 @@ After shifting the band of interest to the \gls{if}, the signal is converted fro
 analog to digital (\device{bp1} and \device{adc1}). For the sampling rate
 \SI{100}{\mega\samples\per\second} was chosen, since it provides enough headroom to
 support the earlier mentioned bandwidth. Furthermore the chosen vector signal generator supports this sample rate
-at the digital input port. To fulfill the sampling theosubfigurerem, this sampling rate is too low for the chosen
+at the digital input port. To fulfill the sampling theorem, this sampling rate is too low for the chosen
 \gls{if}, therefore bandpass sampling was used. This necessitates that a bandpass
 filter is used as alias filter \device{bp1}.
 
@@ -1191,7 +1209,7 @@ filter is used as alias filter \device{bp1}.
             \draw [latex-latex] (-5,0) -- (3,0) decorate { -- (3.1,0) } -- (5,0) node[anchor= west] {frequency};
             \draw [-latex] (0,-0.2) -- (0,1) node[anchor=south] {amplitude};
             \bpspec{(3.5,0)}{solid,thick}
-            \draw (3.5,0.1) -- (3.5,-0.1) node[anchor=north] {$f_0$};
+            \draw (3.5,0.1) -- (3.5,-0.1) node[anchor=north] {$\gls{f0}$};
             \draw (-5,0.5) node[anchor=east,font={}] (rf) {\gls{rf}};
             \draw [-latex] (3.5,0) to[bend left=30] ($0.7*(2,0)$);
             \draw ($0.7*(2,0) + (0,0.1)$) -- ($0.7*(2,0) - (0,0.1)$) node[anchor=north] {$\SI{70}{\mega\hertz}$};
@@ -1200,7 +1218,7 @@ filter is used as alias filter \device{bp1}.
             \draw [latex-latex] (-5,0) -- (4,0) decorate { -- (4.1,0) } -- (5,0) node[anchor=west] {frequency};
             \draw [-latex] (0,-0.2) -- (0,1);
             \bpspec{(4.5,0)}{dashed}
-            \draw (4.5,0.1) -- (4.5,-0.1) node[anchor=north] {$2f_0 + \SI{70}{\mega\hertz}$};
+            \draw (4.5,0.1) -- (4.5,-0.1) node[anchor=north] {$2\gls{f0} + \SI{70}{\mega\hertz}$};
             \bpspec{($0.7*(2,0)$)}{solid,thick}
             \draw ($0.7*(2,0) + (0,0.1)$) -- ($0.7*(2,0) - (0,0.1)$) node[anchor=north] {$\SI{70}{\mega\hertz}$};
             \draw (-5,0.5) node[anchor=east,font={}] (if) {\gls{if}};
@@ -1210,7 +1228,7 @@ filter is used as alias filter \device{bp1}.
             \draw [latex-latex] (-5,0) -- (5,0) node[anchor=west] {frequency};
             \draw [-latex] (0,-0.2) -- (0,1);
             \foreach \x in {-2,-1,1,2} {
-                \draw ($\x*(2,0) + (0,0.1)$) -- ($\x*(2,0) - (0,0.1)$) node[anchor=north] {$\x f_s$};
+                \draw ($\x*(2,0) + (0,0.1)$) -- ($\x*(2,0) - (0,0.1)$) node[anchor=north] {$\x \gls{fs}$};
                 \draw [dotted] ($\x*(2,0)$) -- ($\x*(2,0) + (0,1)$);
                 \draw [thick,-latex,dashed] ($\x*(2,0)$) -- ($\x*(2,0) + (0,0.8)$);
             }
@@ -1231,7 +1249,7 @@ filter is used as alias filter \device{bp1}.
         \draw [latex-latex] (-5,0) -- (5,0) node[anchor=west] {frequency};
         \draw [-latex] (0,-0.2) -- (0,1);
         \foreach \x in {-2,-1,1,2} {
-            \draw ($\x*(2,0) + (0,0.1)$) -- ($\x*(2,0) - (0,0.1)$) node[anchor=north] {$\x f_s$};
+            \draw ($\x*(2,0) + (0,0.1)$) -- ($\x*(2,0) - (0,0.1)$) node[anchor=north] {$\x \gls{fs}$};
             \draw [dotted] ($\x*(2,0)$) -- ($\x*(2,0) + (0,1)$);
         }
         \bpspec{(0,0)}{solid,thick}
@@ -1251,20 +1269,20 @@ filter is used as alias filter \device{bp1}.
             \draw [thick,-latex,dashed] ($\x*(2,0) + 0.3*(2,0)$) -- ($\x*(2,0) + 0.3*(2,0) + (0,0.8)$);
         }
     \end{tikzpicture}
-    \caption{Down conversion frequency spectra ($f_s = \SI{100}{\mega\hertz}$).}
+    \caption{Down conversion frequency spectra ($\gls{fs} = \SI{100}{\mega\hertz}$).}
     \label{fig:downconversion}
 \end{figure}
 
 \Cref{fig:downconversion} explains the frequency spectra for the complete down
 conversion chain (including the digital mixer). The first plot sketches the
-spectrum of interest in \gls{rf} around the frequency $f_0$. After the mixer \device{mix1}, the
-spectrum of interest lies at \SI{70}{\mega\hertz} and $2f_0 + \SI{70}{\mega\hertz}$,
+spectrum of interest in \gls{rf} around the frequency $\gls{f0}$. After the mixer \device{mix1}, the
+spectrum of interest lies at \SI{70}{\mega\hertz} and $2\gls{f0} + \SI{70}{\mega\hertz}$,
 which is caused by the analog mixer. Because of this, even if only single tones
-within the determined bandwith around $f_0$ are generated, at least a low pass
+within the determined bandwith around $\gls{f0}$ are generated, at least a low pass
 has to be used as filter \device{bp1}. As mentioned earlier, the mixer also generates a \gls{dc} component, which is depicted as vertical dashed arrow. During sampling spectral aliases occur. These
-are located at $(n \SI{100}{\mega\hertz} + \SI{70}{\mega\hertz})$ and in mirrored form at
-$(n \SI{100}{\mega\hertz} + \SI{30}{\mega\hertz})$. This mirroring would cause mixing
-of frequency components around $(f_0 - \SI{40}{\mega\hertz})$ into the band of interest,
+are located at $(k \SI{100}{\mega\hertz} + \SI{70}{\mega\hertz})$ and in mirrored form at
+$(k \SI{100}{\mega\hertz} + \SI{30}{\mega\hertz})$. This mirroring would cause mixing
+of frequency components around $(\gls{f0} - \SI{40}{\mega\hertz})$ into the band of interest,
 if no bandpass filter is used. The last step is the digital mixer, which shifts
 the spectrum $\SI{30}{\mega\hertz}$ to the right. After that the band of interest lies around
 \SI{0}{\hertz} (see \cref{sec:digital}).
@@ -1297,9 +1315,9 @@ the same digital interface (see \cref{sec:digital}).
         \draw node[dut] (dut) {}
               node[coordinate,right=2 of dut] (circ) {}
 
-              node[coordinate,right=of circ,yshift=-1.5cm,label=left:$a_2$] (dac) {}
+              node[coordinate,right=of circ,yshift=-1.5cm,label=left:{$\gls{a}[_2]$}] (dac) {}
 
-              node[coordinate,right=of circ,yshift=1.5cm,label=left:$b_2$] (adc) {}
+              node[coordinate,right=of circ,yshift=1.5cm,label=left:{$\gls{b}[_2]$}] (adc) {}
               node[empty,right=of adc,label=below:buffer1] (inbuf) {}
               node[mixer,right=of inbuf] (shift) {}
               node[rotate=90,anchor=north] at (shift.east) {mix2}
@@ -1314,7 +1332,7 @@ the same digital interface (see \cref{sec:digital}).
               node[source,above=of shift.center,scale=0.7] (shiftsource) {}
               node[rotate=90,anchor=south,font=\tiny] at (shiftsource.west) {$\SI{30}{\mega\hertz}$}
               node[rotate=90,anchor=north] at (shiftsource.east) {lo3}
-              node[below=of mul.center,fill=white] (gamma) {$\Gamma_{L,set} = X + jY$};
+              node[below=of mul.center,fill=white] (gamma) {$\glsdisp{GammaL}{\Gamma_{L,set}} = X + \gls{j}Y$};
 
         \draw ($(dut)!.4!(circ)$) node[coordinate] (plane) {};
 
@@ -1353,14 +1371,14 @@ the same digital interface (see \cref{sec:digital}).
 
         \draw [dashed] ($(plane) + (0,4)$) node[anchor=south] {Load Reference Plane} -- ($(plane) - (0,4.5)$);
 
-        \draw [latex-] ($(plane) + (0,1.5)$) -- ++(-0.5,0) node[anchor=east] {$Z_L$};
+        \draw [latex-] ($(plane) + (0,1.5)$) -- ++(-0.5,0) node[anchor=east] {$\gls{ZL}$};
 
-        \draw [-latex] ($(plane) + (0.25,-.5)$) node[anchor=west] {$a_2$}-- ++(-0.5,0);
-        \draw [latex-] ($(plane) + (0.25,-1)$) node[anchor=west] {$b_2$}-- ++(-0.5,0);
-        \draw [latex-] ($(plane) + (0,-1.5)$) -- ++(-0.5,0) node[anchor=east] {$\Gamma_L$};
+        \draw [-latex] ($(plane) + (0.25,-.5)$) node[anchor=west] {$\gls{a}[_2]$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0.25,-1)$) node[anchor=west] {$\gls{b}[_2]$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0,-1.5)$) -- ++(-0.5,0) node[anchor=east] {$\gls{GammaL}$};
 
         {[densely dashdotdotted,latex-latex]
-            \draw ($(inbuf.north) + (0,1)$) -- ++(0,1) node [anchor=south] {\glsentryshort{pc}};
+            \draw ($(inbuf.north) + (0,1)$) -- ++(0,1) node [anchor=south] {\acrshort{pc}};
         }
     \end{tikzpicture}
     \caption{Digital part}
@@ -1378,7 +1396,7 @@ Therefore, the additional sample buffers \device{buffer1} and \device{buffer2} a
 included into the signal processing chain.
 
 As can be seen in \cref{fig:digital}, a digital representation of the \gls{if}
-signal $b_2$ is provided by the analog part. As mentioned in \cref{sec:analog}
+signal $\gls{b}[_2]$ is provided by the analog part. As mentioned in \cref{sec:analog}
 a LTC2274 was chosen as \gls{adc}. This \gls{adc} has a
 JESD204 compliant high speed serial interface \cite{ltc2274}. This interface uses 8b/10b
 line coding over a \gls{lvds} connection \cite{jesd205B.01}. The line coding
@@ -1490,48 +1508,48 @@ was left out of the design to keep resource usage at a minimum.
 
 Next in the signal processing chain is the filter \device{fir1}.
 As meantioned earlier this filter is needed to be able to synthesize a reflection coefficient
-$\Gamma_L$ over a frequency range of \SI{20}{\mega\hertz}. This filter is a causal \gls{fir} filter with
-the input $x[n]$, the length $n_{fft}$, the impulse response $h[n]$, and the output $y[n]$. The input samples
-$x[n]$ represent the samples in buffer \device{buffer1} and the output samples $y[n]$ the samples in buffer \device{buffer2}. This filter is
+$\gls{GammaL}$ over a frequency range of \SI{20}{\mega\hertz}. This filter is a causal \gls{fir} filter with
+the input $x\XN$, the length $\gls{nfft}$, the impulse response $h\XN$, and the output $y\XN$. The input samples
+$x\XN$ represent the samples in buffer \device{buffer1} and the output samples $y\XN$ the samples in buffer \device{buffer2}. This filter is
 implemented with linear convolution using the \gls{fft}:
 \begin{equation}
     \begin{split}
-     \label{eq:circ} y[n] = h[n] * x[n] & = \sum_{k=0}^{n_{fft}-1} h[k]x[n-k]\\
-         & = \mathcal{DFT}^{-1}\left\{\mathcal{DFT}(x[n])\,\mathcal{DFT}(h[n])\right\}
+    \label{eq:circ} y\XN = h\XN * x\XN & = \sum_{k=0}^{\gls{nfft}-1} h\XN{}x\glsdisp{xn}{[n-k]}\\
+         & = \gls{DFT}^{-1}\left\{\gls{DFT}(x\XN)\,\gls{DFT}(h\XN)\right\}
     \end{split}
 \end{equation}
 Since implementing the \gls{fft} in hardware uses a lot of resources, overlap add
-was used to allow for larger signal periods than $n_{fft}$. As shown by \cite{schaums_2011}
-this algorithm splits the signal $x[n]$ into non-overlapping
-subsequences of length \gls{blocksize} (see \cref{fig:overlap_add}).
+was used to allow for larger signal periods than $\gls{nfft}$. As shown by \cite{schaums_2011}
+this algorithm splits the signal $x\XN$ into non-overlapping
+subsequences of length \gls{L} (see \cref{fig:overlap_add}).
 \begin{figure}[htb]
     \centering
     \begin{tikzpicture}
         \begin{scope}[shift={(0,13em)}]
-            \draw [decorate,decoration={brace},yshift=2pt] (0,4.1em) -- (5,4.1em) node[midway,yshift=8pt] {$n$};
-            \draw [decorate,decoration={brace},yshift=2pt] (0,2.8em) -- (3,2.8em) node[midway,yshift=8pt] {$n_{fft}$};
-            \draw [decorate,decoration={brace},yshift=2pt] (0,1.5em) -- (2,1.5em) node[midway,yshift=8pt] {$L$};
-            \draw (0,0.75em) node[anchor=east] {$x[n]$};
+            \draw [decorate,decoration={brace},yshift=2pt] (0,4.1em) -- (5,4.1em) node[midway,yshift=8pt] {$\gls{n}$};
+            \draw [decorate,decoration={brace},yshift=2pt] (0,2.8em) -- (3,2.8em) node[midway,yshift=8pt] {$\gls{nfft}$};
+            \draw [decorate,decoration={brace},yshift=2pt] (0,1.5em) -- (2,1.5em) node[midway,yshift=8pt] {$\gls{L}$};
+            \draw (0,0.75em) node[anchor=east] {$x\XN$};
             \draw (0,0) rectangle (5,1.5em);
             \draw (5,0.75em) node[anchor=west] (zeros) {0000};
             \draw [dashed] (5,0) rectangle (6,1.5em) (2,0) -- (2,1.5em) (4,0) -- (4,1.5em);
         \end{scope}
         \begin{scope}[shift={(0,9em)}]
-            \draw (0,0.75em) node[anchor=east] {$y_0[n]$};
+            \draw (0,0.75em) node[anchor=east] {$y_0\XN$};
             \draw (0,0) rectangle (2,1.5em);
             \draw [fill=black!30] (2,0) rectangle (3,1.5em);
             \draw (2.5,0) node[coordinate] (y0b) {};
             \draw (0.5,0) node[coordinate] (y2b) {};
         \end{scope}
         \begin{scope}[shift={(0,6em)}]
-            \draw (0,0.75em) node[anchor=east] {$y_1[n]$};
+            \draw (0,0.75em) node[anchor=east] {$y_1\XN$};
             \draw (2,0) rectangle (4,1.5em);
             \draw [fill=black!30] (4,0) rectangle (5,1.5em);
             \draw (2.5,1.5em) node[coordinate] (y1t) {};
             \draw (4.5,0) node[coordinate] (y1b) {};
         \end{scope}
         \begin{scope}[shift={(0,3em)}]
-            \draw (0,0.75em) node[anchor=east] {$y_2[n]$};
+            \draw (0,0.75em) node[anchor=east] {$y_2\XN$};
             \draw (4,0) rectangle (6,1.5em);
             \draw [fill=black!30] (6,0) rectangle (7,1.5em);
             \draw [fill=red!30] (0,0) rectangle (1,1.5em);
@@ -1540,7 +1558,7 @@ subsequences of length \gls{blocksize} (see \cref{fig:overlap_add}).
             \draw (0.5,1.5em) node[coordinate] (ynt) {};
             \draw (0.5,0) node[coordinate] (ynb) {};
         \end{scope}
-        \draw (0,0.75em) node[anchor=east] {$y[n]$};
+        \draw (0,0.75em) node[anchor=east] {$y\XN$};
         \draw (0,0) rectangle (5,1.5em);
         \draw [dashed,color=red] (5,0) rectangle (6,1.5em);
         \draw [dotted] (6,1.5em) rectangle (7,0em);
@@ -1568,26 +1586,26 @@ subsequences of length \gls{blocksize} (see \cref{fig:overlap_add}).
     \caption{Overlap add algorithm (linear convolution, with circular in red). }
     \label{fig:overlap_add}
 \end{figure}
-Therefore $x[n]$ can
+Therefore $x\XN$ can
 be expressed by a sum of shifted finite-length sequences:
 \begin{equation}
-    \label{eq:sum_seq} x[n] = \sum_{i=0}^{\infty} x_i[n-i\gls{blocksize}] \qquad x_i[n] =\begin{cases}
-        x[n+i\gls{blocksize}] & n = 0, 1, \ldots, \gls{blocksize}-1\\
+    \label{eq:sum_seq} x\XN = \sum_{i=0}^{\infty} x_i\glsdisp{xn}{[n-i\gls{L}]} \qquad x_i\XN =\begin{cases}
+        x\glsdisp{xn}{[k+i\gls{L}]} & k = 0, 1, \ldots, \gls{L}-1\\
         0 & \text{else} \end{cases}
 \end{equation}
 Applying the linear convolution to this sum leads to
 \begin{equation}
     \begin{split}\label{eq:overlap_add_sum}
-        y[n] = h[n] * x[n] & = \sum_{i=0}^{\infty} x_i[n-iL] * h[n] = \sum_{i=0}^{\infty} y_i[n-iL]
+        y\XN = h\XN * x\XN & = \sum_{i=0}^{\infty} x_i\glsdisp{xn}{[n-iL]} * h\XN = \sum_{i=0}^{\infty} y_i\glsdisp{xn}{[n-iL]}
     \end{split}
 \end{equation}
-where $y_i[n]$ is the linear convolution of $x_i[n]$ with $h[n]$. Because every $y[n]$ is of length
-$N = L + n_{fft} -1$, \cref{eq:circ} utilizing n-point \glspl{fft} can be used to calculate the results.
-Every convoluted subsequence $y_i[n]$ overlaps by $n_{fft} - L$. Since this overlapping
+where $y_i\XN$ is the linear convolution of $x_i\XN$ with $h\XN$. Because every $y\XN$ is of length
+$N = \gls{L} + \gls{nfft} -1$, \cref{eq:circ} utilizing n-point \glspl{fft} can be used to calculate the results.
+Every convoluted subsequence $y_i\XN$ overlaps by $\gls{nfft} - \gls{L}$. Since this overlapping
 points are summed up by \cref{eq:overlap_add_sum}, this method is called overlap
 add. A visualisation can be seen in \cref{fig:overlap_add}. The red part in the figure
 is the circular extension of the linear convolution, which is done by adding the
-$n_{fft} - L$ points after the sequence $y[n]$ to the beginning of $y[n]$.
+$\gls{nfft} - \gls{L}$ points after the sequence $y\XN$ to the beginning of $y\XN$.
 
 As mentioned earlier the filter \device{fir1} needs a static image of the samples.
 Another requirement is, that samples are continously output to the \gls{dac}. This
@@ -1601,9 +1619,9 @@ the output signal.
 
 The last element in the processing chain is the complex multiplier \device{mul1}. This
 multiplier is responsible for the actual reflection generation. It allows
-adjusting the phase and amplitude of the reflection coefficient $\Gamma_{L,set}$ by
+adjusting the phase and amplitude of the reflection coefficient $\glsdisp{GammaL}{\Gamma_{L,set}}$ by
 varying $X$ and $Y$. Samples from \device{buffer2} are continuously multiplied
-with this reflection coefficient and output to the analog part as signal $a_2$.
+with this reflection coefficient and output to the analog part as signal $\gls{a}[_2]$.
 
 The digital interface needed to forward the processed samples to the analog part
 was implemented according to the digital \gls{iq} interface supported by the used
@@ -1758,7 +1776,7 @@ and as a communication bridge to the \gls{pc}. The complete source codes can be 
                   node[source,above=of shift.center,scale=0.7,core] (shiftsource) {}
                   node[rotate=90,anchor=south,font=\tiny] at (shiftsource.west) {$\SI{30}{\mega\hertz}$}
                   node[rotate=90,anchor=north] at (shiftsource.east) {lo3}
-                  node[below=of mul.center,fill=white] (gamma) {$\Gamma_{L,set} = X + jY$};
+                  node[below=of mul.center,fill=white] (gamma) {$\glsdisp{GammaL}{\Gamma_{L,set}} = X + \gls{j}Y$};
 
             { [on background layer,every path/.style={dashed}]
                 \draw ($(adc.east)!.5!(mul.west) + (0,4)$) -- ++(0,-8.5) node[coordinate] (rightsplit) {};
@@ -1789,7 +1807,7 @@ and as a communication bridge to the \gls{pc}. The complete source codes can be 
                   node[anchor=base east] {Analog};
 
             {[densely dashdotdotted,latex-latex,pc]
-                \draw ($(inbuf.north) + (0,1)$) -- ++(0,1) node [anchor=south] {\glsentryshort{pc}};
+                \draw ($(inbuf.north) + (0,1)$) -- ++(0,1) node [anchor=south] {\acrshort{pc}};
             }
         \end{tikzpicture}
         }
@@ -1907,7 +1925,7 @@ in \cref{sec:auto}.
                   node[source,above=of shift.center,scale=0.7,core] (shiftsource) {}
                   node[rotate=90,anchor=south,font=\tiny] at (shiftsource.west) {$\SI{30}{\mega\hertz}$}
                   node[rotate=90,anchor=north] at (shiftsource.east) {lo3}
-                  node[below=of mul.center,fill=white] (gamma) {$\Gamma_{L,set} = X + jY$};
+                  node[below=of mul.center,fill=white] (gamma) {$\glsdisp{GammaL}{\Gamma_{L,set}} = X + \gls{j}Y$};
 
             { [on background layer,every path/.style={dashed}]
                 \draw ($(adc.east)!.5!(mul.west) + (0,4)$) -- ++(0,-8.5) node[coordinate] (rightsplit) {};
@@ -1938,7 +1956,7 @@ in \cref{sec:auto}.
                   node[anchor=base east] {Analog};
 
             {[densely dashdotdotted,latex-latex,pc]
-                \draw ($(inbuf.north) + (0,1)$) -- ++(0,1) node [anchor=south] {\glsentryshort{pc}};
+                \draw ($(inbuf.north) + (0,1)$) -- ++(0,1) node [anchor=south] {\acrshort{pc}};
             }
         \end{tikzpicture}
         \caption{Digital signal processing chain}
@@ -1973,9 +1991,9 @@ be used as selection between both block \glspl{ram}, no address decoder is neede
 overall memory. In one bit mode only \SI{32}{\kilo\bit} (\SI{16}{\kilo\bit})
 are available. This leads to a theoretical buffer depth of 49152 samples. However as
 will be explained in \cref{sec:overlap_add} (see also \cref{sec:digital}), if circular convolution
-with a block size of $L$ and an \gls{fft} size of $n_{fft}$ is used for the \gls{fir} filter,
+with a block size of \gls{L} and an \gls{fft} size of $\gls{nfft}$ is used for the \gls{fir} filter,
 the full buffer depth is not usable. This is caused by the implementation of the overlap add
-algorithm which needs additional buffer space of $L - n_{fft}$ samples after the signal.
+algorithm which needs additional buffer space of $\gls{L} - \gls{nfft}$ samples after the signal.
 
 The memory busses of the \device{inbuf} module and the \device{outbuf} module are
 connected to the \device{core} module. The same bus connections are also exposed
@@ -2139,7 +2157,7 @@ The \device{trigger} module generates the start signal for the \device{average\_
 and the \device{wallclk} module. During the first run and after a reset, the trigger can either be triggered
 externally or internally. The external trigger is sampled from the pin AN33 of the
 \gls{fpga}, which is connected to HDR1\_64 on the evaluation board. After the first
-successful trigger, consecutive triggers are only generated at multiples of the configured signal period $n$.
+successful trigger, consecutive triggers are only generated at multiples of the configured signal period \gls{n}.
 
 Subsequent to a trigger event, the \device{wallclk} module takes a snapshot of the
 jiffy counter which marks the time the first sample of the current acquisition
@@ -2243,9 +2261,9 @@ in the complex domain. This rotation can result in an overall bit with growth of
 whole \gls{fft}. Combining both factors leads to \cref{eq:bit_growth} given in \cite{xilinx_fft}.
 \begin{equation}
     \label{eq:bit_growth}
-    bits_{out} = bits_{in} + \underbrace{\log_2\left(n_{fft}\right)}_{\text{addition per butterfly}} + \underbrace{1}_{\text{complex rotation}}
+    bits_{out} = bits_{in} + \underbrace{\log_2\left(\gls{nfft}\right)}_{\text{addition per butterfly}} + \underbrace{1}_{\text{complex rotation}}
 \end{equation}
-According to \cref{eq:bit_growth}, keeping every bit for an \gls{fft} length $n_{fft}$ of 4096
+According to \cref{eq:bit_growth}, keeping every bit for an \gls{fft} length $\gls{nfft}$ of 4096
 and input width $bits_{in}$ of \SI{16}{\bit} would result in a maximum output width $bits_{out}$
 of \SI{29}{\bit}. Using such high bit widths is not possible because of resource constraints.
 Therefore, scaling was used and is implemented with a divider after every group, where one group
@@ -2421,10 +2439,10 @@ two separate state machines. This allows speeding up the process since some part
 The first state machine controls the \gls{fft} and the complex multiplication part of the
 algorithm. It is called \device{fftncmul}. Inverse \gls{fft} and complex
 addition is handled by \device{ifftnadd}. The overall process is described in
-\cref{fig:overlap_add_machine}. Every block of size $L$
+\cref{fig:overlap_add_machine}. Every block of size \gls{L}
 needs to be processed within four steps. In the first step (\cref{fig:stage1}),
-the \device{fft} module is loaded with $L$ \gls{iq} demodulated samples from the source memory $x$. According to
-the overlap add algorithm, after $L$ samples the data input of the \device{fft}
+the \device{fft} module is loaded with \gls{L} \gls{iq} demodulated samples from the source memory $x$. According to
+the overlap add algorithm, after \gls{L} samples the data input of the \device{fft}
 is switched to zero. After the \device{fft} module has finished processing,
 the second step (\cref{fig:stage2}) starts. In this step the data is multiplied
 with $H$ and stored in the scratch buffer. During the next step (\cref{fig:stage3}),
@@ -2437,14 +2455,14 @@ the samples are unloaded into the target memory. Since the \gls{fft}
 module is pipelined, step one of the next block is started after step three
 of the current block has finished. This means, that the \gls{fft} module computes
 the samples of two different blocks at the same time. With this technique, the
-duration of the overlap add algorithm is reduced by one stage per $L$ sized block.
+duration of the overlap add algorithm is reduced by one stage per \gls{L} sized block.
 If the circular mode is enabled, then the block after the signal is added to the
-beginning (see \cref{sec:digital}). Since this process needs $L - n_{fft}$ samples
+beginning (see \cref{sec:digital}). Since this process needs $\gls{L} - \gls{nfft}$ samples
 after the end of the signal, the sample buffer can't be used to the full extent.
 
 The overall module is freely configurable and accepts \gls{fft} sizes 8, 16,
-32, 64, 128, 256, 512, 1024, 2048 and 4096. The signal size $n$ has to be between
-8 and 65535 and the block size $L$ between 1 and 4096. There are no plausibility
+32, 64, 128, 256, 512, 1024, 2048 and 4096. The signal size \gls{n} has to be between
+8 and 65535 and the block size \gls{L} between 1 and 4096. There are no plausibility
 checks in the hardware, which means that wrong settings will lead to undefined
 behaviour. The \device{core} module can be stopped by issuing a reset signal.
 Numerical overflows are separately reported for \gls{fft}, inverse \gls{fft}
@@ -2512,8 +2530,8 @@ buffers consist of true dual port block \glspl{ram}. In combination with the
 unsupported writes to the \device{active} sample buffer, this ensures that
 no timing conditions are violated, due to the different clocks.
 
-This module uses a configurable signal period $n$. This period can only be changed
-by resetting the module or by asserting the resync signal. Sample data of length $n$ is
+This module uses a configurable signal period \gls{n}. This period can only be changed
+by resetting the module or by asserting the resync signal. Sample data of length \gls{n} is
 continuously read from the \device{active} buffer. Swapping the \device{active}
 and the \device{inactive} buffer can be initiated by asserting the toggle\_buf
 signal for one cycle. To prevent signal distortion, the actual swapping occurs
@@ -2525,7 +2543,7 @@ in the \device{core} module.
 The complex multiplier, between the multiplexer and the \device{transmitter}
 module in \cref{fig:outbuf}, is responsible for the
 reflection generation. It multiplies the signal output to the transmitter
-with $\Gamma_{L,set}$ (see \cref{sec:digital}). As mentioned earlier, this
+with $\glsdisp{GammaL}{\Gamma_{L,set}}$ (see \cref{sec:digital}). As mentioned earlier, this
 multiplier features a bit shifter at the output. This bit shifter shifts the
 output by a configurable range of \SIrange{2}{17}{\bit}. With that operation
 it is possible to reach full scale output also for small input
@@ -2562,7 +2580,7 @@ it was verified, that the Rhode \& Schwarz digital \gls{iq} interface uses the
 DS90CR485 channel link serializer with switched off \gls{dc} Balance mode.
 
 The \device{outbuf} module is runtime configurable. After changing the signal
-length $n$ the \device{outbuf} module has to be reset or a \device{resync} operation
+length \gls{n} the \device{outbuf} module has to be reset or a \device{resync} operation
 needs to be initiated. Overflows from the multiplicator are reported with a status
 signal which has to be manually reset. This prevents interrupt storms if the signal is
 used as an interrupt. The memory interface of the \device{outbuf}
@@ -2985,7 +3003,7 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
 \label{chap:verification}
 
 The implemented \gls{elp} design was tested with the setup presented in
-\cref{fig:test_setup} at a center frequency $f_0$ of \SI{900}{\mega\hertz}. This test setup consists of the three parts
+\cref{fig:test_setup} at a center frequency $\gls{f0}$ of \SI{900}{\mega\hertz}. This test setup consists of the three parts
 which have been described in \cref{chap:measurement_system}. As mentioned in
 \cref{sec:analog}, instead of a circulator, the directional coupler
 \device{dir2} in combination with attenuator \device{att1} was used.
@@ -3041,16 +3059,16 @@ instruments can be seen in \cref{sec:instruments}.
               node[source,below=of upmix.center,scale=0.7] (upsource) {}
               node[rotate=90,anchor=south,font=\tiny] at (upsource.west) {$\SI{900}{\mega\hertz}$}
               node[rotate=90,anchor=north] at (upsource.east) {lo4}
-              node[below=of mul.center,fill=white] (gamma) {$\Gamma_{L,set}$};
+              node[below=of mul.center,fill=white] (gamma) {$\glsdisp{GammaL}{\Gamma_{L,set}}$};
 
         \draw ($(dut)!.5!(dirvna)$) node[coordinate] (plane) {};
 
         { [rounded corners=2pt]
             \draw (dut) -- (dirvna) -- (dircirc.A1);
-            \draw [-latex] (dircirc.A2) |- (downmix) node[above,near end] {$b_2$};
+            \draw [-latex] (dircirc.A2) |- (downmix) node[above,near end] {$\gls{b}[_2]$};
             \draw (dirvna.A2) -- (oszivna.A1);
             \draw (dirvna.B2) |- ($(dirvna.B2)!.7!(oszivna.A2)$) node[coordinate] (oszimiddle) {} -| (oszivna.A2);
-            \draw [-latex] (att) -- (dircirc.B1) node[midway,above] {$a_2$};
+            \draw [-latex] (att) -- (dircirc.B1) node[midway,above] {$\gls{a}[_2]$};
         }
         { [-latex]
             \draw (downsource) -- (downmix);
@@ -3100,11 +3118,11 @@ instruments can be seen in \cref{sec:instruments}.
 
         \draw [dashed] ($(plane) + (0,5.5)$) node[anchor=south] {Load Reference Plane} -- ($(plane) - (0,3)$);
 
-        \draw [latex-] ($(plane) + (0,1.5)$) -- ++(-0.5,0) node[anchor=east] {$Z_L$};
+        \draw [latex-] ($(plane) + (0,1.5)$) -- ++(-0.5,0) node[anchor=east] {$\gls{ZL}$};
 
-        \draw [-latex] ($(plane) + (0.25,-1.5)$) node[anchor=west] {$a_2$}-- ++(-0.5,0);
-        \draw [latex-] ($(plane) + (0.25,-2)$) node[anchor=west] {$b_2$}-- ++(-0.5,0);
-        \draw [latex-] ($(plane) + (0,-2.5)$) -- ++(-0.5,0) node[anchor=east] {$\Gamma_L$};
+        \draw [-latex] ($(plane) + (0.25,-1.5)$) node[anchor=west] {$\gls{a}[_2]$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0.25,-2)$) node[anchor=west] {$\gls{b}[_2]$}-- ++(-0.5,0);
+        \draw [latex-] ($(plane) + (0,-2.5)$) -- ++(-0.5,0) node[anchor=east] {$\gls{GammaL}$};
         \node [draw,fit=(amp) (dac) (upsource),rounded corners=4pt,inner xsep=6pt,inner ysep=14pt,label={above:Vector Signal Generator}] (sig) {};
         \draw [-latex,dashed] ([xshift=-2cm]sig.south) -- ++(0,-0.5) node[anchor=north] {\SI{10}{\mega\hertz} ref};
         \node [draw,fit=(gamma) (outbuf) (inbuf) (shiftsource) (buffer2),rounded corners=4pt,inner xsep=6pt,inner ysep=14pt,label={above:\gls{fpga}}] (fpga) {};
@@ -3124,14 +3142,14 @@ instruments can be seen in \cref{sec:instruments}.
 
 The overall setup consists of two independent systems. The one port \gls{vna} and
 the reflection generation consisting of the analog and the digital part. The
-one port \gls{vna} is needed to be able to measure the current $\Gamma_L$ (see
+one port \gls{vna} is needed to be able to measure the current $\gls{GammaL}$ (see
 \cref{sec:vna}). Verification of this part can be found in \cref{sec:vna_verify}. As
 described in \cref{sec:analog}, the analog part is responsible for separating the
-incident wave $b_2$, converting it to \gls{if}, and digitally sampling the signal.
+incident wave $\gls{b}[_2]$, converting it to \gls{if}, and digitally sampling the signal.
 Furthermore it handles digital-to-analog conversion, up-conversion to \gls{rf} and
-feeding back the reflected wave $a_2$ to the \gls{dut}. The digital part as described
+feeding back the reflected wave $\gls{a}[_2]$ to the \gls{dut}. The digital part as described
 in \cref{sec:digital} handles filtering the signal to enable broadband reflection
-synthesis and applying the reflection coefficient $\Gamma_{L,set}$. Since analog and
+synthesis and applying the reflection coefficient $\glsdisp{GammaL}{\Gamma_{L,set}}$. Since analog and
 digital part can't be verified separately, verification of the combined reflection
 generation part can be found in \cref{sec:reflection}. During these measurements,
 a noticeable phase drift was observed, and therefore an additional measurement was
@@ -3148,20 +3166,20 @@ the vector signal generator was turned off. Stepping through the frequency range
 was achieved by stepping the local oscillator \device{lo4} (see \cref{fig:test_setup}).
 A ZV-Z132 (female) calibration kit from Rhode \& Schwarz was used for the calibration
 setup in place of the \gls{dut}. Since the calibration is only valid for a single frequency, the full
-calibration measurements were acquired for 21 $\Delta{}f$-aligned points within a
+calibration measurements were acquired for 21 $\Delta{}\gls{f}$-aligned points within a
 \SI{25}{\mega\hertz} range at a center frequency of \SI{900}{\mega\hertz}. This
 was achieved by connecting the appropriate port of the calibration kit, and acquiring
-$\Gamma_{L,f}$ values for every frequency point. After the measurement, the different $\Gamma_{L,f}$ were linearly
-interpolated at every $\Delta{}f$ bin. Finally the \glspl{sparam} of
+$\glsdisp{GammaL}{\Gamma_{L,f}}$ values for every frequency point. After the measurement, the different $\glsdisp{GammaL}{\Gamma_{L,f}}$ were linearly
+interpolated at every $\Delta{}\gls{f}$ bin. Finally the \glspl{sparam} of
 the error box (see \cref{sec:vna}) were pre-calculated for every bin utilizing the values
 from the data sheet of the calibration kit\cite{zv-z132}.
 
 For the verification of the calibration, a stub tuner from Maury Microwave was tuned to a specific position and
 then measured utilizing the one port \gls{vna} in this work. Measurements were acquired over
 the whole \SI{25}{\mega\hertz} bandwidth at the calibrated points. Additional measurements
-were acquired at an offset of $\frac{1}{2}\Delta{}f$, to be able to test the performance
+were acquired at an offset of $\frac{1}{2}\Delta{}\gls{f}$, to be able to test the performance
 of the chosen window function, and additionally between the calibrated points, to test the %describe three measurements more cleary
-performance of the interpolation. To be able to verify the $\Gamma_L$ which was measured using the
+performance of the interpolation. To be able to verify the $\gls{GammaL}$ which was measured using the
 above described setup, those measurements were compared to a measurement acquired using a
 commercially available \gls{vna}. %which vna? which calkit? vna settings vna datasheet!
 %describe standard error
@@ -3170,7 +3188,7 @@ commercially available \gls{vna}. %which vna? which calkit? vna settings vna dat
     \centering
     \begin{tabular}{rrrr}
         \toprule
-        \shortstack[r]{\textbf{frequency} \\ \si{\mega\hertz}} & \shortstack[r]{887.5\\(cal)} & \shortstack[r]{887.505\\($\frac{1}{2}\Delta{}f$)} & \shortstack[r]{888.095\\(between cal)} \\
+        \shortstack[r]{\textbf{frequency} \\ \si{\mega\hertz}} & \shortstack[r]{887.5\\(cal)} & \shortstack[r]{887.505\\($\frac{1}{2}\Delta{}\gls{f}$)} & \shortstack[r]{888.095\\(between cal)} \\
         \midrule
         \shortstack[r]{\textbf{magnitude}\\ 1} & \num{581.0232e-003} & \num{581.0589e-003} & \num{582.3070e-003} \\
             standard error & \num{37.6e-006}     & \num{38.2e-006}     & \num{36.56e-006} \\
@@ -3208,12 +3226,12 @@ The reflection measurements were carried out using a test setup as displayed in 
 Here an Agilent \gls{vna} was connected instead of the \gls{dut} to verify the synthesized reflection
 coefficients. Furthermore, the Agilent \gls{vna} was synchronized to the setup using the same
 \SI{10}{\mega\hertz} reference in order to be able to generate the needed phase coherent
-signals for the test setup. This allowed verifying the synthesized $\Gamma_L$, and
+signals for the test setup. This allowed verifying the synthesized $\gls{GammaL}$, and
 calibrating the \gls{fir} filter \device{fir1} more accurately, than using the built
 in one port \gls{vna}.
 
 The reflection generation consists of two tasks. First the iterative target algorithm
-described in \cref{sec:matlab} is needed, to be able to synthesize specific $\Gamma_L$.
+described in \cref{sec:matlab} is needed, to be able to synthesize specific $\gls{GammaL}$.
 The performance of this algorithm can be seen in \cref{sec:iterative}. This
 algorithm was then used for calibrating and verifying the filter \device{fir1}. Measurement
 results for the verification measurements utilizing the previously calibrated filter can be seen in \cref{sec:filter}.
@@ -3260,7 +3278,7 @@ results for the verification measurements utilizing the previously calibrated fi
             \end{scope}
 
         \end{tikzpicture}
-        \caption{$\Gamma_{L,target} = 1$}
+        \caption{$\glsdisp{GammaL}{\Gamma_{L,target}} = 1$}
         \label{fig:find_target_good}
     \end{subfigure}%
     \begin{subfigure}[b]{.5\linewidth}
@@ -3301,7 +3319,7 @@ results for the verification measurements utilizing the previously calibrated fi
                 \end{scope}
             \end{scope}
         \end{tikzpicture}
-        \caption{$\Gamma_{L,target} = 0.5 \angle \SI{-45}{\degree}$}
+        \caption{$\glsdisp{GammaL}{\Gamma_{L,target}} = 0.5 \Angle \SI{-45}{\degree}$}
         \label{fig:find_target_bad}
     \end{subfigure}
     \caption{Exemplary trajectories of the target algorithm}
@@ -3309,16 +3327,16 @@ results for the verification measurements utilizing the previously calibrated fi
 \end{figure}
 
 The target algorithm as described in \cref{sec:matlab}, is able to find the
-correct $\Gamma_{L,set}$ with a given $\Gamma_{L,start}$ in order to synthesize
-a given $\Gamma_L$. All the following measurements used 20000 samples as %describe target algo and why
-signal period $n$ (see \cref{sec:acquisition}), a block size $L$ of 2000 and an \gls{fft} width $n_{fft}$
+correct $\glsdisp{GammaL}{\Gamma_{L,set}}$ with a given $\glsdisp{GammaL}{\Gamma_{L,start}}$ in order to synthesize
+a given $\gls{GammaL}$. All the following measurements used 20000 samples as %describe target algo and why
+signal period \gls{n} (see \cref{sec:acquisition}), a block size \gls{L} of 2000 and an \gls{fft} width $\gls{nfft}$
 of 4096 (see \cref{fig:overlap_add}). The filter \device{fir1} was preloaded with the
 impulse response of a low pass filter with a cut off frequency of \SI{25}{\mega\hertz} to
 filter out the aliases (see \cref{sec:digital}). For the duration of these measurements,
 the \gls{fpga} implementation was switched to automatic mode (see \cref{chap:fpga}). The digital reflection generation introduces %describe automatic mode
 a large latency on the order of about \SI{1}{\milli\second} for above mentioned settings.
 Therefore a delay time of \SI{100}{\milli\second} was used for the iterative algorithm %describe why 100ms
-(see \cref{sec:matlab}). This allows the system to settle on a $\Gamma_L$ before continuing
+(see \cref{sec:matlab}). This allows the system to settle on a $\gls{GammaL}$ before continuing
 with the algorithm. If the wait time is too short, this algorithm can start to
 cause stability issues and the completion time of the algorithm actually increases while
 a long wait time increases the completion time.
@@ -3336,7 +3354,7 @@ a long wait time increases the completion time.
             \addplot[blue,fill=blue!10,hist={bins=7,data min=3,data max=10,density=true}] table[y index=0] {testdata/trajectories/performance.data};
         \end{axis}
     \end{tikzpicture}
-    \caption{Histogram of algorithm iterations needed to find a specific $\Gamma_L$}
+    \caption{Histogram of algorithm iterations needed to find a specific $\gls{GammaL}$}
     \label{fig:iteration_hist}
 \end{figure}
 
@@ -3348,14 +3366,14 @@ reaching it. The reason can either be found in a too stringent termination condi
 in a bad resolution of the \gls{vna} or the digital part of this system in the
 target range.
 
-Depending on the starting point $\Gamma_{L,start}$ and the target $\Gamma_{L}$
+Depending on the starting point $\glsdisp{GammaL}{\Gamma_{L,start}}$ and the target $\gls{GammaL}$
 the performance of the algorithm varied. A histogram showing 108 different
-observations for different $\Gamma_{L,start}$ different $\Gamma_{L,target}$ and
+observations for different $\glsdisp{GammaL}{\Gamma_{L,start}}$ different $\glsdisp{GammaL}{\Gamma_{L,target}}$ and
 different frequencies can be seen in \cref{fig:iteration_hist}. The trajectory
 in \cref{fig:find_target_bad} is the only one where 8 iterations have been observed.
 
 As can be seen in \cref{fig:find_target,fig:iteration_hist} the algorithm is capable
-of reaching a specified reflection coefficient $\Gamma_{L,target}$ within a reasonable
+of reaching a specified reflection coefficient $\glsdisp{GammaL}{\Gamma_{L,target}}$ within a reasonable
 amount of time. Keeping the limitations above in mind, the algorithm could be further
 accelerated by adjusting the termination condition and the settling time.
 
@@ -3363,21 +3381,21 @@ accelerated by adjusting the termination condition and the settling time.
 \label{sec:filter}
 
 For verification, the filter \device{fir1} in \cref{fig:test_setup} was calibrated
-by measuring the needed $\Gamma_{L,set}$ to achieve a specific $\Gamma_L$ over a
+by measuring the needed $\glsdisp{GammaL}{\Gamma_{L,set}}$ to achieve a specific $\gls{GammaL}$ over a
 baseband range from \SI{-13}{\mega\hertz} to \SI{13}{\mega\hertz} at a \gls{rf} of %why filter calibration, how, plot!
 \SI{900}{\mega\hertz} (see \cref{sec:matlab}). All following
 measurements used the same settings as described in \cref{sec:iterative}, a signal period $n$ of 20000,
-$L$ of 2000 and an \gls{fft} width $n_{fft}$ of 4096 (see also \cref{fig:overlap_add}). %move settings elsewhere
+$L$ of 2000 and an \gls{fft} width $\gls{nfft}$ of 4096 (see also \cref{fig:overlap_add}). %move settings elsewhere
 Before calibration the filter \device{fir1} was preloaded with a low pass filter, with
 a cut off frequency of \SI{25}{\mega\hertz} to filter out the aliases (see
 \cref{sec:digital}). For the duration of the measurements, the \gls{fpga} implementation
-was switched to automatic mode (see \cref{chap:fpga}). Filter calibration was then carried out at the following $\Gamma_L$
-values: $1$, $-1$, $0.5\angle\SI{135}{\degree}$ and $0.5\angle\SI{-45}{\degree}$. Additional
+was switched to automatic mode (see \cref{chap:fpga}). Filter calibration was then carried out at the following $\gls{GammaL}$
+values: $1$, $-1$, $0.5\Angle\SI{135}{\degree}$ and $0.5\Angle\SI{-45}{\degree}$. Additional
 verification measurements were carried out with the mean of the acquired measurements
-at $1$ and $-1$, as well as the mean of the measurements at $0.5\angle\SI{135}{\degree}$
-and $0.5\angle\SI{-45}{\degree}$. For the following verification measurements, the respective
+at $1$ and $-1$, as well as the mean of the measurements at $0.5\Angle\SI{135}{\degree}$
+and $0.5\Angle\SI{-45}{\degree}$. For the following verification measurements, the respective
 calibration measurement was added to the filter \device{fir1} by linearly interpolating %how added
-the measured $\Gamma_{L,set}$ at every $\Delta{}f$-bin of the filter and then multiplying
+the measured $\glsdisp{GammaL}{\Gamma_{L,set}}$ at every $\Delta{}\gls{f}$-bin of the filter and then multiplying
 these values with the impulse response of the above mentioned alias filter.
 
 \begin{figure}[htb]
@@ -3402,9 +3420,9 @@ these values with the impulse response of the above mentioned alias filter.
             \addplot[blue] table[x index=0,y index=1] {\Horig};
             \addlegendentry{Low pass}
             \addplot[green] table[x index=0,y index=1] {\Hone};
-            \addlegendentry{$0.5 \angle \SI{-45}{\degree}$}
+            \addlegendentry{$0.5 \Angle \SI{-45}{\degree}$}
             \addplot[red] table[x index=0,y index=1] {\Htwo};
-            \addlegendentry{$0.5 \angle \SI{135}{\degree}$}
+            \addlegendentry{$0.5 \Angle \SI{135}{\degree}$}
         \end{axis}
     \end{tikzpicture}
     \caption{Filter transfer functions}
@@ -3415,18 +3433,18 @@ The verification measurements were acquired with the Agilent \gls{vna} at freque
 ranging from \SI{895}{\mega\hertz} to \SI{905}{\mega\hertz} in \SI{1}{\mega\hertz} steps
 with a settling time of \SI{0.5}{\second} for every frequency point. To be able to verify %why 0.5s settling
 the performance across the whole range, measurements were acquired over the possible
-$\Gamma_{L,set}$ range by stepping through an 11 by 11 grid. These measurements were
+$\glsdisp{GammaL}{\Gamma_{L,set}}$ range by stepping through an 11 by 11 grid. These measurements were
 acquired with the different filter calibrations mentioned above. %to compensate for the...
 
 The results, which can be seen in \cref{fig:calibrated_filter}, contain every acquired
 trajectory in blue and the calibration point in red. Since only the filter \device{fir1}
 was calibrated, but neither the target algorithm, nor an error model was used for the
-$\Gamma_{L,set}$ values, the overall grid is slightly distorted. As can be seen in these
+$\glsdisp{GammaL}{\Gamma_{L,set}}$ values, the overall grid is slightly distorted. As can be seen in these
 smith charts, the trajectories spread out at points far away from the calibration points.
 As expected, the filter calibrations utilizing the mean values achieve better trajectories
 between the calibration points. Since the trajectories around the calibration points
 show the best performance, it is advisable to use calibration points near the expected
-target $\Gamma_L$ and avoid calibration points at $\abs{\Gamma_L} = 1$. Noticeable
+target $\gls{GammaL}$ and avoid calibration points at $\abs{\gls{GammaL}} = 1$. Noticeable
 trajectory spreading near the calibration points is caused by the limited numerical
 precision of the filter implementation of \device{fir1} (see \cref{sec:overlap_add}).
 
@@ -3458,7 +3476,7 @@ precision of the filter implementation of \device{fir1} (see \cref{sec:overlap_a
                 \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(-0.3536,0.3536)};
             \end{smithchart}
         \end{tikzpicture}
-        \caption{$0.5 \angle \SI{135}{\degree}$}
+        \caption{$0.5 \Angle \SI{135}{\degree}$}
     \end{subfigure}\\
     \begin{subfigure}[b]{.45\linewidth}
         \centering
@@ -3486,7 +3504,7 @@ precision of the filter implementation of \device{fir1} (see \cref{sec:overlap_a
                 \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(0.3536,-0.3536)};
             \end{smithchart}
         \end{tikzpicture}
-        \caption{$0.5 \angle \SI{-45}{\degree}$}
+        \caption{$0.5 \Angle \SI{-45}{\degree}$}
     \end{subfigure}\\
     \begin{subfigure}[b]{.45\linewidth}
         \centering
@@ -3514,7 +3532,7 @@ precision of the filter implementation of \device{fir1} (see \cref{sec:overlap_a
                 \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(0.3536,-0.3536) (-0.3536,0.3536)};
             \end{smithchart}
         \end{tikzpicture}
-        \caption{$mean(0.5 \angle \SI{135}{\degree}, 0.5 \angle \SI{-45}{\degree})$}
+        \caption{$mean(0.5 \Angle \SI{135}{\degree}, 0.5 \Angle \SI{-45}{\degree})$}
     \end{subfigure}
     \caption{Reflection measurements with calibrated filter}
     \label{fig:calibrated_filter}
@@ -3531,15 +3549,15 @@ to observe the extent of the phase drift. For this measurement the test setup
 displayed in \cref{fig:test_setup} and again the Agilent \gls{vna} (see \cref{sec:instruments})
 was used as \gls{dut}. The \gls{vna} was also connected to the
 \SI{10}{\mega\hertz} reference, in order to generate phase coherent signals. The same
-settings for the \gls{fpga} implementation have been used ($n = 20000$, $L = 2000$, $n_{fft} = 4096$).
+settings for the \gls{fpga} implementation have been used ($\gls{n} = 20000$, $\gls{L} = 2000$, $\gls{nfft} = 4096$).
 According to \cref{sec:digital} \device{fir1} needs to be a low pass filter to
 filter out the aliases and was preloaded with the impulse response of a \SI{25}{\mega\hertz} low pass filter.
 For the duration of the measurements,
 the \gls{fpga} implementation was switched to automatic mode (see \cref{chap:fpga}). After
-those preparations the system was set up to realize a reflection coefficient $\Gamma_L = 1$ with
+those preparations the system was set up to realize a reflection coefficient $\gls{GammaL} = 1$ with
 the target algorithm. Measurements were acquired every \SI{10}{\second} for a duration
 of \SI{1000}{\minute}. The results of those phase drift measurements can be seen in
-\cref{fig:phase_single}, which shows the angle of $\Gamma_L$ over time. Since the magnitude did not change noticeably during those measurements
+\cref{fig:phase_single}, which shows the angle of $\gls{GammaL}$ over time. Since the magnitude did not change noticeably during those measurements
 it was left out of the plot.
 
 \begin{figure}[htb]
@@ -3559,7 +3577,7 @@ it was left out of the plot.
             \addplot[blue] table {testdata/phase/single.data};
         \end{axis}
     \end{tikzpicture}
-    \caption{Phase drift of $\Gamma_L$}
+    \caption{Phase drift of $\gls{GammaL}$}
     \label{fig:phase_single}
 \end{figure}
 
@@ -3658,7 +3676,7 @@ the trigger source \device{trigger} and the two oscilloscopes also experience ph
                 legend columns=4
             ]
             \addplot[blue] table {\phaseall};
-            \addlegendentry{\glsentryshort{vna}}
+            \addlegendentry{\acrshort{vna}}
             \addplot[green] table[x index=0,y index=2] {\phaseall};
             \addlegendentry{\device{lo1}}
             \addplot[red] table[y index=3] {\phaseall};
@@ -3672,7 +3690,7 @@ the trigger source \device{trigger} and the two oscilloscopes also experience ph
 \end{figure}
 
 The above mentioned phase drift needs to be kept in mind during measurements. This
-drift causes additional phase errors in the resulting $\Gamma_L$ and, depending on
+drift causes additional phase errors in the resulting $\gls{GammaL}$ and, depending on
 the accuracy needed of the measurements, limits the valid time of the calibration of
 the different parts of the measurement setup. %improve; which freq from which, ...
 
@@ -3828,7 +3846,7 @@ and processed verification results necessary to build this document can be found
         \item[core\_ov\_fft] 1 if FFT has overflown.
         \item[core\_start] Write 1 to this bit to start a convolution run.
         \item[core\_iq] Set to 1 for I/Q demodulation.
-        \item[core\_n] Transform size in $\log_2(n_{fft})$. Valid values: 3-12.
+        \item[core\_n] Transform size in $\log_2(\gls{nfft})$. Valid values: 3-12.
         \item[core\_scale\_cmul] Scaling schedule for complex multiplication. Valid values: 0-3.
         \item[core\_L] $L$. See \cref{sec:overlap_add}.
     \end{reglist}\end{regdesc}
