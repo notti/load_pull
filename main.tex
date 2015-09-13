@@ -3422,7 +3422,7 @@ these values with the impulse response of the above mentioned alias filter.
                 x SI prefix=mega,
                 xmin = -50e6,
                 xmax = 50e6,
-                width=\linewidth,
+                width=0.95\linewidth,
                 height=7cm,
             ]
             \addplot[blue] table[x index=0,y index=1] {\Horig};
@@ -3576,7 +3576,7 @@ it was left out of the plot.
                 y unit={\degree},
                 xlabel={time},
                 x unit={\minute}, %change xbase
-                width=\linewidth,
+                width=0.95\linewidth,
                 x filter/.expression={x/60},
                 xmin=0,
                 xmax=1000,
@@ -3678,7 +3678,7 @@ the trigger source \device{trigger} and the two oscilloscopes also experience ph
                 x filter/.expression={x/60},
                 xmin=0,
                 xmax=1000,
-                width=\linewidth,
+                width=0.95\linewidth,
                 height=7cm,
                 legend style={at={(0.5,1.01)},anchor=south},
                 legend columns=4
