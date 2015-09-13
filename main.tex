@@ -3337,7 +3337,7 @@ on a $\gls{GammaL}$ before continuing with the algorithm. If the wait time is to
 this algorithm can start to cause stability issues and the completion time of the algorithm
 actually increases while a long wait time increases the completion time. The high delay
 time of \SI{100}{\milli\second} was chosen since the Matlab function \lstinline|pause| is
-not capable of short delays and exhibits very high inaccuracy.
+not capable of short delays and exhibits very high inaccuracy \cite{matlab_pause}.
 
 \begin{figure}[htb]
     \begin{subfigure}[b]{.5\linewidth}
@@ -3462,26 +3462,30 @@ of reaching a specified reflection coefficient $\glsdisp{GammaL}{\Gamma_{L,targe
 amount of time. Keeping the limitations above in mind, the algorithm could be further
 accelerated by adjusting the termination condition and the settling time.
 
-\subsection{Filter performance}
+\subsection{Filter Performance}
 \label{sec:filter}
 
 For verification, the filter \device{fir1} in \cref{fig:test_setup} was calibrated
 by measuring the needed $\glsdisp{GammaL}{\Gamma_{L,set}}$ to achieve a specific $\gls{GammaL}$ over a
-baseband range from \SI{-13}{\mega\hertz} to \SI{13}{\mega\hertz} at a \gls{rf} of %why filter calibration, how, plot!
-\SI{900}{\mega\hertz} (see \cref{sec:matlab}). All following
-measurements used the same settings as described in \cref{sec:iterative}, a signal period $n$ of 20000,
-$L$ of 2000 and an \gls{fft} width $\gls{nfft}$ of 4096 (see also \cref{fig:overlap_add}). %move settings elsewhere
-Before calibration the filter \device{fir1} was preloaded with a low pass filter, with
-a cut off frequency of \SI{25}{\mega\hertz} to filter out the aliases (see
-\cref{sec:digital}). For the duration of the measurements, the \gls{fpga} implementation
-was switched to automatic mode (see \cref{chap:fpga}). Filter calibration was then carried out at the following $\gls{GammaL}$
+baseband range from \SI{-13}{\mega\hertz} to \SI{13}{\mega\hertz} at a \gls{rf} of
+\SI{900}{\mega\hertz}. The filter calibration is necessary to be able to correct
+the frequency response of the reflection generation setup (see \cref{chap:measurement_system}). The needed
+$\glsdisp{GammaL}{\Gamma_{L,set}}$ were acquired in \SI{1}{\mega\hertz} steps. Those
+values were normalized to represent the needed multiplier in order
+to achieve a constant \gls{GammaL} over the whole bandwidth. Afterwards the multipliers
+were interpolated at the frequency points of the \gls{fft} of the \gls{fir} filter (see \cref{sec:matlab}).
+
+Filter calibration was carried out at the following $\gls{GammaL}$
 values: $1$, $-1$, $0.5\Angle\SI{135}{\degree}$ and $0.5\Angle\SI{-45}{\degree}$. Additional
 verification measurements were carried out with the mean of the acquired measurements
 at $1$ and $-1$, as well as the mean of the measurements at $0.5\Angle\SI{135}{\degree}$
-and $0.5\Angle\SI{-45}{\degree}$. For the following verification measurements, the respective
-calibration measurement was added to the filter \device{fir1} by linearly interpolating %how added
-the measured $\glsdisp{GammaL}{\Gamma_{L,set}}$ at every $\Delta{}\gls{f}$-bin of the filter and then multiplying
-these values with the impulse response of the above mentioned alias filter.
+and $0.5\Angle\SI{-45}{\degree}$.
+
+For the following verification measurements, the respective calibration measurement
+was integrated to the filter \device{fir1} by applying the acquired multipliers
+to the transfer function of the filter. An example of the uncalibrated low pass
+transfer function and two different calibrated filter transfer functions can be
+seen in \cref{fig:filter}.
 
 \begin{figure}[htb]
     \centering
@@ -3510,16 +3514,18 @@ these values with the impulse response of the above mentioned alias filter.
             \addlegendentry{$0.5 \Angle \SI{135}{\degree}$}
         \end{axis}
     \end{tikzpicture}
-    \caption{Filter transfer functions}
+    \caption{Uncalibrated and calibrated filter transfer functions.}
     \label{fig:filter}
 \end{figure}
 
 The verification measurements were acquired with the Agilent \gls{vna} at frequencies
 ranging from \SI{895}{\mega\hertz} to \SI{905}{\mega\hertz} in \SI{1}{\mega\hertz} steps
-with a settling time of \SI{0.5}{\second} for every frequency point. To be able to verify %why 0.5s settling
-the performance across the whole range, measurements were acquired over the possible
+with a settling time of \SI{0.5}{\second} for every frequency point. This settling time
+was needed to ensure the digital signal processing chain has settled on the changed input.
+To be able to verify the performance across the whole range, measurements were acquired over the possible
 $\glsdisp{GammaL}{\Gamma_{L,set}}$ range by stepping through an 11 by 11 grid. These measurements were
-acquired with the different filter calibrations mentioned above. %to compensate for the...
+acquired with the different filter calibrations mentioned above to compensate for the
+frequency response of the reflection generation setup.
 
 The results, which can be seen in \cref{fig:calibrated_filter}, contain every acquired
 trajectory in blue and the calibration point in red. Since only the filter \device{fir1}
@@ -3619,7 +3625,7 @@ precision of the filter implementation of \device{fir1} (see \cref{sec:overlap_a
         \end{tikzpicture}
         \caption{$mean(0.5 \Angle \SI{135}{\degree}, 0.5 \Angle \SI{-45}{\degree})$}
     \end{subfigure}
-    \caption{Reflection measurements with calibrated filter}
+    \caption{11 by 11 grid of reflection measurements over maximum range of $\glsdisp{GammaL}{\Gamma_{L,set}}$ values with calibrated filter at distinct calibration points.}
     \label{fig:calibrated_filter}
 \end{figure}
 
