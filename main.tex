@@ -112,6 +112,7 @@
   \item[\usebox0]
   \hfill \\
 }
+\lstset{language=matlab}
 
 %stuff
 
@@ -3019,6 +3020,7 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
 
 \chapter{Verification of the Measurement System}
 \label{chap:verification}
+\lstset{language=matlab}
 
 The implemented \gls{elp} design was tested with the setup presented in
 \cref{fig:test_setup} at a center frequency $\gls{f0}$ of \SI{900}{\mega\hertz}. This test setup consists of the three parts
@@ -3300,14 +3302,42 @@ signals for the test setup. This allowed verifying the synthesized $\gls{GammaL}
 calibrating the \gls{fir} filter \device{fir1} more accurately, than using the built
 in one port \gls{vna}.
 
+All the reflection generation verification measurements used 20000 samples as signal period \gls{n},
+an overlap add block size \gls{L} of 2000, and an \gls{fft} width $\gls{nfft}$ of 4096 (see
+\cref{fig:overlap_add}). The filter \device{fir1} was preloaded with the
+impulse response of a low pass filter with a cut off frequency of \SI{25}{\mega\hertz} to
+filter out the aliases (see \cref{sec:digital}). For the duration of these measurements,
+the \gls{fpga} implementation was switched to automatic mode which emulates continuous
+signal processing (see \cref{sec:auto}). Changes at the input of the digital part propagate
+with a lag time of about \SI{1}{\milli\second} to the output using automatic mode and the
+above mentioned signal processing configuration.
+
 The reflection generation consists of two tasks. First the iterative target algorithm
 described in \cref{sec:matlab} is needed, to be able to synthesize specific $\gls{GammaL}$.
 The performance of this algorithm can be seen in \cref{sec:iterative}. This
 algorithm was then used for calibrating and verifying the filter \device{fir1}. Measurement
 results for the verification measurements utilizing the previously calibrated filter can be seen in \cref{sec:filter}.
 
-\subsection{Iterative target algorithm}
+\subsection{Iterative Target Algorithm}
 \label{sec:iterative}
+
+The target algorithm is able to find the correct $\glsdisp{GammaL}{\Gamma_{L,set}}$
+with a given $\glsdisp{GammaL}{\Gamma_{L,start}}$ in order to synthesize a given
+$\glsdisp{GammaL}{\Gamma_{L,target}}$. It works by setting the current \gls{GammaL}
+into relation with the given $\glsdisp{GammaL}{\Gamma_{L,target}}$ and scaling
+$\glsdisp{GammaL}{\Gamma_{L,set}}$ accordingly (see \cref{sec:matlab}). This
+iterative target algorithm is needed to be able reach a specific \gls{GammaL} even
+with highly non-linear \gls{dut}. These \gls{dut} can exhibit load dependent
+$\gls{S}[_{22}]$ which renders error box based approaches unsuitable.
+
+As mentioned above, the digital reflection generation introduces a large latency
+on the order of about \SI{1}{\milli\second}. Therefore a delay time of \SI{100}{\milli\second}
+was used for the iterative algorithm (see \cref{sec:matlab}). This allows the system to settle
+on a $\gls{GammaL}$ before continuing with the algorithm. If the wait time is too short,
+this algorithm can start to cause stability issues and the completion time of the algorithm
+actually increases while a long wait time increases the completion time. The high delay
+time of \SI{100}{\milli\second} was chosen since the Matlab function \lstinline|pause| is
+not capable of short delays and exhibits very high inaccuracy.
 
 \begin{figure}[htb]
     \begin{subfigure}[b]{.5\linewidth}
@@ -3396,20 +3426,19 @@ results for the verification measurements utilizing the previously calibrated fi
     \label{fig:find_target}
 \end{figure}
 
-The target algorithm as described in \cref{sec:matlab}, is able to find the
-correct $\glsdisp{GammaL}{\Gamma_{L,set}}$ with a given $\glsdisp{GammaL}{\Gamma_{L,start}}$ in order to synthesize
-a given $\gls{GammaL}$. All the following measurements used 20000 samples as %describe target algo and why
-signal period \gls{n} (see \cref{sec:acquisition}), a block size \gls{L} of 2000 and an \gls{fft} width $\gls{nfft}$
-of 4096 (see \cref{fig:overlap_add}). The filter \device{fir1} was preloaded with the
-impulse response of a low pass filter with a cut off frequency of \SI{25}{\mega\hertz} to
-filter out the aliases (see \cref{sec:digital}). For the duration of these measurements,
-the \gls{fpga} implementation was switched to automatic mode (see \cref{chap:fpga}). The digital reflection generation introduces %describe automatic mode
-a large latency on the order of about \SI{1}{\milli\second} for above mentioned settings.
-Therefore a delay time of \SI{100}{\milli\second} was used for the iterative algorithm %describe why 100ms
-(see \cref{sec:matlab}). This allows the system to settle on a $\gls{GammaL}$ before continuing
-with the algorithm. If the wait time is too short, this algorithm can start to
-cause stability issues and the completion time of the algorithm actually increases while
-a long wait time increases the completion time.
+Two descriptive example trajectories can be seen in \cref{fig:find_target}. In
+\cref{fig:find_target_good} the algorithm terminated just after three steps,
+whereas in \cref{fig:find_target_bad} the worst observed case can be seen. The
+trajectory in \cref{fig:find_target_bad} oscillates around the target before
+reaching it. The reason can either be found in a too stringent termination condition or
+in a bad resolution of the \gls{vna} or the digital part of this system in the
+target range.
+
+Depending on the starting point $\glsdisp{GammaL}{\Gamma_{L,start}}$ and the target $\gls{GammaL}$
+the performance of the algorithm varied. A histogram showing 108 different
+observations for different $\glsdisp{GammaL}{\Gamma_{L,start}}$ different $\glsdisp{GammaL}{\Gamma_{L,target}}$ and
+different frequencies can be seen in \cref{fig:iteration_hist}. The trajectory
+in \cref{fig:find_target_bad} is the only one where 8 iterations have been observed.
 
 \begin{figure}[htb]
     \centering
@@ -3427,20 +3456,6 @@ a long wait time increases the completion time.
     \caption{Histogram of algorithm iterations needed to find a specific $\gls{GammaL}$}
     \label{fig:iteration_hist}
 \end{figure}
-
-Two descriptive example trajectories can be seen in \cref{fig:find_target}. In
-\cref{fig:find_target_good} the algorithm terminated just after three steps,
-whereas in \cref{fig:find_target_bad} the worst observed case can be seen. The
-trajectory in \cref{fig:find_target_bad} oscillates around the target before
-reaching it. The reason can either be found in a too stringent termination condition or
-in a bad resolution of the \gls{vna} or the digital part of this system in the
-target range.
-
-Depending on the starting point $\glsdisp{GammaL}{\Gamma_{L,start}}$ and the target $\gls{GammaL}$
-the performance of the algorithm varied. A histogram showing 108 different
-observations for different $\glsdisp{GammaL}{\Gamma_{L,start}}$ different $\glsdisp{GammaL}{\Gamma_{L,target}}$ and
-different frequencies can be seen in \cref{fig:iteration_hist}. The trajectory
-in \cref{fig:find_target_bad} is the only one where 8 iterations have been observed.
 
 As can be seen in \cref{fig:find_target,fig:iteration_hist} the algorithm is capable
 of reaching a specified reflection coefficient $\glsdisp{GammaL}{\Gamma_{L,target}}$ within a reasonable
