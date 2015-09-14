@@ -800,10 +800,13 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
 \subsection{Filter performance}
 
 \begin{frame}{Calibrated Filter, Uncalibrated $\Gamma_{L,set}$}
+    \begin{center}
+        11 by 11 grid $\Gamma_{L,set}$, \SI{11}{\mega\hertz} bandwidth
+    \end{center}
     \begin{columns}
         \column{0.5\linewidth}
             \begin{tikzpicture}[every axis/.style={font=\tiny}]
-                \begin{smithchart}[width=\linewidth,clip=false]
+                \begin{smithchart}[width=\linewidth,clip=false,title={\normalsize $0.5 \angle \SI{135}{\degree}$}]
                     \foreach \i in {1,...,11}{
                         \foreach \j in {1,...,11}{
                             \addplot[blue,is smithchart cs] file {testdata/filter/0.5,135/\i,\j.data};
@@ -814,7 +817,7 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
             \end{tikzpicture}
         \column{0.5\linewidth}
             \begin{tikzpicture}[every axis/.style={font=\tiny}]
-                \begin{smithchart}[width=\linewidth,clip=false]
+                \begin{smithchart}[width=\linewidth,clip=false,title={\normalsize $0.5 \angle \SI{-45}{\degree}$}]
                     \foreach \i in {1,...,11}{
                         \foreach \j in {1,...,11}{
                             \addplot[blue,is smithchart cs] file {testdata/filter/0.5,-45/\i,\j.data};
