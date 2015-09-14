@@ -1,6 +1,10 @@
 \documentclass{beamer}
 \usepackage{etex}
 
+\usepackage{ifthen}
+
+\providecommand{\NoExternal}{false}
+
 \title[FPGA based LP]{Diploma thesis}
 \author[G.~Vormayr]{Gernot Vormayr\\0425210}
 \institute[EMCE]{Institute of Electrodynamics, Microwave and Circuit Engineering}
@@ -86,7 +90,11 @@
 
 \usepgfplotslibrary{external}
 \tikzsetexternalprefix{figures/}
-\tikzexternalize[mode=list and make]
+\ifthenelse{\equal{\NoExternal}{true}}{
+
+}{
+    \tikzexternalize[mode=list and make]
+}
 \tikzexternalwritetomakefile{}
 \tikzexternalwritetomakefile{.DELETE_ON_ERROR:}
 \tikzexternalwritetomakefile{}
@@ -696,7 +704,7 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
                 \def\spyfactorI{10}
 
                 \def\pic#1#2{
-                    \begin{smithchart}[width=6cm,scale only axis,clip=false#1]
+                    \begin{smithchart}[width=7cm,clip=false#1]
                         \addplot[blue,is smithchart cs] file {testdata/filter/1.0,0/trajectory10.data};
                         \addplot[purple,is smithchart cs,only marks,mark=x#2] file {testdata/filter/1.0,0/trajectory10.data};
                         \draw (cartesian cs:1,0) node[coordinate] (a) {}
@@ -741,7 +749,7 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
                 \def\spyfactorI{50}
 
                 \def\pic#1#2{
-                    \begin{smithchart}[width=6cm,scale only axis,clip=false#1]
+                    \begin{smithchart}[width=7cm,clip=false#1]
                         \addplot[blue,is smithchart cs] file {testdata/filter/0.5,-45/trajectory6.data};
                         \addplot[purple,is smithchart cs,only marks,mark=x#2] file {testdata/filter/0.5,-45/trajectory6.data};
                         \draw (cartesian cs:0.35325,-0.35397) node[coordinate] (a) {}
@@ -760,7 +768,7 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
                         shift={($\sI*(spy-in 1)-\sI*(spy-on 1)$)},
                         scale around={\spyfactorI:(spy-on 1)}
                     ]
-                        \pic{,every axis plot post/.append style={line width=0.01pt}}{,mark size=0.05pt}
+                        \pic{,every axis plot post/.append style={line width=0.01pt}}{,mark size=0.06pt}
                     \end{scope}
                 \end{scope}
             \end{tikzpicture}

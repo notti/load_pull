@@ -12,7 +12,7 @@ sub mypdflatex {
     if ($? != 0) {
         return $?
     }
-    if ( !defined $externalflag->{$base} ) {
+    if ( !defined $externalflag->{$base} && -e "$base.makefile" ) {
         $externalflag->{$base} = 1;
         system ("$make -j5 -f $base.makefile");
     }
