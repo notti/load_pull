@@ -55,8 +55,8 @@
 \makeatother
 
 \tikzset{
-    invisible/.style={opacity=0},
-    visible on/.style={alt={#1{}{invisible}}},
+    invisible/.style={opacity=0,text opacity=0},
+    visible on/.style={alt=<#1>{}{invisible}},
     alt/.code args={<#1>#2#3}{%
         \alt<#1>{\pgfkeysalso{#2}}{\pgfkeysalso{#3}}
     },
@@ -424,11 +424,11 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
                 \draw (leftsplit) node[anchor=base east] {One Port VNA}
                       (leftsplit) node[anchor=base west] {Analog};
 
-                \draw [-latex,incident] ($(dirvna.A2) + (-0.2,0.1)$) -- node[base left] {$a_1$} ($(oszivna.A1 |- oszimiddle) - (0.2,0.1)$);
+                \draw [-latex,incident] ($(dirvna.A2) + (-0.2,0.1)$) -- node[base left] {$b$} ($(oszivna.A1 |- oszimiddle) - (0.2,0.1)$);
                 \begin{pgfonlayer}{foreground}
                     \draw [-latex,reflect] ($(dirvna.B2) + (0.2,0.1)$) -- node[coordinate] (a1) {} ($(oszimiddle -| dirvna.B2) + (0.2,-0.1)$);
                 \end{pgfonlayer}
-                \draw (a1) node[base right,reflect] {$b_1$};
+                \draw (a1) node[base right,reflect] {$a$};
 
                 \draw [dashed] ($(plane) + (0,4)$) node[anchor=south] {Load Reference Plane} -- ($(plane) - (0,3)$);
 
@@ -447,9 +447,9 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
                 \item Acquire \textcolor{incident}{$a_1$}, \textcolor{reflect}{$b_1$}
                 \item Extract phase and magnitude
                 \tikzset{external/export next=false}
-                \item $\Gamma_L = \frac{\textcolor{reflect}{a_2}}{\textcolor{incident}{b_2}} \tikz[remember picture,baseline] \node[anchor=base] (approx) {$\approx$}; \frac{\textcolor{reflect}{b_1}}{\textcolor{incident}{a_1}}$
+                \item $\Gamma_L = \frac{\textcolor{reflect}{a_2}}{\textcolor{incident}{b_2}} \tikz[remember picture,baseline] \node[anchor=base] (approx) {$\approx$}; \frac{\textcolor{reflect}{a}}{\textcolor{incident}{b}}$
                     \tikzset{external/export next=false}
-                    \tikz[overlay,remember picture] \draw [latex-,alert=2] (approx.south) -- ++(0,-2em) node[below,alert=2] {Systematic Errors};
+                    \tikz[overlay,remember picture] \draw [latex-,visible on=2] (approx.south) -- ++(0,-2em) node[below,visible on=2] {Systematic Errors};
             \end{enumerate}
     \end{columns}
 \end{frame}
