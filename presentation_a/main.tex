@@ -680,59 +680,121 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
 
 \subsection{Reflection Generation}
 
-\begin{frame}[fragile]{Target algorithm}
-    \begin{tikzpicture}[
-        spy/.style={%
-            draw,green,
-            line width=0.5pt,
-            circle,inner sep=0pt,
-        },
-        every axis/.style={font=\footnotesize},
-        ]
-        \def\spyviewersize{3cm}
-        \def\spyonclipreduce{0.5pt}
-        \def\spyfactorI{10}
+\begin{frame}[fragile]{Target algorithm 1}
+    \begin{columns}
+        \column{9cm}
+            \begin{tikzpicture}[
+                spy/.style={%
+                    draw,green,
+                    line width=0.5pt,
+                    circle,inner sep=0pt,
+                },
+                every axis/.style={font=\footnotesize},
+                ]
+                \def\spyviewersize{3cm}
+                \def\spyonclipreduce{0.5pt}
+                \def\spyfactorI{10}
 
-        \def\pic#1#2{
-            \begin{smithchart}[width=7cm,clip=false#1]
-                \addplot[blue,is smithchart cs] file {testdata/filter/1.0,0/trajectory10.data};
-                \addplot[purple,is smithchart cs,only marks,mark=x#2] file {testdata/filter/1.0,0/trajectory10.data};
-                \draw (cartesian cs:1,0) node[coordinate] (a) {}
-                      (cartesian cs:-0.4,0.4) node[coordinate] (b) {};
-            \end{smithchart}
-        }
-        \pic{}{}
-        \coordinate (spy-on 1) at (a);
-        \coordinate (spy-in 1) at (b);
+                \def\pic#1#2{
+                    \begin{smithchart}[width=6cm,scale only axis,clip=false#1]
+                        \addplot[blue,is smithchart cs] file {testdata/filter/1.0,0/trajectory10.data};
+                        \addplot[purple,is smithchart cs,only marks,mark=x#2] file {testdata/filter/1.0,0/trajectory10.data};
+                        \draw (cartesian cs:1,0) node[coordinate] (a) {}
+                              (cartesian cs:-0.4,0.4) node[coordinate] (b) {};
+                    \end{smithchart}
+                }
+                \pic{}{}
+                \coordinate (spy-on 1) at (a);
+                \coordinate (spy-in 1) at (b);
 
-        \node[spy,ultra thick,circular drop shadow,minimum size=\spyviewersize,fill=white,label={[inner sep=2pt,yshift=-5pt,fill=white,font=\small]below:\spyfactorI{}x magnification}] (spy-in node 1) at (spy-in 1) {};
-        \begin{scope}
-            \clip (spy-in 1) circle (0.5*\spyviewersize-\spyonclipreduce);
-            \pgfmathsetmacro\sI{1/\spyfactorI}
-            \begin{scope}[
-                shift={($\sI*(spy-in 1)-\sI*(spy-on 1)$)},
-                scale around={\spyfactorI:(spy-on 1)}
-            ]
-            \pic{,every axis plot post/.append style={line width=0.07pt},every axis/.append style={line width=0.07pt,grid style={line width=0.07pt}}}{,mark size=0.35pt}
-            \end{scope}
-        \end{scope}
+                \node[spy,ultra thick,circular drop shadow,minimum size=\spyviewersize,fill=white,label={[inner sep=2pt,yshift=-5pt,fill=white,font=\small]below:\spyfactorI{}x magnification}] (spy-in node 1) at (spy-in 1) {};
+                \begin{scope}
+                    \clip (spy-in 1) circle (0.5*\spyviewersize-\spyonclipreduce);
+                    \pgfmathsetmacro\sI{1/\spyfactorI}
+                    \begin{scope}[
+                        shift={($\sI*(spy-in 1)-\sI*(spy-on 1)$)},
+                        scale around={\spyfactorI:(spy-on 1)}
+                    ]
+                    \pic{,every axis plot post/.append style={line width=0.07pt},every axis/.append style={line width=0.07pt,grid style={line width=0.07pt}}}{,mark size=0.35pt}
+                    \end{scope}
+                \end{scope}
 
-    \end{tikzpicture}
+            \end{tikzpicture}
+        \column{4cm}
+            $\Gamma_{L,target} = 1$
+    \end{columns}
 \end{frame}
 
+\begin{frame}[fragile]{Target algorithm 2}
+    \begin{columns}
+        \column{9cm}
+            \begin{tikzpicture}[
+                spy/.style={%
+                    draw,green,
+                    line width=0.5pt,
+                    circle,inner sep=0pt,
+                },
+                every axis/.style={font=\footnotesize},
+                ]
+                \def\spyviewersize{3cm}
+                \def\spyonclipreduce{0.5pt}
+                \def\spyfactorI{50}
+
+                \def\pic#1#2{
+                    \begin{smithchart}[width=6cm,scale only axis,clip=false#1]
+                        \addplot[blue,is smithchart cs] file {testdata/filter/0.5,-45/trajectory6.data};
+                        \addplot[purple,is smithchart cs,only marks,mark=x#2] file {testdata/filter/0.5,-45/trajectory6.data};
+                        \draw (cartesian cs:0.35325,-0.35397) node[coordinate] (a) {}
+                              (cartesian cs:-0.4,0.4) node[coordinate] (b) {};
+                    \end{smithchart}
+                }
+                \pic{}{}
+                \coordinate (spy-on 1) at (a);
+                \coordinate (spy-in 1) at (b);
+
+                \node[spy,ultra thick,circular drop shadow,minimum size=\spyviewersize,fill=white,label={[inner sep=2pt,yshift=-5pt,fill=white,font=\small]below:\spyfactorI{}x magnification}] (spy-in node 1) at (spy-in 1) {};
+                \begin{scope}
+                    \clip (spy-in 1) circle (0.5*\spyviewersize-\spyonclipreduce);
+                    \pgfmathsetmacro\sI{1/\spyfactorI}
+                    \begin{scope}[
+                        shift={($\sI*(spy-in 1)-\sI*(spy-on 1)$)},
+                        scale around={\spyfactorI:(spy-on 1)}
+                    ]
+                        \pic{,every axis plot post/.append style={line width=0.01pt}}{,mark size=0.05pt}
+                    \end{scope}
+                \end{scope}
+            \end{tikzpicture}
+        \column{4cm}
+            $\Gamma_{L,target} = 0.5 \angle \SI{-45}{\degree}$
+    \end{columns}
+\end{frame}
 
 \begin{frame}{Target algorithm performance}
-    \begin{tikzpicture}
-        \begin{axis}[
-                ybar interval,
-                ylabel={percentage of invocations},
-                xlabel={number of iterations},
-                x filter/.expression={x-1}, % remove the start point
-                ymin = 0
-            ]
-            \addplot[blue,fill=blue!10,hist={bins=7,data min=3,data max=10,density=true}] table[y index=0] {testdata/trajectories/performance.data};
-        \end{axis}
-    \end{tikzpicture}
+    \begin{columns}
+        \column{7cm}
+            \begin{tikzpicture}
+                \begin{axis}[
+                        title = 108 algorithm invocations,
+                        ybar interval,
+                        ylabel={percentage of invocations},
+                        xlabel={number of iterations},
+                        x filter/.expression={x-1}, % remove the start point
+                        width=7cm,
+                        ymin = 0
+                    ]
+                    \addplot[blue,fill=blue!10,hist={bins=7,data min=3,data max=10,density=true}] table[y index=0] {testdata/trajectories/performance.data};
+                \end{axis}
+            \end{tikzpicture}
+        \column{5cm}
+            \begin{block}{Performance dependent on}
+                \begin{itemize}
+                    \item Start point
+                    \item Target
+                    \item Resolution in target area
+                    \item Pause for lag time compensation
+                \end{itemize}
+            \end{block}
+    \end{columns}
 \end{frame}
 
 \subsection{Filter performance}
