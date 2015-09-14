@@ -253,9 +253,9 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
     \begin{block}{Active Load Pull system}
         \begin{itemize}
             \item Baseband
-            \item<2-> Digital reflection generation
-            \item<3-> Digital filter to support bandwidths \SI{>= 20}{\mega\hertz}
-            \item<4-> FPGA based
+            \item Digital reflection generation
+            \item Digital filter to support bandwidths \SI{>= 20}{\mega\hertz}
+            \item FPGA based
         \end{itemize}
     \end{block}
 \end{frame}
@@ -265,6 +265,22 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
 
 \begin{frame}<beamer>{Outline}
     \tableofcontents[currentsection]
+\end{frame}
+
+\begin{frame}{Reflection Generation}
+    \begin{block}{Digital Filter}
+        \begin{itemize}
+            \item Correct frequency response of setup
+            \item Synthesize uniformly distributed $\Gamma_L$
+        \end{itemize}
+    \end{block}
+    \begin{block}{Reflection Generation}
+        \begin{itemize}
+            \item Systematic errors caused by setup
+            \item Highly non-linear DUT load dependent $S_{22}$
+        \end{itemize}
+    \end{block}
+    \uncover<2>{\qquad\dots iterative target algorithm}
 \end{frame}
 
 \tikzset{incident/.style={color=Set1-3-1}}
@@ -315,7 +331,7 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
               node[anchor=west] at (shiftsource.east) {lo3}
               node[source,below=of upmix.center,scale=0.7] (upsource) {}
               node[anchor=west] at (upsource.east) {lo4}
-              node[below=of mul.center] (gamma) {$\Gamma_{set}$};
+              node[below=of mul.center] (gamma) {$\Gamma_{L,set}$};
 
         \draw ($(dut)!.5!(dirvna)$) node[coordinate] (plane) {};
 
@@ -459,7 +475,7 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
     \begin{columns}
         \column{5cm}
             \tikzset{external/export next=false}
-            \begin{tikzpicture}[thick]
+            \begin{tikzpicture}
                 \matrix (box)
                 [matrix of nodes,%
                  nodes in empty cells,
@@ -506,7 +522,7 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
 \end{frame}
 
 \subsection{Analog Part}
-\begin{frame}
+\begin{frame}{Analog Part}
     \begin{columns}
         \column{7cm}
             \resizebox{\linewidth}{!}{
@@ -590,81 +606,72 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
 \end{frame}
 
 \subsection{Digital Part}
-\begin{frame}
-\begin{figure}[htb]
-    \centering
-    \begin{tikzpicture}
-        \tikzpicturedependsonfile{rfsymbols.tex}
-        \tikzstyle{every node}=[font=\footnotesize]
-        \draw node[dut] (dut) {}
-              node[coordinate,right=2 of dut] (circ) {}
+\begin{frame}{Digital Part}
+    \begin{columns}
+        \column{5.5cm}
+            \begin{tikzpicture}
+                \tikzpicturedependsonfile{rfsymbols.tex}
+                \draw node[coordinate,yshift=-1.5cm,label=left:$a_2$] (dac) {}
 
-              node[coordinate,right=of circ,yshift=-1.5cm,label=left:$a_2$] (dac) {}
+                      node[coordinate,yshift=1.5cm,label=left:$b_2$] (adc) {}
+                      node[empty,right=of adc,label=below:buffer1] (inbuf) {}
+                      node[mixer,right=of inbuf] (shift) {}
+                      node[anchor=west] at (shift.east) {mix2}
 
-              node[coordinate,right=of circ,yshift=1.5cm,label=left:$b_2$] (adc) {}
-              node[empty,right=of adc,label=below:buffer1] (inbuf) {}
-              node[mixer,right=of inbuf] (shift) {}
-              node[rotate=90,anchor=north] at (shift.east) {mix2}
+                      (dac -| inbuf) node[mixer,label=above:mul1,generate] (mul) {}
+                      node[empty,right=of mul] (outbuf) {}
+                      node[anchor=west] at (outbuf.east) {buffer2}
 
-              (dac -| inbuf) node[mixer,label=above:mul1] (mul) {}
-              node[empty,right=of mul] (outbuf) {}
-              node[rotate=90,anchor=north] at (outbuf.east) {buffer2}
+                      ($(shift)!.5!(outbuf)$) node[allpass,generate] (H) {}
+                      node[anchor=west] at (H.east) {fir1}
 
-              ($(shift)!.5!(outbuf)$) node[allpass,rotate=90] (H) {}
-              node[rotate=90,anchor=north] at (H.south) {fir1}
+                      node[source,above=of shift.center,scale=0.7] (shiftsource) {}
+                      node[anchor=east] at (shiftsource.west) {$\SI{30}{\mega\hertz}$}
+                      node[anchor=west] at (shiftsource.east) {lo3}
+                      node[below=of mul.center,fill=white] (gamma) {$\Gamma_{L,set}$};
 
-              node[source,above=of shift.center,scale=0.7] (shiftsource) {}
-              node[rotate=90,anchor=south,font=\tiny] at (shiftsource.west) {$\SI{30}{\mega\hertz}$}
-              node[rotate=90,anchor=north] at (shiftsource.east) {lo3}
-              node[below=of mul.center,fill=white] (gamma) {$\Gamma_{set} = X + jY$};
+                { [on background layer,every path/.style={dotted,decorate,decoration=random steps,segment length=2mm,thick}]
+                    \draw ($(adc.east)!.5!(mul.west) + (0,4)$) -- ++(0,-7) node[coordinate] (rightsplit) {};
+                }
+                { [-latex]
+                    \draw[double] (shiftsource) -- (shift);
+                    \draw[double,generate] (gamma) -- (mul);
+                }
+                { [latex-,dashed,every node/.style={font=\footnotesize}]
+                    \foreach \device in {shiftsource} {
+                        \draw (\device) -- ++(0,1) node[anchor=south] {ref};
+                    }
+                }
+                { [start chain,every on chain/.style={join=by {-latex,incident}}]
+                    \chainin (adc);
+                    \chainin (inbuf);
+                    \chainin (shift);
+                    { [every on chain/.style={join=by {double,-latex,incident}}]
+                        \chainin (H);
+                        \chainin (outbuf);
+                        \chainin (mul);
+                    }
+                }
+                \draw[double,-latex,reflect] (mul) -- (dac);
+            \end{tikzpicture}
+        \column{7cm}
+            \begin{itemize}
+                \item Down conversion to Baseband
+                \item Fully configurable filter \device{fir1} implemented with circular convolution
+                \item Multiplier for reflection generation
+                \item Implemented in FPGA
+            \end{itemize}
+    \end{columns}
+\end{frame}
 
-        \draw ($(dut)!.4!(circ)$) node[coordinate] (plane) {};
-
-        { [on background layer,every path/.style={dotted,decorate,decoration=random steps,segment length=2mm}]
-            \draw ($(dut)!.75!(circ) + (0,4)$) -- ++(0,-8.5) node[coordinate] (leftsplit) {};
-            \draw ($(adc.east)!.5!(mul.west) + (0,4)$) -- ++(0,-8.5) node[coordinate] (rightsplit) {};
-        }
-        { [rounded corners=2pt]
-            \draw (dut) -- (plane);
-            \draw [dashed] (plane) -- (plane -| leftsplit) -- (circ);
-        }
-        { [-latex]
-            \draw [double] (shiftsource) -- (shift);
-            \draw (gamma) -- (mul);
-        }
-        { [latex-,dashed,every node/.style={font=\footnotesize}]
-            \foreach \device in {shiftsource} {
-                \draw (\device) -- ++(0,1) node[anchor=south] {ref};
-            }
-        }
-        { [start chain,every on chain/.style={join=by -latex}]
-            \chainin (adc);
-            \chainin (inbuf);
-            \chainin (shift);
-            { [every on chain/.style={join=by {double,-latex}}]
-                \chainin (H);
-                \chainin (outbuf);
-                \chainin (mul);
-                \chainin (dac);
-            }
-        }
-
-        \draw (leftsplit) node[anchor=south west,rotate=90] {One Port VNA}
-              (rightsplit) node[anchor=base west] {Digital}
-              ($(leftsplit)!.5!(rightsplit)$) node[anchor=base] {Analog};
-
-        \draw [dashed] ($(plane) + (0,4)$) node[anchor=south] {Load Reference Plane} -- ($(plane) - (0,4.5)$);
-
-        \draw [latex-] ($(plane) + (0,1.5)$) -- ++(-0.5,0) node[anchor=east] {$Z_L$};
-
-        \draw [-latex] ($(plane) + (0.25,-.5)$) node[anchor=west] {$a_2$}-- ++(-0.5,0);
-        \draw [latex-] ($(plane) + (0.25,-1)$) node[anchor=west] {$b_2$}-- ++(-0.5,0);
-        \draw [latex-] ($(plane) + (0,-1.5)$) -- ++(-0.5,0) node[anchor=east] {$\Gamma_L$};
-    \end{tikzpicture}
-    \caption{Digital part}
-    \label{fig:digital}
-\end{figure}
-
+\begin{frame}{Iterative Target Algorithm}
+    \begin{enumerate}
+        \item Arbitrary start point
+        \item Measure $\Gamma_L$
+        \item If $\abs{\Gamma_L - \Gamma_{L,target}} < accuracy$ \Rightarrow done
+        \item Scale $\Gamma_{L,set}$ according to $\frac{\Gamma_{L,target}}{\Gamma_L}$
+        \item Repeat from step 2
+    \end{enumerate}
 \end{frame}
 
 
