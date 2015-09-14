@@ -254,7 +254,7 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
         \begin{itemize}
             \item Baseband
             \item<2-> Digital reflection generation
-            \item<3-> Digital filter to support bandwidths $\geq\SI{20}{\mega\hertz}$
+            \item<3-> Digital filter to support bandwidths \SI{>= 20}{\mega\hertz}
             \item<4-> FPGA based
         \end{itemize}
     \end{block}
@@ -268,8 +268,11 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
 \end{frame}
 
 \tikzset{incident/.style={color=Set1-3-1}}
+\definecolor{incident}{named}{Set1-3-1}
 \tikzset{reflect/.style={color=Set1-3-2}}
+\definecolor{reflect}{named}{Set1-3-2}
 \tikzset{generate/.style={color=Set1-3-3}}
+\definecolor{generate}{named}{Set1-3-3}
 
 \begin{frame}{System overview}
     \resizebox{\linewidth}{!}{
@@ -387,84 +390,75 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
 
 \subsection{One Port VNA}
 \begin{frame}
+    \begin{columns}
+        \column{5cm}
+            \tikzset{external/export next=false}
+            \begin{tikzpicture}
+                \pgfmathsetseed{23654}
+                \pgfdeclarelayer{foreground}
+                \pgfsetlayers{background,main,foreground}
+                \tikzpicturedependsonfile{rfsymbols.tex}
+                \tikzstyle{every node}=[font=\footnotesize]
+                \draw node[dut] (dut) {}
+                      node[dircoupler,right=2 of dut,label=below:dir1] (dirvna) {}
+                      node[oscilloscope,above=of dirvna.A2,anchor=A1] (oszivna) {}
+                      node[coordinate,right=1.5em of dirvna] (rest) {}
+                      node[coordinate,right=1.5em of rest] (resta) {};
 
-\begin{figure}[htb]
-    \centering
-    \begin{tikzpicture}
-        \pgfdeclarelayer{foreground}
-        \pgfsetlayers{background,main,foreground}
-        \tikzpicturedependsonfile{rfsymbols.tex}
-        \tikzstyle{every node}=[font=\footnotesize]
-        \draw node[dut] (dut) {}
-              node[dircoupler,right=2 of dut,label=below:dir1] (dirvna) {}
-              node[oscilloscope,above=of dirvna.A2,anchor=A1] (oszivna) {}
-              node[coordinate,right=of dirvna] (rest) {}
-              node[coordinate,right=of rest] (resta) {};
+                \draw ($(dut)!.5!(dirvna)$) node[coordinate] (plane) {};
 
-        \draw ($(dut)!.5!(dirvna)$) node[coordinate] (plane) {};
+                \draw [dashed] (rest) -- (resta);
 
-        \draw [dashed] (rest) -- (resta);
+                { [rounded corners=2pt]
+                    \draw (dut) -- (dirvna) -- (rest);
+                    \draw[incident] (dirvna.A2) -- (oszivna.A1);
+                    \draw[reflect] (dirvna.B2) |- ($(dirvna.B2)!.7!(oszivna.A2)$) node[coordinate] (oszimiddle) {} -| (oszivna.A2);
+                }
+                { [latex-,dashed,every node/.style={font=\footnotesize}]
+                    \draw ([xshift=0.5cm]oszivna.north) -- ++(0,0.5) node[fill=white,anchor=south] {ref};
+                }
+                { [on background layer,every path/.style={dotted,decorate,decoration=random steps,segment length=2mm,thick}]
+                    \draw ($(rest) + (0,4)$) -- ++(0,-7) node[coordinate] (leftsplit) {};
+                }
 
-        { [rounded corners=2pt]
-            \draw (dut) -- (dirvna) -- (rest);
-            \draw (dirvna.A2) -- (oszivna.A1);
-            \draw (dirvna.B2) |- ($(dirvna.B2)!.7!(oszivna.A2)$) node[coordinate] (oszimiddle) {} -| (oszivna.A2);
-        }
-        { [latex-,dashed,every node/.style={font=\footnotesize}]
-            \draw ([xshift=0.5cm]oszivna.north) -- ++(0,0.5) node[fill=white,anchor=south] {ref};
-        }
-        { [on background layer,every path/.style={dotted,decorate,decoration=random steps,segment length=2mm}]
-            \draw ($(dirvna.B1)!.5!(rest) + (0,4)$) -- ++(0,-7) node[coordinate] (leftsplit) {};
-        }
+                \draw (leftsplit) node[anchor=base east] {One Port VNA}
+                      (leftsplit) node[anchor=base west] {Analog};
 
-        \draw (leftsplit) node[anchor=base east] {One Port VNA}
-              (leftsplit) node[anchor=base west] {Analog};
+                \draw [-latex,incident] ($(dirvna.A2) + (-0.2,0.1)$) -- node[base left] {$a_1$} ($(oszivna.A1 |- oszimiddle) - (0.2,0.1)$);
+                \begin{pgfonlayer}{foreground}
+                    \draw [-latex,reflect] ($(dirvna.B2) + (0.2,0.1)$) -- node[coordinate] (a1) {} ($(oszimiddle -| dirvna.B2) + (0.2,-0.1)$);
+                \end{pgfonlayer}
+                \draw (a1) node[base right,reflect] {$b_1$};
 
-        \draw [-latex] ($(dirvna.A2) + (-0.2,0.1)$) -- node[base left] {$b_1$} ($(oszivna.A1 |- oszimiddle) - (0.2,0.1)$);
-        \begin{pgfonlayer}{foreground}
-            \draw [-latex] ($(dirvna.B2) + (0.2,0.1)$) -- node[coordinate] (a1) {} ($(oszimiddle -| dirvna.B2) + (0.2,-0.1)$);
-        \end{pgfonlayer}
-        \draw (a1) node[base right,fill=white] {$a_1$};
+                \draw [dashed] ($(plane) + (0,4)$) node[anchor=south] {Load Reference Plane} -- ($(plane) - (0,3)$);
 
-        \draw [dashed] ($(plane) + (0,4)$) node[anchor=south] {Load Reference Plane} -- ($(plane) - (0,3)$);
+                \draw [latex-] ($(plane) + (0,1.5)$) -- ++(-0.5,0) node[anchor=east] {$Z_L$};
 
-        \draw [latex-] ($(plane) + (0,1.5)$) -- ++(-0.5,0) node[anchor=east] {$Z_L$};
+                \draw [-latex,reflect] ($(plane) + (0.25,-1.5)$) node[anchor=west] {$a_2$}-- ++(-0.5,0);
+                \draw [latex-,incident] ($(plane) + (0.25,-2)$) node[anchor=west] {$b_2$}-- ++(-0.5,0);
+                \draw [latex-] ($(plane) + (0,-2.5)$) -- ++(-0.5,0) node[anchor=east] {$\Gamma_L$};
 
-        \draw [-latex] ($(plane) + (0.25,-1.5)$) node[anchor=west] {$a_2$}-- ++(-0.5,0);
-        \draw [latex-] ($(plane) + (0.25,-2)$) node[anchor=west] {$b_2$}-- ++(-0.5,0);
-        \draw [latex-] ($(plane) + (0,-2.5)$) -- ++(-0.5,0) node[anchor=east] {$\Gamma_L$};
-
-        {[densely dashdotdotted,latex-latex]
-            \draw ([xshift=-0.5cm]oszivna.north) -- ++(0,1) node [anchor=south] {PC};
-        }
-    \end{tikzpicture}
-    \caption{One port VNA part}
-    \label{fig:vna_part}
-\end{figure}
-
-
-\begin{equation}\label{eq:gl_phase}
-    \begin{split}
-        \Gamma_L & = \frac{a_2}{b_2} \\
-                 & = \frac{\abs{a_2}}{\abs{b_2}} e^{j(\arg{a_2}-\arg{b_2})}
-    \end{split}
-\end{equation}
-
-
-\begin{align}
-    \label{eq:k} k & = \left\lfloor \frac{f}{\Delta{}f} \right\rfloor\\
-    \label{eq:win} w & = \lstinline|flattopwin($n$, 'periodic')| \\
-    \label{eq:A} A[n] & = \mathcal{DFT}(a[n]\,w) \\
-    \label{eq:B} B[n] & = \mathcal{DFT}(b[n]\,w) \\
-    \label{eq:gamma_lf} \Gamma_{L,f} & = \frac{A[k]}{B[k]}
-\end{align}
-
+                {[densely dashdotdotted,latex-latex]
+                    \draw ([xshift=-0.5cm]oszivna.north) -- ++(0,1) node [anchor=south] {PC};
+                }
+            \end{tikzpicture}
+        \column{5cm}
+            \begin{enumerate}
+                \item Acquire \textcolor{incident}{$a_1$}, \textcolor{reflect}{$b_1$}
+                \item Extract phase and magnitude
+                \tikzset{external/export next=false}
+                \item $\Gamma_L = \frac{\textcolor{reflect}{a_2}}{\textcolor{incident}{b_2}} \tikz[remember picture,baseline] \node[anchor=base] (approx) {$\approx$}; \frac{\textcolor{reflect}{b_1}}{\textcolor{incident}{a_1}}$
+                    \tikzset{external/export next=false}
+                    \tikz[overlay,remember picture] \draw [latex-,alert=2] (approx.south) -- ++(0,-2em) node[below,alert=2] {Systematic Errors};
+            \end{enumerate}
+    \end{columns}
 \end{frame}
 
 
 \begin{frame}{Errorbox One Port VNA}
     \begin{columns}
         \column{5cm}
+            \tikzset{external/export next=false}
             \begin{tikzpicture}[thick]
                 \matrix (box)
                 [matrix of nodes,%
