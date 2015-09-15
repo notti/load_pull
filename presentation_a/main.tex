@@ -206,6 +206,7 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
 
 \begin{frame}{Outline}
   \tableofcontents
+  \note{Limitations traditional \Rightarrow Objectives}
 \end{frame}
 
 \section{Introduction}
@@ -1128,6 +1129,73 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
         \node[draw,fit=(internal-1-1) (internal-4-1) (l),inner xsep=0.5em,label=main] (main) {};
         \node[draw,fit=(cpu) (peripherals-5-2) (plb) (main),inner xsep=0.5em,label=top] (fpga) {};
 
+    \end{tikzpicture}
+    }
+\end{frame}
+
+\begin{frame}{Architecture}
+    \resizebox{\linewidth}{!}{
+    \begin{tikzpicture}
+        \tikzset{module/.style={fill=Pastel1-8-1}}
+        \tikzset{interface/.style={fill=Pastel1-8-2}}
+        \tikzset{cpu/.style={fill=Pastel1-8-3}}
+        \tikzset{kernel/.style={fill=Pastel1-8-4}}
+        \tikzset{software/.style={fill=Pastel1-8-5}}
+        \tikzset{digital/.style={fill=Pastel1-8-6}}
+        \tikzset{pc/.style={fill=Pastel1-8-7}}
+        \tikzset{os/.style={fill=Pastel1-8-8}}
+
+        \node[anchor=base west,inner xsep=.5em] at (0,0) (digital) {Digital Part};
+        \node[anchor=base west,inner xsep=.5em] at (digital.base east) (interface) {Interface};
+        \node[anchor=base west,inner xsep=.5em] at (interface.base east) (cpu) {Processor};
+
+        \draw (digital.south west) rectangle (cpu.north east);
+
+        \node [anchor=south] at (interface.north) (module) {\parbox[t]{1.5cm}{\centering Kernel Module}};
+        \node [anchor=south west] at (module.north east) (kernel) {Kernel};
+
+        \draw (interface.north west) -- (interface.west |- kernel.north) node[coordinate] (nw) {} -- (cpu.east |- kernel.north) node[coordinate] (ne) {} -- (cpu.north east);
+        \draw (interface.west |- module.north) -| (interface.north east);
+
+        \node [anchor=south] at ($(nw)!.5!(ne)$) (software) {Daemon};
+
+        \draw (nw) -- (nw |- software.north) -| (ne);
+
+        \draw ($(cpu.east |- digital.south) + (2cm,0)$) node[coordinate] (pcw) {} let \p1 = ($(ne |- software.north) - (interface.west |- digital.south)$) in rectangle ++(3.5cm,\y1) node[coordinate] (pce) {};
+
+        \node[coordinate] at ($(pcw)!.5!(pce)$) (pcs) {};
+
+        \node at (cpu.east -| pcs) (pc) {PC};
+        \node at (software.east -| pcs) (matlab) {Matlab};
+        \node at ($(pc)!.5!(matlab)$) {OS};
+
+        \draw (cpu.north -| pcw) -- (\currentcoordinate -| pce);
+        \draw (ne -| pcw) -- (\currentcoordinate -| pce);
+
+        \begin{scope}[on background layer]
+            \foreach \what in {digital,interface,cpu}
+            {
+                \fill[\what] (\what.west |- digital.south) rectangle (\what.east |- cpu.north);
+            }
+            \fill[kernel] (interface.north west) rectangle (cpu.east |- kernel.north);
+            \fill[module] (interface.north west) rectangle (interface.east |- module.north);
+            \fill[software] (nw) rectangle (ne |- software.north);
+            \fill[pc] (pcw) rectangle (pce |- cpu.north);
+            \fill[os] (pcw |- cpu.north) rectangle (pce |- ne);
+        \end{scope}
+        \draw[thick] (digital.east -| ne) -- ++(2cm,0);
+        \draw[latex-latex] ($(digital.east)-(0.5em,0)$) -- ++(0.8em,0) -- (\currentcoordinate |- software.center);
+        \draw[latex-] ($(ne |- software.center)-(0.3em,0)$) |- (digital.east -| ne);
+        \draw[-latex] ($(digital.east -| ne)+(2cm,0)$) -- ++(0.3em,0) -- (\currentcoordinate |- software.center);
+
+        \node[anchor=south,font=\small] at ($(digital.east -| ne) + (1cm,0)$) {Ethernet};
+
+        \node[coordinate] at ($(digital.south west)-(3pt,0)$) (desc) {};
+
+        \begin{scope}[every path/.style={decorate,decoration={brace,amplitude=3pt}}]
+            \draw (desc) -- (\currentcoordinate |- digital.north) node[midway,left,xshift=-2pt] {Hardware};
+            \draw (desc |- digital.north) -- (\currentcoordinate |- software.north) node[midway,left,xshift=-2pt] {Software};
+        \end{scope}
     \end{tikzpicture}
     }
 \end{frame}
