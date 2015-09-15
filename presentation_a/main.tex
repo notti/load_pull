@@ -1,9 +1,17 @@
 \documentclass{beamer}
 \usepackage{etex}
+\usepackage{pgfpages}
 
 \usepackage{ifthen}
 
 \providecommand{\NoExternal}{false}
+\providecommand{\NoNotes}{true}
+
+\ifthenelse{\equal{\NoNotes}{true}}{
+
+}{
+    \setbeameroption{show notes on second screen=right}
+}
 
 \title[FPGA based LP]{Diploma thesis}
 \author[G.~Vormayr]{Gernot Vormayr\\0425210}
@@ -691,6 +699,7 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
 \begin{frame}[fragile]{Target algorithm 1}
     \begin{columns}
         \column{9cm}
+            \tikzset{external/export next=false}
             \begin{tikzpicture}[
                 spy/.style={%
                     draw,green,
@@ -736,6 +745,7 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
 \begin{frame}[fragile]{Target algorithm 2}
     \begin{columns}
         \column{9cm}
+            \tikzset{external/export next=false}
             \begin{tikzpicture}[
                 spy/.style={%
                     draw,green,
@@ -849,14 +859,15 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
 \backupbegin
 \section<presentation>*{\appendixname}
 
-\begin{frame}[fragile]{Down Conversion Spectra}
-    \resizebox{\linewidth}{!}{
-    \begin{tikzpicture}[every node/.style={font=\small},every path/.style={decoration={name=zigzag,segment length=2pt}}]
         \def\bpspec#1#2{%
             \begin{scope}[shift={#1}]
                 \draw [#2] (-0.2,0) -- (-0.2,0.5) -- (0.2,0.8) -- (0.2,0);
             \end{scope}
         }
+
+\begin{frame}{Down Conversion Spectra}
+    \resizebox{\linewidth}{!}{
+    \begin{tikzpicture}[every node/.style={font=\small},every path/.style={decoration={name=zigzag,segment length=2pt}}]
         \begin{scope}[shift={(0,6)}]
             \draw [latex-latex] (-5,0) -- (3,0) decorate { -- (3.1,0) } -- (5,0) node[anchor= west] {frequency};
             \draw [-latex] (0,-0.2) -- (0,1) node[anchor=south] {amplitude};
