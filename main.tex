@@ -2755,6 +2755,74 @@ Furthermore a kernel module can provide an easy api that can be easily
 used by any programming language, shell script or even echo. Because of
 these advantages the following kernel module has been implemented.
 
+\begin{figure}[htb]
+    \centering
+    \begin{tikzpicture}
+        \tikzset{module/.style={fill=Pastel1-8-1}}
+        \tikzset{interface/.style={fill=Pastel1-8-2}}
+        \tikzset{cpu/.style={fill=Pastel1-8-3}}
+        \tikzset{kernel/.style={fill=Pastel1-8-4}}
+        \tikzset{software/.style={fill=Pastel1-8-5}}
+        \tikzset{digital/.style={fill=Pastel1-8-6}}
+        \tikzset{pc/.style={fill=Pastel1-8-7}}
+        \tikzset{os/.style={fill=Pastel1-8-8}}
+
+        \node[anchor=base west,inner xsep=.5em] at (0,0) (digital) {Digital Part};
+        \node[anchor=base west,inner xsep=.5em] at (digital.base east) (interface) {Interface};
+        \node[anchor=base west,inner xsep=.5em] at (interface.base east) (cpu) {Processor};
+
+        \draw (digital.south west) rectangle (cpu.north east);
+
+        \node [anchor=south] at (interface.north) (module) {\parbox[t]{1.5cm}{\centering Kernel Module}};
+        \node [anchor=south west] at (module.north east) (kernel) {Kernel};
+
+        \draw (interface.north west) -- (interface.west |- kernel.north) node[coordinate] (nw) {} -- (cpu.east |- kernel.north) node[coordinate] (ne) {} -- (cpu.north east);
+        \draw (interface.west |- module.north) -| (interface.north east);
+
+        \node [anchor=south] at ($(nw)!.5!(ne)$) (software) {Daemon};
+
+        \draw (nw) -- (nw |- software.north) -| (ne);
+
+        \draw ($(cpu.east |- digital.south) + (2cm,0)$) node[coordinate] (pcw) {} let \p1 = ($(ne |- software.north) - (interface.west |- digital.south)$) in rectangle ++(3.5cm,\y1) node[coordinate] (pce) {};
+
+        \node[coordinate] at ($(pcw)!.5!(pce)$) (pcs) {};
+
+        \node at (cpu.east -| pcs) (pc) {PC};
+        \node at (software.east -| pcs) (matlab) {Matlab};
+        \node at ($(pc)!.5!(matlab)$) {OS};
+
+        \draw (cpu.north -| pcw) -- (\currentcoordinate -| pce);
+        \draw (ne -| pcw) -- (\currentcoordinate -| pce);
+
+        \begin{scope}[on background layer]
+            \foreach \what in {digital,interface,cpu}
+            {
+                \fill[\what] (\what.west |- digital.south) rectangle (\what.east |- cpu.north);
+            }
+            \fill[kernel] (interface.north west) rectangle (cpu.east |- kernel.north);
+            \fill[module] (interface.north west) rectangle (interface.east |- module.north);
+            \fill[software] (nw) rectangle (ne |- software.north);
+            \fill[pc] (pcw) rectangle (pce |- cpu.north);
+            \fill[os] (pcw |- cpu.north) rectangle (pce |- ne);
+        \end{scope}
+        \draw[thick] (digital.east -| ne) -- ++(2cm,0);
+        \draw[latex-latex] ($(digital.east)-(0.5em,0)$) -- ++(0.8em,0) -- (\currentcoordinate |- software.center);
+        \draw[latex-] ($(ne |- software.center)-(0.3em,0)$) |- (digital.east -| ne);
+        \draw[-latex] ($(digital.east -| ne)+(2cm,0)$) -- ++(0.3em,0) -- (\currentcoordinate |- software.center);
+
+        \node[anchor=south,font=\small] at ($(digital.east -| ne) + (1cm,0)$) {Ethernet};
+
+        \node[coordinate] at ($(digital.south west)-(3pt,0)$) (desc) {};
+
+        \begin{scope}[every path/.style={decorate,decoration={brace,amplitude=3pt}}]
+            \draw (desc) -- (\currentcoordinate |- digital.north) node[midway,left,xshift=-2pt] {Hardware};
+            \draw (desc |- digital.north) -- (\currentcoordinate |- software.north) node[midway,left,xshift=-2pt] {Software};
+        \end{scope}
+    \end{tikzpicture}
+    \caption{Soft- and hardware architecture with communication paths}
+    \label{fig:architecture}
+\end{figure}
+
 \section{Kernel Module}
 \label{sec:kernel_module}
 \lstset{language=C,numbers=left,numberstyle=\tiny,stepnumber=5,numbersep=5pt,frame=single,
@@ -3009,12 +3077,190 @@ therefor very simple and does the following things:
 \end{enumerate}
 % \Cref{sec:sysfs} presents examples in detail on how to access these events.
 \section{Network Server and Web-Interface}
-\section{Matlab Driver}
+\section{Matlab Algorithms}
 \label{sec:matlab}
 \lstset{language=Matlab,numbers=left,numberstyle=\tiny,stepnumber=5,numbersep=5pt,frame=single,
 breaklines=true,postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\hookrightarrow\space}},
 captionpos=b,escapeinside={(*}{*)},mathescape=true}
 
+\subsection{One Port \glsentryshort{vna}}
+
+\begin{lstlisting}[float=htb,caption={Function for calculating $\frac{\gls{a}}{\gls{b}}$ from sampled data at multiple frequencies},label=src:manyrho,basicstyle=\hack\tiny]
+function [rho, A, B] = manyRho(xincrement, a, b, freqs)
+    A = fft(a.*flattopwin(length(a), 'periodic'));
+    B = fft(b.*flattopwin(length(b), 'periodic'));
+
+    df = 1/xincrement/length(A);
+    freqs = floor(freqs./df)+1;
+
+    A = A(freqs);
+    B = B(freqs);
+
+    rho = A./B;
+end
+\end{lstlisting}
+
+\begin{lstlisting}[float=htb,caption={One Port \gls{vna} calibration and measurement script},label=src:vna,basicstyle=\hack\tiny]
+ml507 = ML507.ML507();
+oszi = Scope(...);
+smbv = SMBV(...);
+
+span = 25e6;
+center = 900e6;
+resa = 50e-3;
+resb = 50e-3;
+N = 10;
+
+ml507.out_inactive = ones(1, 20000)*32767;
+ml507.transmitter.toggle();
+ml507.transmitter.shift = 2;
+ml507.transmitter.mul=32767;
+smbv.pow = 0;
+
+[xincrement, a, b] = oszi.acquireAB(resa,resb,10e-6);
+dfreq = 1/xincrement/length(a);
+
+start = floor((center - span/2)/dfreq);
+stop = ceil((center + span/2)/dfreq);
+step = floor((stop-start)/21);
+freqs = start:step:stop;
+if freqs(end) ~= stop
+    freqs(end+1) = stop;
+end
+freqs = freqs.*dfreq;
+
+%measure open short match
+data = zeros([3 length(freqs)]);
+msg = {'open' 'short' 'match'};
+for which = 1:3
+    fprintf('connect %s and press <enter>', cell2mat(msg(which)));
+    pause();
+    fprintf('\n');
+    for i = 1:numel(freqs)
+        smbv.freq = freqs(i);
+        tmp = zeros(1, N);
+        for j = 1:N
+            [xincrement, a, b] = oszi.acquireAB(resa,resb,10e-6);
+            tmp(j) = manyRho(xincrement, a, b, freqs(i));
+        end
+        data(which, i) = mean(tmp);
+    end
+end
+fprintf('done.\n');
+
+freqs_interp = (start:stop).*dfreq;
+dataa = zeros(3, length(freqs_interp));
+datam = zeros(3, length(freqs_interp));
+datap = zeros(3, length(freqs_interp));
+for i = 1:3
+    dataa(i,:) = interp1(freqs, unwrap(angle(data(i,:))), freqs_interp, 'linear');
+    datam(i,:) = interp1(freqs, abs(data(i,:)), freqs_interp, 'linear');
+    datap(i,:) = datam(i,:) .* exp(1i*dataa(i,:));
+end
+
+[open, short, match] = arrayfun(@(x) calcZ132(x, 'female'), freqs_interp);
+[S11, S12, S22] = arrayfun(@calcErrorBoxM, datap(1,:), datap(2,:), datap(3,:), open, short, match);
+
+%%
+
+nf = floor(f/dfreq)-start+1;
+[xincrement, a, b] = oszi.acquireAB(resa,resb,10e-6);
+result = calcGl(S11(nf), S12(nf), S22(nf), manyRho(xincrement, a, b, f));
+\end{lstlisting}
+
+\subsection{Target Algorithm}
+
+\begin{lstlisting}[float=htb,caption={Target algorithm function},label=src:findtarget,basicstyle=\hack\tiny]
+function [Gl, mul] = findTarget(ml507, target, Gl_fun, p, mul)
+    if nargin < 5
+        mul = 32767;
+    end
+    diff = 1;
+
+    while true
+        mul = mul * exp(1i*angle(diff)) * abs(diff);
+        ml507.transmitter.mul = mul;
+
+        pause(p);
+
+        Gl = 1/Gl_fun();
+        diff = target/Gl;
+
+        if abs(abs(diff) - 1) < 0.001 && abs(angle(diff)/pi*180) < 0.25
+            break
+        end
+    end
+end
+\end{lstlisting}
+
+\subsection{Filter Calibration}
+
+\begin{lstlisting}[float=htb,caption={Function for applying calibration data to low-pass filter},label=src:modifyfilter,basicstyle=\hack\tiny]
+function [ H ] = modifyFilter( H, freqs, sample, nfft, multipliers)
+    fstep = sample/nfft;
+    freqs_interp = (-floor(12.5e6/fstep):floor(12.5e6/fstep))*fstep;
+
+    multinterpa = interp1(freqs, unwrap(angle(multipliers)), freqs_interp, 'linear');
+    multinterpm = interp1(freqs, abs(multipliers), freqs_interp, 'linear');
+    multinterp = multinterpm .* exp(1i*multinterpa);
+
+    zero = floor(length(freqs_interp)/2)+1;
+
+    H(1:zero) = H(1:zero).*multinterp(zero:end);
+    H(end-zero+2:end) = H(end-zero+2:end).*multinterp(1:zero-1);
+end
+\end{lstlisting}
+
+\begin{lstlisting}[float=htb,caption={Filter calibration script},label=src:filter,basicstyle=\hack\tiny]
+ml507 = ML507.ML507();
+vna = VNA( ... );
+
+center = 900e6;
+nfft = 4096;
+sample = 100e6;
+targets = [0.5*exp(1i*pi*3/4) 0.5*exp(-1i*pi/4)];
+freqs = (-13:13)*1e6;
+
+f = designfilt('lowpassfir', 'FilterOrder', nfft-1, 'CutoffFrequency', 25e6, 'SampleRate', sample, 'Window', 'hamming');
+H_orig = fft(impz(f)).';
+ml507.H = int16(H_orig.*32767./max([max(real(H_orig)) max(imag(H_orig))]));
+
+ml507.depth = 20000;
+ml507.transmitter.mul = 32767;
+ml507.transmitter.shift = 5;
+ml507.core.n = nfft;
+ml507.core.L = 2000;
+ml507.core.scale_sch(1:6) = [2 0 0 0 0 0];
+ml507.core.scale_schi(1:6) = [2 1 0 0 0 0];
+ml507.core.scale_cmul = 1;
+ml507.core.iq = 1;
+ml507.core.circular = 1;
+ml507.transmitter.resync();
+ml507.trigger.arm();
+ml507.trigger.fire();
+
+if ~ml507.running
+    ml507.run();
+end
+
+multipliers = zeros(length(freqs), length(targets));
+for i = 1:length(freqs)
+    vna.freq = freqs(i) + center;
+    for j = 1:length(targets)
+        [~, mul, ~] = findTarget(ml507, targets(j), @()1/mean(vna.y), 0.1);
+        multipliers(i,j) = mul./(targets(j)*32767);
+    end
+end
+
+H = zeros(length(targets), length(H_orig));
+for i=1:length(targets)
+    H = modifyFilter(H_orig, freqs, sample, nfft, multipliers(:,i));
+end
+
+%%
+
+ml507.H = int16(H(1,:).*32767./max([max(real(H(1,:))) max(imag(H(1,:)))]));
+\end{lstlisting}
 
 % ===========================================================================
 
