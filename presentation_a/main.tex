@@ -12,6 +12,54 @@
 }{
     \setbeameroption{show notes on second screen=right}
 }
+\makeatletter
+\defbeamertemplate*{note page}{mynotes}
+{%
+  {%
+    \scriptsize
+    \usebeamerfont{note title}\usebeamercolor[fg]{note title}%
+    \ifbeamercolorempty[bg]{note title}{}{%
+      \insertvrule{.45\paperheight}{note title.bg}%
+      \vskip-.45\paperheight%
+      \nointerlineskip%
+    }%
+    \vbox{
+      \hfill\insertslideintonotes{0.45}\hskip-\Gm@rmargin\hskip0pt%
+      \vskip-0.45\paperheight%
+      }
+    \nointerlineskip
+    \vbox to .45\paperheight{\vskip0.5em
+      \hbox{\insertshorttitle[width=8cm]}%
+      \setbox\beamer@tempbox=\hbox{\insertsection}%
+      \hbox{\ifdim\wd\beamer@tempbox>1pt{\hskip4pt\raise3pt\hbox{\vrule
+            width0.4pt height7pt\vrule width 9pt
+            height0.4pt}}\hskip1pt\hbox{\begin{minipage}[t]{7.5cm}\def\breakhere{}\insertsection\end{minipage}}\fi%
+      }%
+      \setbox\beamer@tempbox=\hbox{\insertsubsection}%
+      \hbox{\ifdim\wd\beamer@tempbox>1pt{\hskip17.4pt\raise3pt\hbox{\vrule
+            width0.4pt height7pt\vrule width 9pt
+            height0.4pt}}\hskip1pt\hbox{\begin{minipage}[t]{7.5cm}\def\breakhere{}\insertsubsection\end{minipage}}\fi%
+      }%
+      \setbox\beamer@tempbox=\hbox{\insertshortframetitle}%
+      \hbox{\ifdim\wd\beamer@tempbox>1pt{\hskip30.8pt\raise3pt\hbox{\vrule
+            width0.4pt height7pt\vrule width 9pt
+            height0.4pt}}\hskip1pt\hbox{\insertshortframetitle[width=7cm]}\fi%
+      }%
+      \vfil
+      \insertframenumber\,/\,\inserttotalframenumber}%
+  }%
+  \ifbeamercolorempty[bg]{note page}{}{%
+    \nointerlineskip%
+    \insertvrule{.55\paperheight}{note page.bg}%
+    \vskip-.55\paperheight%
+  }%
+  \vskip.25em
+  \nointerlineskip
+  \insertnote
+}
+\makeatother
+
+\setbeamertemplate{note page}[mynotes]
 
 \title[FPGA based LP]{Diploma thesis}
 \author[G.~Vormayr]{Gernot Vormayr\\0425210}
@@ -167,6 +215,7 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
     \begin{block}{Non linear measurement system}
         \begin{itemize}
             \item Transistor characterization
+            \note[item]{Transistor characterization: Many parameters, hard to simulate}
         \end{itemize}
     \end{block}
     \begin{block}{Verification}
@@ -175,11 +224,13 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
             \item Semiconductor process development
         \end{itemize}
     \end{block}
+    \note<1>{Next slide presenting variable load impedance!}
     \uncover<2>{\qquad\dots by presenting a variable load impedance to the device under test (DUT).}
 \end{frame}
 
 \begin{frame}{Load Pull Realization}
     \begin{example}[Passive Load Pull]
+        \note[item]{Passive Load Pull: Variable Tuner $=$ Variable Impedance}
         \begin{columns}
             \column{5cm}
                 \resizebox{!}{2.5cm}{
@@ -210,6 +261,7 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
         \end{columns}
     \end{example}
     \begin{example}[Active Load Pull]
+        \note[item]{Active Load Pull: Present modified $b_2$ back to DUT}
         \begin{columns}
             \column{5cm}
                 \resizebox{!}{2.5cm}{
@@ -250,6 +302,7 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
 
 \begin{frame}{Limitations}
     \begin{block}{Passive Load Pull}
+        \note[item]{Passive: Limited Range of 0.75}
         \begin{itemize}
             \item Limited tuning range
             \item Narrowband
@@ -257,6 +310,7 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
     \end{block}
 
     \begin{block}{Active Load Pull}
+        \note[item]{Active: Oscillations (possibly fatal) Isolation vs Loop Gain}
         \begin{itemize}
             \item Stability issues
             \item Narrowband
@@ -307,6 +361,10 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
 \definecolor{generate}{named}{Set1-3-3}
 
 \begin{frame}{System overview}
+    \note[item]{One Port VNA}
+    \note[item]{Analog}
+    \note[item]{Digital}
+    \note{\par Systematic Errors!! ($\Gamma_{L,set}$)}
     \resizebox{\linewidth}{!}{
     \begin{tikzpicture}
         \pgfdeclarelayer{foreground}
@@ -423,6 +481,7 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
 \subsection{One Port VNA}
 \begin{frame}
     \begin{columns}
+        \note{$a$ $b$: DFT}
         \column{5cm}
             \tikzset{external/export next=false}
             \begin{tikzpicture}
@@ -531,8 +590,11 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
         \column{5cm}
             \begin{description}
                 \item<alert@2>[$S_{11}$] Directivity
+                \note<2>{Directivity: Reflections not from DUT}
                 \item<alert@3>[$S_{12}$] Reflection tracking
+                \note<3>{Reflection Tracking: Frequency response oscilloscope ports; coupler loss; transmission lines}
                 \item<alert@4>[$S_{22}$] Source match
+                \note<4>{Source match: Mismatch DUT/Measurement system}
             \end{description}
     \end{columns}
 \end{frame}
@@ -678,6 +740,7 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
                 \item Implemented in FPGA
             \end{itemize}
     \end{columns}
+    \note{Buffers! Lag Time!}
 \end{frame}
 
 \begin{frame}{Iterative Target Algorithm}
@@ -697,6 +760,7 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
 \subsection{Reflection Generation}
 
 \begin{frame}[fragile]{Target algorithm 1}
+    \note{Good}
     \begin{columns}
         \column{9cm}
             \tikzset{external/export next=false}
@@ -743,6 +807,7 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
 \end{frame}
 
 \begin{frame}[fragile]{Target algorithm 2}
+    \note{Bad! Target area accuracy}
     \begin{columns}
         \column{9cm}
             \tikzset{external/export next=false}
@@ -788,6 +853,7 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
 \end{frame}
 
 \begin{frame}{Target algorithm performance}
+    \note{Previous only one in bin 8}
     \begin{columns}
         \column{7cm}
             \begin{tikzpicture}
@@ -818,6 +884,8 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
 \subsection{Filter performance}
 
 \begin{frame}{Calibrated Filter, Uncalibrated $\Gamma_{L,set}$}
+    \note{Uncalibrated $\Gamma_{L,set}$ (reflections from rest of setup!)}
+    \note{\par Mean also possible}
     \begin{center}
         11 by 11 grid $\Gamma_{L,set}$, \SI{11}{\mega\hertz} bandwidth
     \end{center}
