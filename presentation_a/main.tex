@@ -325,7 +325,7 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
         \begin{itemize}
             \item Baseband
             \item Digital reflection generation
-            \item Digital filter to support bandwidths \SI{>= 20}{\mega\hertz}
+            \item Support bandwidths \SI{>= 20}{\mega\hertz}
             \item FPGA based
         \end{itemize}
     \end{block}
@@ -887,9 +887,6 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
 \begin{frame}{Calibrated Filter, Uncalibrated $\Gamma_{L,set}$}
     \note{Uncalibrated $\Gamma_{L,set}$ (reflections from rest of setup!)}
     \note{\par Mean also possible}
-    \begin{center}
-        11 by 11 grid $\Gamma_{L,set}$, \SI{11}{\mega\hertz} bandwidth
-    \end{center}
     \begin{columns}
         \column{0.5\linewidth}
             \begin{tikzpicture}[every axis/.style={font=\tiny}]
@@ -914,6 +911,9 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
                 \end{smithchart}
             \end{tikzpicture}
     \end{columns}
+    \begin{center}
+        11 by 11 grid $\Gamma_{L,set}$, \SI{11}{\mega\hertz} bandwidth
+    \end{center}
 \end{frame}
 
 \section*{Summary}
@@ -1198,6 +1198,34 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
         \end{scope}
     \end{tikzpicture}
     }
+\end{frame}
+
+\begin{frame}{Uncalibrated and calibrated filter transfer functions.}
+    \begin{tikzpicture}
+        \pgfplotstableread{testdata/filter/H.data}\Horig
+        \pgfplotstableread{testdata/filter/0.5,-45/H.data}\Hone
+        \pgfplotstableread{testdata/filter/0.5,135/H.data}\Htwo
+        \begin{axis}[
+                legend style={at={(0.5,0.03)},anchor=south,cells={anchor=west}},
+                ylabel={$\abs{H}$},
+                y unit={1},
+                xlabel={frequency},
+                x unit={\Hz},
+                change x base,
+                x SI prefix=mega,
+                xmin = -50e6,
+                xmax = 50e6,
+                width=0.95\linewidth,
+                height=7cm,
+            ]
+            \addplot[blue] table[x index=0,y index=1] {\Horig};
+            \addlegendentry{Low pass}
+            \addplot[green] table[x index=0,y index=1] {\Hone};
+            \addlegendentry{$0.5 \angle \SI{-45}{\degree}$}
+            \addplot[red] table[x index=0,y index=1] {\Htwo};
+            \addlegendentry{$0.5 \angle \SI{135}{\degree}$}
+        \end{axis}
+    \end{tikzpicture}
 \end{frame}
 
 \begin{frame}{Phase drift of $\Gamma_L$}
