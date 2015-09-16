@@ -1,2 +1,2 @@
 TimeDisplay = True
-PageProps = {1: { 'progress':False, 'reset':FirstTimeOnly},}
+PageProps = {1: { 'progress':False, 'reset': True},}

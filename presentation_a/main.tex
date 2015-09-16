@@ -421,7 +421,7 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
             \draw (downsource) -- (downmix);
             \draw (sample) -- (adc);
             \draw [double] (shiftsource) -- (shift);
-            \draw[generate] (gamma) -- (mul);
+            \draw[generate,double] (gamma) -- (mul);
             \draw (upsource) -- (upmix);
         }
         { [latex-,dashed,every node/.style={font=\footnotesize}]
@@ -738,6 +738,7 @@ captionpos=b,escapeinside={(*}{*)},mathescape=true}
                 \item Down conversion to Baseband
                 \item Fully configurable filter \device{fir1} implemented with circular convolution
                 \item Multiplier for reflection generation
+                \item \SI{16}{\bit} signal processing chain
                 \item Implemented in FPGA
             \end{itemize}
     \end{columns}
