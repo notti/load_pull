@@ -2746,6 +2746,10 @@ and the needed infrastructure can be seen in \cref{chap:software}.
 
 \chapter{Software Implementation}
 \label{chap:software}
+
+
+
+%TODO v
 Controlling the hardware from within the linux operating system can be
 achieved with by either mmaping \emph{/dev/mem} or writing a kernel module.
 mmap has the disadvantage that interrupts can not be used and concurrent
@@ -2754,6 +2758,7 @@ using \emph{/dev/mem} is dangerous and can easily lead to system crashes.
 Furthermore a kernel module can provide an easy api that can be easily
 used by any programming language, shell script or even echo. Because of
 these advantages the following kernel module has been implemented.
+%TODO ^
 
 \begin{figure}[htb]
     \centering
@@ -4345,9 +4350,12 @@ and processed verification results necessary to build this document can be found
     \reglabel{Reset}\regnewline%
 \end{register}
 \FloatBarrier %FIXME
-\section{Protocol}
-\section{Matlab Classes}
+\section{Protocol and Matlab Classes}
+\begingroup
+\renewcommand{\cleardoublepage}{}
+\renewcommand{\clearpage}{}
 \chapter{Build Instructions}
+\endgroup
 \section{Hardware}
 \section{Software}
 
