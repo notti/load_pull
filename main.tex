@@ -3170,6 +3170,90 @@ result = calcGl(S11(nf), S12(nf), S22(nf), manyRho(xincrement, a, b, f));
 
 \subsection{Target Algorithm}
 
+\begin{figure}[htb]
+    \centering
+    \begin{tikzpicture}
+        \begin{scope}[shift={(0,4.5)}]
+            \foreach \x in {0,...,11}
+            {
+                \begin{scope}[shift={($\x*(0.8,0)-(5,0)$)}]
+                    \fill [YlOrRd-3-1] (0,0)   |- (0.2,1) node[coordinate] (acquire-n-\x) {} -- (0.2,0) node[coordinate] (acquire-s-\x) {} -- cycle;
+                    \fill [YlOrRd-3-2] (0.2,0) |- (0.6,1) node[coordinate] (filter-n-\x) {} -- (0.6,0) node[coordinate] (filter-s-\x) {} -- cycle;
+                    \fill [YlOrRd-3-3] (0.6,0) |- (0.8,1) node[coordinate] (switch-n-\x) {}  -- (0.8,0) node[coordinate] (switch-s-\x)  {} -- cycle;
+                \end{scope}
+            }
+            \draw [-latex] (-5,0) --  (5,0) node[anchor=west,font=\tiny] {time};
+            \draw (-5,0.5) node[anchor=east,font={}] (phase) {\gls{fpga} Phase};
+        \end{scope}
+            \begin{scope}
+                \clip (-5,-1) rectangle (4.6,2);
+                \node[coordinate] at (-4.7,0) (measure-start) {};
+                \foreach \x in {0,1}
+                {
+                    \begin{scope}[shift={($\x*(5.7,0)-(4.7,0)$)}]
+                        \fill[Set2-4-1] (0,0)   |- (1.4,1) node[coordinate] (measure-n-\x) {} -- (1.4,0) node[coordinate] (measure-s-\x) {} -- cycle;
+                        \fill[Set2-4-2] (1.4,0) |- (1.5,1) node[coordinate] (compute-n-\x) {} -- (1.5,0) node[coordinate] (compute-s-\x) {} -- cycle;
+                        \fill[Set2-4-3] (1.5,0) |- (1.6,1) node[coordinate] (set-n-\x) {}     -- (1.6,0) node[coordinate] (set-s-\x) {}     -- cycle;
+                        \fill[Set2-4-4] (1.6,0) |- (5.7,1) node[coordinate] (pause-n-\x) {}   -- (5.7,0) node[coordinate] (pause-s-\x) {}   -- cycle;
+                    \end{scope}
+                }
+                \fill[yellow!33] (-5,0) rectangle (-4.7,1);
+            \end{scope}
+
+            \draw [-latex] (-5,0) --  (5,0) node[anchor=west,font=\tiny] {time};
+            \draw (-5,0.5) node[anchor=east,font={}] (target) {Algorithm Phase};
+        \begin{scope}[shift={(0,3)}]
+            \draw (-5,0.5) node[anchor=east,font={}] (b2) {$\gls{b}[_2]$};
+            \fill[green] (-5,0) rectangle ($(set-n-0 |- 0,1)+(0.2,0)$) node[coordinate] (b-n-1) {};
+            \fill[red!33] (b-n-1 |- 0,0) node[coordinate] (b-s-1) {} rectangle ($(switch-s-3 |- 0,1)+(0.1,0)$) node[coordinate] (b-n-2) {};
+            \fill[red!66] (b-n-2 |- 0,0) node[coordinate] (b-s-2) {} rectangle ($(switch-s-5 |- 0,1)+(0.1,0)$) node[coordinate] (b-n-3) {};
+            \fill[red]    (b-n-3 |- 0,0) node[coordinate] (b-s-3) {} rectangle ($(set-n-1 |- 0,1)+(0.2,0)$) node[coordinate] (b-n-4) {};
+            \fill[blue!33](b-n-4 |- 0,0) node[coordinate] (b-s-4) {} rectangle ($(switch-s-10 |- 0,1)+(0.1,0)$) node[coordinate] (b-n-5) {};
+            \fill[blue!66](b-n-5 |- 0,0) node[coordinate] (b-s-5) {} rectangle (4.6,1);
+            \draw [-latex] (-5,0) --  (5,0) node[anchor=west,font=\tiny] {time};
+        \end{scope}
+        \begin{scope}[shift={(0,1.5)}]
+            \draw (-5,0.5) node[anchor=east,font={}] (a2) {$\gls{a}[_2]$};
+            \fill[green] (-5,0) rectangle ($(set-n-0 |- 0,1)+(0.1,0)$) node[coordinate] (a-n-1) {};
+            \fill[red!33] (a-n-1 |- 0,0) node[coordinate] (a-s-1) {} rectangle (switch-s-3 |- 0,1) node[coordinate] (a-n-2) {};
+            \fill[red!66] (a-n-2 |- 0,0) node[coordinate] (a-s-2) {} rectangle (switch-s-5 |- 0,1) node[coordinate] (a-n-3) {};
+            \fill[red]    (a-n-3 |- 0,0) node[coordinate] (a-s-3) {} rectangle ($(set-n-1 |- 0,1)+(0.1,0)$) node[coordinate] (a-n-4) {};
+            \fill[blue!33](a-n-4 |- 0,0) node[coordinate] (a-s-4) {} rectangle (switch-s-10 |- 0,1) node[coordinate] (a-n-5) {};
+            \fill[blue!66](a-n-5 |- 0,0) node[coordinate] (a-s-5) {} rectangle (4.6,1);
+            \draw [-latex] (-5,0) --  (5,0) node[anchor=west,font=\tiny] {time};
+        \end{scope}
+        \begin{scope}[-latex]
+            \draw (set-n-0) -- (a-s-1) node[midway,right,font=\tiny] {$\glsdisp{GammaL}{\Gamma_{L,set,0}}$};
+            \draw (set-n-1) -- (a-s-4) node[midway,right,font=\tiny] {$\glsdisp{GammaL}{\Gamma_{L,set,1}}$};
+            \foreach \x in {1,...,5}
+            {
+                \draw (a-n-\x) -- (b-s-\x);
+            }
+            \draw (b-n-1 -| switch-s-2) -- (switch-s-2);
+            \draw (b-n-1 -| switch-s-4) -- (switch-s-4);
+            \draw (b-n-1 -| switch-s-9) -- (switch-s-9);
+            \draw (switch-n-3) to[bend right=10] (a-s-2);
+            \draw (switch-n-5) to[bend right=10] (a-s-3);
+            \draw (switch-n-10) to[bend right=10] (a-s-5);
+            \draw (measure-start |- b-n-1) to[bend right=10] (measure-start);
+            \draw (measure-start |- a-n-1) to[bend left=10] (measure-start);
+            \draw (pause-s-0 |- b-n-1) to[bend right=10] (pause-s-0);
+            \draw (pause-s-0 |- a-n-1) to[bend left=10] (pause-s-0);
+        \end{scope}
+
+        \draw ($(switch-n-2)!.5!(acquire-n-3)$) -- ++(-1,0.5) node[draw,fill=YlOrRd-3-1] {Acquire};
+        \draw ($(acquire-n-3)!.5!(filter-n-3)$) -- ++(0,1.2) node[draw,fill=YlOrRd-3-2] {Filter};
+        \draw ($(filter-n-3)!.5!(switch-n-3)$) -- ++(1,0.5) node[draw,fill=YlOrRd-3-3] {Switch};
+
+        \draw ($(measure-start)!.5!(measure-s-0)$) -- ++(-1,-0.5) node[draw,fill=Set2-4-1] {Measure \gls{GammaL}};
+        \draw ($(measure-s-0)!.5!(compute-s-0)$) -- ++(-.7,-1.5) node[draw,fill=Set2-4-2] {Calculate new $\glsdisp{GammaL}{\Gamma_{L,set}}$};
+        \draw ($(compute-s-0)!.5!(set-s-0)$) -- ++(3,-1.5) node[draw,fill=Set2-4-3] {Set new $\glsdisp{GammaL}{\Gamma_{L,set}}$};
+        \draw ($(set-s-0)!.5!(pause-s-0)$) -- ++(1,-0.5) node[draw,fill=Set2-4-4] {Pause};
+    \end{tikzpicture}
+    \caption{Visualization of the different phases of the \gls{fpga} implementation and target algorithm over time (not to scale).}
+    \label{fig:phases}
+\end{figure}
+
 \begin{lstlisting}[float=htb,caption={Target algorithm function},label=src:findtarget,basicstyle=\hack\tiny]
 function [Gl, mul] = findTarget(ml507, target, Gl_fun, p, mul)
     if nargin < 5
