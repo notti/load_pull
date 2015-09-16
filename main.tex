@@ -2777,7 +2777,6 @@ these advantages the following kernel module has been implemented.
         \node [anchor=south west] at (module.north east) (kernel) {Kernel};
 
         \draw (interface.north west) -- (interface.west |- kernel.north) node[coordinate] (nw) {} -- (cpu.east |- kernel.north) node[coordinate] (ne) {} -- (cpu.north east);
-        \draw (interface.west |- module.north) -| (interface.north east);
 
         \node [anchor=south] at ($(nw)!.5!(ne)$) (software) {Daemon};
 
@@ -2819,7 +2818,7 @@ these advantages the following kernel module has been implemented.
             \draw (desc |- digital.north) -- (\currentcoordinate |- software.north) node[midway,left,xshift=-2pt] {Software};
         \end{scope}
     \end{tikzpicture}
-    \caption{Soft- and hardware architecture with communication paths}
+    \caption{Soft- and hardware architecture including communication paths. \gls{fpga} on the left and \gls{pc} on the right.}
     \label{fig:architecture}
 \end{figure}
 
