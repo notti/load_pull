@@ -3342,20 +3342,56 @@ text based protocol both provide an additional shutdown command that allows shut
 down the \gls{os}. The \gls{os} should always be shut down before switching off the \gls{fpga}
 to prevent file system corruption. The source code for the daemon can be found in \cref{sec:sources}.
 
+% ---------------------------------------------------------------------------
+
 \section{Matlab Algorithms}
 \label{sec:matlab}
-\lstset{language=Matlab,numbers=left,numberstyle=\tiny,stepnumber=5,numbersep=5pt,frame=single,
-breaklines=true,postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\hookrightarrow\space}},
-captionpos=b,escapeinside={(*}{*)},mathescape=true}
+\lstset{language=Matlab}
 
-\begin{itemize}
-    \item matlab driver
-    \item one port vna
-    \item target algorithm
-    \item filter calibration
-\end{itemize}
+The text based protocol described in \cref{sec:daemon} was implemented in a set of
+Matlab classes to ease controlling the hardware. These Matlab classes depict the
+same naming scheme as the \device{sysfs} interface with a dot instead of a slash
+as the path separator. The sample buffers can be accessed via the properties
+\mbox{\lstinline+inbuf+} for \mbox{\device{inbuf}}, \mbox{\lstinline+H+} for \mbox{\device{H}},
+\mbox{\lstinline+out_inactive+} for inactive \mbox{\device{outbuf}}, and \mbox{\lstinline+out_active+}
+for active \mbox{\device{outbuf}}. Those dependent properties automatically convert
+the raw data to complex vectors and vice versa. The interrupts are exposed via
+Matlab events. All the classes are fully documented with Matlab comments and
+can be found in \cref{sec:sources}. A description of all the properties can
+be found in \cref{sec:registers}. An example usage can be seen in \cref{src:mdriver}.
+
+\begin{lstlisting}[float=htb,caption={Example usage of the Matlab driver for the hardware},label=src:mdriver,basicstyle=\hack\scriptsize,texcl=true]
+ml507 = ML507.ML507(); %\upshape instantiate the class
+
+ml507.depth = 20000; %\upshape set signal period $\gls{n} = 20000$
+ml507.transmitter.mul = 32767; %\upshape set $\glsdisp{GammaL}{\Gamma_{L,set}} = 32767$
+ml507.transmitter.shift = 5; %\upshape set output multiplier shift to 5
+ml507.core.n = 4096; %\upshape set $\gls{nfft} = 4096$
+ml507.core.L = 2000; %\upshape set $L = 2000$
+ml507.core.scale_sch(1:6) = [2 0 0 0 0 0]; %\upshape schaling schedule for \gls{fft}
+ml507.core.scale_schi(1:6) = [2 1 0 0 0 0]; %\upshape schaling schedule for inverse \gls{fft}
+ml507.core.scale_cmul = 1; %\upshape complex multiplier scaling
+ml507.core.iq = 1; %\upshape enable iq decode
+ml507.core.circular = 1; %\upshape enable circular convolution
+ml507.transmitter.resync(); %\upshape resync transmitter to set signal period
+ml507.trigger.arm(); %\upshape arm trigger
+ml507.trigger.fire(); %\upshape fire trigger
+\end{lstlisting}
+
+Utilizing these classes the one port \gls{vna} as described in \cref{sec:vna}
+was implemented in a Matlab script. A description of this script can be found
+in \cref{sec:mvna}. Additional reflections caused by the measurement setup and the \gls{dut} cause
+the setup to exhibit a different \gls{GammaL} than was set by
+$\glsdisp{GammaL}{\Gamma_{L,set}}$. Therefore, an iterative target algorithm
+was developed to find the correct $\glsdisp{GammaL}{\Gamma_{L,set}}$ needed
+to achieve a specific $\glsdisp{GammaL}{\Gamma_{L,target}}$. This algorithm
+is described in \cref{sec:target}. Using this target algorithm the
+filter calibration script described in \cref{sec:filtercal} was developed.
+
+% ---------------------------------------------------------------------------
 
 \subsection{One Port \glsentryshort{vna}}
+\label{sec:mvna}
 
 \begin{itemize}
     \item short description one port vna
@@ -3456,7 +3492,10 @@ result = calcGl(S11(nf), S12(nf), S22(nf), manyRho(xincrement, a, b, f));
     \item usage
 \end{itemize}
 
+% ---------------------------------------------------------------------------
+
 \subsection{Target Algorithm}
+\label{sec:target}
 
 \begin{itemize}
     \item why?
@@ -3575,7 +3614,10 @@ function [Gl, mul] = findTarget(ml507, target, Gl_fun, p, mul)
 end
 \end{lstlisting}
 
+% ---------------------------------------------------------------------------
+
 \subsection{Filter Calibration}
+\label{sec:filtercal}
 
 \begin{itemize}
     \item why filter calibration
