@@ -2881,7 +2881,7 @@ of the implemented Matlab scripts can be found in \cref{sec:matlab}.
 breaklines=true,postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\hookrightarrow\space}},
 captionpos=b,escapeinside={<*}{*>},mathescape=true,deletekeywords={register},basicstyle=\ttfamily}
 
-\begin{lstlisting}[float=htb,caption={Basic elements of a platform driver module},label=src:pdriver,basicstyle=\hack\tiny]
+\begin{lstlisting}[float=htb,caption={Basic elements of a platform driver module},label=src:pdriver,basicstyle=\hack\scriptsize]
 static int emce_of_probe(struct platform_device *ofdev) { <*\label{probe}*>
 	...
 }
@@ -2938,7 +2938,8 @@ device data, reserve ownership of device associated memories, allocate
 devices and files, setup the interrupt function, and initialize the
 interrupt registers. For freeing the resources, everything has to be
 released in the \lstinline+remove+ function. Omitting this prevents reloading the driver.
-The complete source code of the kernel module can be found in \cref{sec:sources}.
+All the code examples in this chapter are taken from the developed kernel module source code and the
+complete source code can be found in \cref{sec:sources}.
 
 % ---------------------------------------------------------------------------
 
@@ -2953,7 +2954,7 @@ operating on a real file in the file system, these operations are handled by
 the attached kernel module. Read and write operations are possible in byte
 sized chunks, hence the name character device.
 
-\begin{lstlisting}[float=htb,caption={Character device initialization},label=src:cdevinit,basicstyle=\hack\tiny]
+\begin{lstlisting}[float=htbp,caption={Character device initialization},label=src:cdevinit,basicstyle=\hack\scriptsize]
 #define USER_MEM 4
 
 struct user_mem
@@ -3031,7 +3032,7 @@ which causes the kernel to create the device nodes \mbox{\device{/dev/emce0}} to
 \mbox{\device{/dev/emce3}}. Without this routines these nodes would need to be created
 manually with \lstinline[language=sh]+mknod+.
 
-\begin{lstlisting}[float=htb,caption={Character device access functions},label=src:cdev,basicstyle=\hack\tiny]
+\begin{lstlisting}[float=htb,caption={Character device access functions},label=src:cdev,basicstyle=\hack\scriptsize]
 ssize_t mem_read (struct file *file, char __user *buf,
 		size_t count, loff_t *ppos) { <*\label{mem_read}*>
 	struct user_mem *mem = file->private_data;
@@ -3122,8 +3123,25 @@ has to return the number of bytes written.
 
 The \device{sysfs} files have to be assigned to attribute groups which in turn represent
 subdirectories below the driver directory\cite{sysfs}. For easier handling
-general \lstinline+show+ and \lstinline+store+ functions and the following
-accompanying macros were developed:
+generalized \lstinline+show+ and \lstinline+store+ functions were developed. The generalized
+\lstinline+store+ function (\mbox{\lstinline+fpga_flag_store+}) converts the textual representation
+of the passed number to an integer and performs out of bound checking. This number is then
+shifted to the right position in the register and the memory mapped register updated with
+a read modify write cycle. This read modify write cycle is protected by a spin lock to
+ensure that possibly concurrent write operation to the registers doesn't interfere. This
+spin lock isn't actually needed by an uni processor system and gets optimized away during
+the compilation. Since this code could also be used on a different processor it is best
+practice to keep the spin lock. The generalized \lstinline+show+ function
+(\mbox{\lstinline+fpga_flag_show+}) reads the desired value from the register, shifts it to the
+correct position, and truncates the value to the correct length. This value is then
+converted to a textual representation and written to the buffer.
+
+Since the digital signal processing chain features a lot of configuration options,
+macros that allow instantiating a single configuration option with one line of cod
+were developed. A single configuration option is called flag and it possesses a
+register address, a bit position within the register, a bit width and possibly a
+maximum value. The following macros allow instantiating the above mentioned
+\device{sysfs} functions:
 \begin{description}
     \lstitem{FPGA_FLAG(base, name, access, register, bit, length)}
         This macro creates a flag which represents part of a register within the
@@ -3138,11 +3156,8 @@ accompanying macros were developed:
         Same as \lstinline+FPGA_FLAGM+ but with the two additional
         arguments \lstinline+show+ and \lstinline+store+ which allow the use of custom functions.
 \end{description}
-Writing to the memory mapped registers is done with a read modify write cycle
-which is protected by a spin lock. This spin lock isn't actually needed by an
-uni processor system and gets optimized away during the compilation. Since
-this code could also be used on a different processor it is best practice to keep
-the spin lock. The source code implementing and using this macros can be found in
+
+The source code implementing and using this macros can be found in
 \cref{sec:sources} and a overview of the registers including the flags can be
 seen in \cref{sec:registers}.
 
@@ -3151,23 +3166,93 @@ seen in \cref{sec:registers}.
 \subsection{Interrupts}
 \label{sec:interrupts}
 
-These are reported to user space with sysfs files. The \emph{show} function
-returns just an empty line. User space has to read the file and then wait for
-an event with \emph{poll}. This function will block until an event is
-triggered with \lstinline+sysfs_notify+. The interrupt service routine is
-therefor very simple and does the following things:
-\begin{enumerate}
-    \item Read the interrupt register.
-    \item Write to the interrupt register to clear the interrupts.
-    \item Call \lstinline+sysfs_notify_dirent+ on the appropriate files. Since
-        \lstinline+sysfs_notify+ would need to do a path lookup which is not
-        allowed from within interrupts (the path lookup needs a mutex), the
-        \lstinline+_dirent+ version is used instead.
-    \item Return \lstinline+IRQ_HANDLED+ to signal the kernel, that the
-        interrupt handling was successful.
-\end{enumerate}
-% \Cref{sec:sysfs} presents examples in detail on how to access these events.
-%TODO ^
+With the function \lstinline+request_irq+ a function can be registered that
+is supposed to handle the interrupt with a specific interrupt number\cite{ldd}. The
+interrupt number is set by the hardware implementation in the \gls{xps}.
+An example usage of the register function can be seen in \cref{src:int}
+\cref{request_irq}. In this example the function \lstinline+edev_isr+
+in \cref{edev_isr} is registered as the interrupt handler.
+
+\begin{lstlisting}[float=htb,caption={Driver interrupt routine},label=src:int,basicstyle=\hack\scriptsize]
+static irqreturn_t edev_isr(int irq, void *dev_id) <*\label{edev_isr}*>
+{
+	struct device *dev=(struct device*)dev_id;
+	struct emce_device *edev = dev_get_drvdata(dev_id);
+
+	u32 status;
+	int i;
+
+        status = in_be32(edev->base_address + EMCE_INTR_IPISR_OFFSET); <*\label{get_interrupt}*>
+        out_be32(edev->base_address + EMCE_INTR_IPISR_OFFSET, status); <*\label{reset_interrupt}*>
+
+        for(i=0; edev->int_nodes[i]; i++) <*\label{intr_loop_a}*>
+		if((status >> (15 - i)) & 1)
+			sysfs_notify_dirent(edev->int_nodes[i]); <*\label{intr_loop_b}*>
+
+        return IRQ_HANDLED; <*\label{irq_handled}*>
+}
+
+static int emce_of_probe(struct platform_device *ofdev)
+{
+        struct emce_device *edev = NULL;
+        ...
+
+        if(request_irq(edev->irq, edev_isr, IRQF_SHARED, DRIVER_NAME, dev)) <*\label{request_irq}*>
+	{
+            ...
+        }
+        ...
+    }
+\end{lstlisting}
+
+Upon invocation the interrupt handler reads the interrupt register
+(\cref{src:int} \cref{get_interrupt}). This register contains the
+different interrupt sources of the processor interface (see
+\cref{sec:registers}). The hardware does not clear the interrupts
+automatically after this read operation. Therefore, the interrupts are cleared
+by writing the read value back to the interrupt register
+(\cref{reset_interrupt}). This call resets only the interrupts registered
+in \lstinline+status+. Next the different interrupt sources are checked
+and the \lstinline+sysfs_notify_dirent+ function called with a \device{sysfs}
+directory entry accordingly (\crefrange{intr_loop_a}{intr_loop_b}). Those
+\device{sysfs} entries are created in the \lstinline+emce_of_probe+
+function. After successfully handling the interrupt the handler has to
+return \lstinline+IRQ_HANDLED+ to notify the kernel. Without this the
+kernel searches for other interrupt handlers for this interrupt number.
+
+The \lstinline+sysfs_notifty_dirent+ function wakes up user space processes
+that wait with the \lstinline+poll+ system call for \lstinline+POLLPRI+ and
+\lstinline+POLLERR+ events \cite{posix}. An example program using this interface
+can be seen in \cref{src:pint}. In order to receive the notifications,
+the file passed as the first argument to the script is opened for reading in
+\cref{open_file}. In \crefrange{poll_a}{poll_b} the \lstinline+poll+ system call
+is configured with the above mentioned event codes on the opened file. In order for
+the notification to work, the file has to be read completely. This is done by
+reseting the file position to 0 (\cref{file_reset}) followed by reading the
+complete contents (\cref{file_read}). Resetting the file position ensures that
+further invocations after the first event also work. Next the \lstinline+poll+
+system call is invoked which blocks execution of the program until the
+interrupt occurs (\cref{file_poll}). After interrupt occurrence a line is
+printed and the waiting procedure is repeated.
+
+\begin{lstlisting}[language=python,float=htb,caption={Wait for interrupt example in python},label=src:pint,basicstyle=\hack\scriptsize]
+#!/usr/bin/python
+import select
+import sys
+
+with open(sys.argv[1], "r") as f: <*\label{open_file}*>
+    p = select.poll()             <*\label{poll_a}*>
+    p.register(f, select.POLLPRI | select.POLLERR) <*\label{poll_b}*>
+    while 1:
+        f.seek(0) <*\label{file_reset}*>
+        f.read()  <*\label{file_read}*>
+        p.poll()  <*\label{file_poll}*>
+        print sys.argv[1], "fired!"
+\end{lstlisting}
+
+During the blocked wait the program is not running and therefore not
+consuming \gls{cpu} cycles. Multiple programs and threads can wait
+for events on the same file with this mechanism.
 
 % ---------------------------------------------------------------------------
 
