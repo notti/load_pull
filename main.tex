@@ -192,6 +192,7 @@ pdfpagelabels,
 \newacronym{sma}{SMA}{sub-miniature version A}
 \newacronym{snr}{SNR}{signal-to-noise ratio}
 \newacronym{sparam}{S-parameter}{scattering parameter}
+\newacronym{tcp}{TCP}{transport control protocol}
 \newacronym{ui}{UI}{user interface}
 \newacronym{vhdl}{VHDL}{VHSIC Hardware Description Language}
 \newacronym{vna}{VNA}{vector network analyzer}
@@ -3279,14 +3280,15 @@ The web interface uses \gls{json} encoded packets for communication. The \gls{js
 packets contain an object with at least a \lstinline+"cmd"+ parameter. This parameter
 provides the allowed commands \lstinline+"set"+, \lstinline+"do"+, and \lstinline+"get"+.
 With the additional parameters \lstinline+"target"+ and \lstinline+"value"+ the signal
-processing setting target can be set to a specific value or queried. An example
+processing setting specified by target can be set to a specific value or queried. An example
 can be seen in \cref{src:json}. The daemon replies
 with \lstinline+"update"+ set as \lstinline+"cmd"+, the specific target name and the
 new value. Additionally interrupts are reported with \lstinline+"update"+ set as the
 \lstinline+"cmd"+ value and the interrupt target name. The target names correspond
-directly to the \device{sysfs} files of provide by the kernel module described in
+directly to the \device{sysfs} files provided by the kernel module described in
 \cref{sec:kernel_module}. Therefore, the daemon just opens the file given by target
-and performs the required read or write.
+and performs the required read or write operation. The \lstinline+"do"+ command is the same
+as \lstinline+"set"+ except that a value of 1 is assumed.
 
 \begin{lstlisting}[language=Java,float=htb,caption={Example \gls{json} formated packet to set $\gls{L}=2000$},label=src:json,basicstyle=\hack\scriptsize]
 {
@@ -3296,10 +3298,10 @@ and performs the required read or write.
 }
 \end{lstlisting}
 
-The web interface utilizing this protocol is developed in \gls{html} version 5 and JavaScript and exposes
+The web interface utilizing this protocol was developed in \gls{html} version 5 and JavaScript and exposes
 every possible setting of the kernel module. This web interface can be reached
 by opening the \gls{ip} address of the \gls{fpga} module in the web browser. The
-web interface is served by a small web server build into the daemon. The \gls{ip}
+web interface is served by a small web server built into the daemon. The \gls{ip}
 address is hard coded in the software image and defaults to {\ttfamily 192.168.2.2}.
 A screen shot of the web interface can be seen in \cref{fig:webinterface}.
 
@@ -3310,9 +3312,35 @@ A screen shot of the web interface can be seen in \cref{fig:webinterface}.
     \label{fig:webinterface}
 \end{figure}
 
-\begin{itemize}
-    \item matlab protocol \rightarrow text
-\end{itemize}
+The Matlab communication protocol consists of two different protocols. It is not
+possible to use asynchronous and synchronous network communication over a single
+connection within Matlab. Therefore, a synchronous line based protocol was implemented.
+One command can be transmitted per line and every line starts with a command, followed
+by a space separated list of arguments. The commands are the same as in the \gls{json}
+based protocol ({\ttfamily get}, {\ttfamily set}, {\ttfamily do}). Since this protocol is synchronous, the
+{\ttfamily do} command waits for the appropriate interrupt before replying. The daemon replies with
+{\ttfamily OK} in case of success or {\ttfamily ERROR} in case of an error (e.g. timeout). An example
+command can be seen in \cref{src:text}. The additional commands {\ttfamily read} and {\ttfamily write}
+implement interacting with the sample buffers. Both commands need the name of the target memory as
+the first argument ({\ttfamily emce0} to {\ttfamily emce3}) and the number of bytes as the second
+argument. The {\ttfamily write} command has to be followed by the specified number of bytes of raw data after the
+newline. The {\ttfamily read} command provides the specified number of raw bytes instead of the {\ttfamily OK} reply.
+The raw data is composed of \SI{16}{\bit} signed integers with big endian byte ordering. This protocol implementation
+can be reached via the \gls{tcp} port {\ttfamily 8000}.
+
+Additionally to this protocol a second asynchronous
+protocol was implemented that allows to be notified about interrupts. Any input to
+this protocol is ignored. Interrupts are reported via this protocol with the name of the interrupt
+followed by a newline. The asynchronous protocol listens on \gls{tcp} port {\ttfamily 8001}.
+
+\begin{lstlisting}[language={},float=htb,caption={Example line to set $\gls{L}=2000$ with the text based protocol},label=src:text,basicstyle=\hack\scriptsize]
+set core/L 2000
+\end{lstlisting}
+
+This daemon is started automatically during the \gls{os} boot sequence. The \gls{json}- and
+text based protocol both provide an additional shutdown command that allows shutting
+down the \gls{os}. The \gls{os} should always be shut down before switching off the \gls{fpga}
+to prevent file system corruption. The source code for the daemon can be found in \cref{sec:sources}.
 
 \section{Matlab Algorithms}
 \label{sec:matlab}
