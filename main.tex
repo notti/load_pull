@@ -153,6 +153,7 @@ pdfpagelabels,
 
 \newacronym{ac}{AC}{alternative current}
 \newacronym{adc}{ADC}{analog-to-digital converter}
+\newacronym{api}{API}{application programming interface}
 \newacronym{cf}{CF}{compact flash}
 \newacronym{cpu}{CPU}{central processing unit}
 \newacronym{dac}{DAC}{digital-to-analog converter}
@@ -170,6 +171,7 @@ pdfpagelabels,
 \newacronym{gui}{GUI}{graphical user interface}
 \newacronym{if}{IF}{intermediate frequency}
 \newacronym{iq}{IQ}{in-phase/quadrature-phase}
+\newacronym{json}{JSON}{JavaScript Object Notation}
 \newacronym{led}{LED}{light emitting diode}
 \newacronym{lut}{LUT}{lookup table}
 \newacronym{lo}{LO}{local oscillator}
@@ -2747,18 +2749,48 @@ and the needed infrastructure can be seen in \cref{chap:software}.
 \chapter{Software Implementation}
 \label{chap:software}
 
+As described in \cref{chap:fpga}, the \gls{fpga} contains a general
+purpose processor. To enable controlling the digital signal processing chain
+described in \cref{sec:digital,sec:digital_processing} with a \gls{pc},
+software was developed for this processor. This software is needed e.g. to control the
+filter transfer function needed for correcting the frequency response (see
+\cref{sec:overlap_add}) or modifying $\glsdisp{GammaL}{\Gamma_{L,set}}$ (see
+\cref{sec:smbv_interface}). To allow high speed transfers of the filter
+transfer function or sample data, Ethernet was chosen as the communication
+interface. Furthermore this communication interface is cheap, widely supported
+by \gls{pc}-hardware, and can be used by \gls{pc}-software such as Matlab with the
+Instrument Control Toolbox.
 
+To simplify the needed development process an \gls{os} was used as the base. An
+\gls{os} provides the necessary drivers supporting the needed peripherals and
+network communication. Linux was chosen as the \gls{os} since it can be targeted
+specifically for this platform due to its open nature. The cross compilation tool
+chain needed for compiling the software
+components and the base system were built using buildroot\cite{buildroot}. The
+configuration files needed for configuring buildroot can be found in
+\cref{sec:sources} and a guide for building the base software in \cref{sec:build:sw}.
 
-%TODO v
-Controlling the hardware from within the linux operating system can be
-achieved with by either mmaping \emph{/dev/mem} or writing a kernel module.
-mmap has the disadvantage that interrupts can not be used and concurrent
-access leads to undefined behaviour. Another disadvantage is that directly
-using \emph{/dev/mem} is dangerous and can easily lead to system crashes.
-Furthermore a kernel module can provide an easy api that can be easily
-used by any programming language, shell script or even echo. Because of
-these advantages the following kernel module has been implemented.
-%TODO ^
+Controlling the hardware from within the Linux operating system can be
+achieved with either memory mapping \mbox{\device{/dev/mem}} or by writing a kernel
+module \cite{ldd}. Memory mapping has the disadvantage that interrupts can not
+be used and concurrent access leads to undefined behaviour. Another disadvantage
+is that directly using \mbox{\device{/dev/mem}} is dangerous and can lead to
+system crashes\cite{ldd}. Furthermore a kernel module can provide an easy \gls{api} that
+can be used by any programming language, shell script, or even shell commands
+like \lstinline[language=sh]+echo+. Because of these advantages a kernel module
+was implemented. A description of this kernel module can be found in
+\cref{sec:kernel_module}.
+
+A background process, called a daemon, providing access via network to the \gls{api}
+exposed by the kernel module was implemented. Additionally a web-based \gls{ui} was developed
+to allow manual control and provide a visual feedback of events like \gls{adc} connected (see
+\cref{sec:acquisition}) or output multiplier overflow (see \cref{sec:smbv_interface}).
+This web-based \gls{ui} communicates with the daemon with \gls{json} messages via
+the websocket protocol. In addition to the websocket based protocol a text based protocol enabling
+simple communication with software like Matlab was implemented. An overview of the
+complete software architecture including the communication paths can be seen in
+\cref{fig:architecture}. A detailed description of the implemented daemon can be
+found in \cref{sec:daemon}.
 
 \begin{figure}[htb]
     \centering
@@ -2792,7 +2824,7 @@ these advantages the following kernel module has been implemented.
         \node[coordinate] at ($(pcw)!.5!(pce)$) (pcs) {};
 
         \node at (cpu.east -| pcs) (pc) {PC};
-        \node at (software.east -| pcs) (matlab) {Matlab};
+        \node at (software.east -| pcs) (matlab) {Matlab/Browser};
         \node at ($(pc)!.5!(matlab)$) {OS};
 
         \draw (cpu.north -| pcw) -- (\currentcoordinate -| pce);
@@ -2827,12 +2859,29 @@ these advantages the following kernel module has been implemented.
     \label{fig:architecture}
 \end{figure}
 
+The calibration and error correction routines needed for the one port
+\gls{vna} functionality were implemented as a Matlab script. These scripts
+automate the measurements and are able to perform the calculations
+needed for correcting the systematic errors (see \cref{sec:vna}). Furthermore
+a Matlab function for performing an iterative target algorithm in order to
+achieve a specific $\glsdisp{GammaL}{\Gamma_{L,target}}$ was developed. This algorithm
+is necessary, because reflections caused by the measurement setup and
+non-linear \glspl{dut} influence the resulting \gls{GammaL} controlled by the
+$\glsdisp{GammaL}{\Gamma_{L,set}}$ setting provided by the digital signal
+processing chain. Next the calibration routine for the digital filter was
+implemented. This filter enables broadband reflection synthesis with
+an evenly distributed \gls{GammaL} (see \cref{sec:digital}). A description
+of the implemented Matlab scripts can be found in \cref{sec:matlab}.
+
+% ---------------------------------------------------------------------------
+
 \section{Kernel Module}
 \label{sec:kernel_module}
 \lstset{language=C,numbers=left,numberstyle=\tiny,stepnumber=5,numbersep=5pt,frame=single,
 breaklines=true,postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\hookrightarrow\space}},
 captionpos=b,escapeinside={(*}{*)},mathescape=true,deletekeywords={register}}
 
+%TODO v
 \begin{lstlisting}[float=htb,caption={Basic elements of a platform driver module},label=src:pdriver,basicstyle=\hack\tiny]
 ...
 
@@ -3080,14 +3129,38 @@ therefor very simple and does the following things:
         interrupt handling was successful.
 \end{enumerate}
 % \Cref{sec:sysfs} presents examples in detail on how to access these events.
+%TODO ^
+
 \section{Network Server and Web-Interface}
+\label{sec:daemon}
+
+\begin{itemize}
+    \item python
+    \item webinterface \rightarrow json
+    \item screenshot?
+    \item matlab protocol \rightarrow text
+\end{itemize}
+
 \section{Matlab Algorithms}
 \label{sec:matlab}
 \lstset{language=Matlab,numbers=left,numberstyle=\tiny,stepnumber=5,numbersep=5pt,frame=single,
 breaklines=true,postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\hookrightarrow\space}},
 captionpos=b,escapeinside={(*}{*)},mathescape=true}
 
+\begin{itemize}
+    \item matlab driver
+    \item one port vna
+    \item target algorithm
+    \item filter calibration
+\end{itemize}
+
 \subsection{One Port \glsentryshort{vna}}
+
+\begin{itemize}
+    \item short description one port vna
+    \item calibration/interpolation
+    \item \cref{src:manyrho}
+\end{itemize}
 
 \begin{lstlisting}[float=htb,caption={Function for calculating $\frac{\gls{a}}{\gls{b}}$ from sampled data at multiple frequencies},label=src:manyrho,basicstyle=\hack\tiny]
 function [rho, A, B] = manyRho(xincrement, a, b, freqs)
@@ -3103,6 +3176,12 @@ function [rho, A, B] = manyRho(xincrement, a, b, freqs)
     rho = A./B;
 end
 \end{lstlisting}
+
+\begin{itemize}
+    \item calcZ132
+    \item calcErrorBoxM
+    \item \cref{src:vna} script step by step
+\end{itemize}
 
 \begin{lstlisting}[float=htb,caption={One Port \gls{vna} calibration and measurement script},label=src:vna,basicstyle=\hack\tiny]
 ml507 = ML507.ML507();
@@ -3172,7 +3251,17 @@ nf = floor(f/dfreq)-start+1;
 result = calcGl(S11(nf), S12(nf), S22(nf), manyRho(xincrement, a, b, f));
 \end{lstlisting}
 
+\begin{itemize}
+    \item usage
+\end{itemize}
+
 \subsection{Target Algorithm}
+
+\begin{itemize}
+    \item why?
+    \item describe
+    \item describe \cref{fig:phases}
+\end{itemize}
 
 \begin{figure}[htb]
     \centering
@@ -3258,6 +3347,10 @@ result = calcGl(S11(nf), S12(nf), S22(nf), manyRho(xincrement, a, b, f));
     \label{fig:phases}
 \end{figure}
 
+\begin{itemize}
+    \item describe \cref{src:findtarget}
+\end{itemize}
+
 \begin{lstlisting}[float=htb,caption={Target algorithm function},label=src:findtarget,basicstyle=\hack\tiny]
 function [Gl, mul] = findTarget(ml507, target, Gl_fun, p, mul)
     if nargin < 5
@@ -3283,6 +3376,12 @@ end
 
 \subsection{Filter Calibration}
 
+\begin{itemize}
+    \item why filter calibration
+    \item describe filter calibration/interpolation
+    \item \cref{src:modifyfilter}
+\end{itemize}
+
 \begin{lstlisting}[float=htb,caption={Function for applying calibration data to low-pass filter},label=src:modifyfilter,basicstyle=\hack\tiny]
 function [ H ] = modifyFilter( H, freqs, sample, nfft, multipliers)
     fstep = sample/nfft;
@@ -3298,6 +3397,10 @@ function [ H ] = modifyFilter( H, freqs, sample, nfft, multipliers)
     H(end-zero+2:end) = H(end-zero+2:end).*multinterp(1:zero-1);
 end
 \end{lstlisting}
+
+\begin{itemize}
+    \item \cref{src:filter}
+\end{itemize}
 
 \begin{lstlisting}[float=htb,caption={Filter calibration script},label=src:filter,basicstyle=\hack\tiny]
 ml507 = ML507.ML507();
@@ -4357,7 +4460,9 @@ and processed verification results necessary to build this document can be found
 \chapter{Build Instructions}
 \endgroup
 \section{Hardware}
+\label{sec:build:hw}
 \section{Software}
+\label{sec:build:sw}
 
 \bibliographystyle{IEEEtran}
 \bibliography{main}
