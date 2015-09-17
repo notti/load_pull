@@ -2881,24 +2881,7 @@ of the implemented Matlab scripts can be found in \cref{sec:matlab}.
 breaklines=true,postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\hookrightarrow\space}},
 captionpos=b,escapeinside={(*}{*)},mathescape=true,deletekeywords={register}}
 
-%TODO v
 \begin{lstlisting}[float=htb,caption={Basic elements of a platform driver module},label=src:pdriver,basicstyle=\hack\tiny]
-...
-
-struct emce_device { (*\label{deviceData}*)
-	struct cdev cdev;
-	dev_t dev;
-	unsigned long reg_start;
-	unsigned long reg_size;
-	void __iomem *base_address;
-	spinlock_t register_lock;
-	struct user_mem mem[USER_MEM];
-	unsigned int irq;
-	struct kernfs_node *int_nodes[16];
-};
-
-...
-
 static int emce_of_probe(struct platform_device *ofdev) { (*\label{probe}*)
 	...
 }
@@ -2931,25 +2914,52 @@ MODULE_AUTHOR("Gernot Vormayr <notti@fet.at>");
 MODULE_DESCRIPTION("driver for custom fpga interface");
 \end{lstlisting}
 
-To keep the driver as generic as possible a platform device driver was
-written. Platform device drivers are matched against the device tree and
-the kernel takes care of invoking the \lstinline+probe+ and
-\lstinline+remove+ functions. Besides the common needed macros in
-\Cref{src:pdriver} \Cref{macros} only a \lstinline+struct+ describing the
-driver (\Cref{platformDriver}), a list of device names (\Cref{match}),
-and the accompanying platform driver macros in \Cref{dt,pd} are needed.
-These macros create the module instantiation code and take care of
-everything. The only code that needs to be supplied are the bodies of
-the probe and remove functions (\Cref{probe,remove}). The probe function
-has to allocate memory for the device data stored in the
-\lstinline+struct+ defined in \Cref{deviceData}, request access to the
-memories, allocate devices and files, setup the interrupt function, and
-initialize the interrupt registers. For freeing the resources, everything
-has to be released again in the remove function. Omitting this prevents
-reloading the driver.\\
-The driver handles the three tasks:
-\subsubsection{Memory access}
+The kernel module implement specifically for the processor interface
+in the \gls{fpga} takes care of initializing the hardware, provides
+direct access to the sample buffers, provides access to hardware knobs
+via registers, and enables utilizing the interrupts (see
+\cref{sec:processor_interface,sec:registers}). Since these tasks are
+handled independently, the following description is split into the parts
+memory access (\cref{sec:memory_access}), register access
+(\cref{sec:register_access}), and interrupts (\cref{sec:interrupts}).
+
+To keep the driver as generic as possible a platform device driver\cite{platform_device} was
+developed. Platform device drivers are matched against a hardware description
+called a device tree\cite{platform_device}. The kernel takes care of
+invoking the \lstinline+probe+ and \lstinline+remove+ functions upon device tree initialization. Besides
+the common needed module configuration macros in \cref{src:pdriver} \cref{macros} only a
+\lstinline+struct+ describing the driver (\cref{platformDriver}),
+a list of device names (\cref{match}), and the accompanying platform
+driver macros in \cref{dt,pd} are needed. These macros create the module
+instantiation code. The only code that needs to be supplied are the bodies of
+the \device{probe} and \device{remove} functions (\cref{probe,remove}). The \device{probe} function
+needs to perform device initialization, has to allocate memory for the
+device data, reserve ownership of device associated memories, allocate
+devices and files, setup the interrupt function, and initialize the
+interrupt registers. For freeing the resources, everything has to be
+released in the \device{remove} function. Omitting this prevents reloading the driver.
+The complete source code of the kernel module can be found in \cref{sec:sources}.
+
+% ---------------------------------------------------------------------------
+
+\subsection{Memory access}
+\label{sec:memory_access}
+
 \begin{lstlisting}[float=htbp,caption={Character device},label=src:cdev,basicstyle=\hack\tiny]
+struct emce_device { (*\label{deviceData}*)
+	struct cdev cdev;
+	dev_t dev;
+	unsigned long reg_start;
+	unsigned long reg_size;
+	void __iomem *base_address;
+	spinlock_t register_lock;
+	struct user_mem mem[USER_MEM];
+	unsigned int irq;
+	struct kernfs_node *int_nodes[16];
+};
+
+...
+
 ssize_t mem_read (struct file *file, char __user *buf,
 		size_t count, loff_t *ppos) { (*\label{mem_read}*)
 	struct user_mem *mem = file->private_data;
@@ -3073,7 +3083,12 @@ is actually in memory, the only things that need to be done are:
 Another additional function which is not absolutely necessary, but can speed
 things up, is \emph{mmap} which won't be explained here, but can be looked up
 in the sources.
-\subsubsection{Register access}
+
+% ---------------------------------------------------------------------------
+
+\subsection{Register access}
+\label{sec:register_access}
+
 Access to the registers is provided via files in sysfs\cite{sysfs}. To ease
 user space handling and follow the spirit of sysfs with one setting per file,
 every single flag from \Crefrange{reg0}{reg5} is implemented as a file in
@@ -3112,7 +3127,12 @@ that is protected by a spin lock. This spin lock isn't actually needed by a
 uni processor system and gets optimized away during the compilation. Since
 one day this might run on another FPGA which could have a SMP system it is
 advised to keep the spin lock.
-\subsubsection{Interrupts}
+
+% ---------------------------------------------------------------------------
+
+\subsection{Interrupts}
+\label{sec:interrupts}
+
 These are reported to user space with sysfs files. The \emph{show} function
 returns just an empty line. User space has to read the file and then wait for
 an event with \emph{poll}. This function will block until an event is
@@ -3130,6 +3150,8 @@ therefor very simple and does the following things:
 \end{enumerate}
 % \Cref{sec:sysfs} presents examples in detail on how to access these events.
 %TODO ^
+
+% ---------------------------------------------------------------------------
 
 \section{Network Server and Web-Interface}
 \label{sec:daemon}
