@@ -3393,13 +3393,23 @@ filter calibration script described in \cref{sec:filtercal} was developed.
 \subsection{One Port \glsentryshort{vna}}
 \label{sec:mvna}
 
-\begin{itemize}
-    \item short description one port vna
-    \item calibration/interpolation
-    \item \cref{src:manyrho}
-\end{itemize}
+The one port \gls{vna} as described in \cref{sec:vna} determines the reflection
+coefficient $\Gamma_L$ by measuring the magnitude and the phase of the incident
+and reflected power waves. This measurement has to be corrected for systematic
+errors with the error box described in \cref{sec:vna}. To be able to use
+this error box additional calibration measurements have to be carried out
+beforehand.
 
-\begin{lstlisting}[float=htb,caption={Function for calculating $\frac{\gls{a}}{\gls{b}}$ from sampled data at multiple frequencies},label=src:manyrho,basicstyle=\hack\tiny]
+The sampled data and the timebase from the oscilloscope were acquired using the
+Instrument Control Toolbox in Matlab. To extract the magnitude and the phase
+with high accuracy for specific frequencies the samples were multiplied by
+a flat top window (see \cref{sec:vna}). Next, this modified data was transformed
+with the \gls{fft} into the frequency domain. After that the reflection coefficient
+was calculated by dividing the transformed data from the incident and the reflected
+power wave at the indices corresponding to the desired frequencies. The Matlab
+function implementing this functionality can be seen in \cref{src:manyrho}.
+
+\begin{lstlisting}[float=htb,caption={Function for calculating $\frac{\gls{a}}{\gls{b}}$ from sampled data at multiple frequencies},label=src:manyrho,basicstyle=\hack\scriptsize]
 function [rho, A, B] = manyRho(xincrement, a, b, freqs)
     A = fft(a.*flattopwin(length(a), 'periodic'));
     B = fft(b.*flattopwin(length(b), 'periodic'));
@@ -3414,83 +3424,27 @@ function [rho, A, B] = manyRho(xincrement, a, b, freqs)
 end
 \end{lstlisting}
 
-\begin{itemize}
-    \item calcZ132
-    \item calcErrorBoxM
-    \item \cref{src:vna} script step by step
-\end{itemize}
+The calibration of the error box was realized by measuring three different targets
+at multiple frequencies. In order to enable measurements with the possible
+frequency resolution of the oscilloscope, the calibration measurements were
+linearly interpolated. A Rhode \& Schwarz Z132 (female) calibration kit was used
+for this calibration. To be able to calculate the impedance values of the
+calibration kit the Matlab function \lstinline+calcZ132+ was developed. This function
+calculates the short, match, and open impedance for a given frequency according to
+the data sheet \cite{zv-z132}. The Matlab function called \lstinline+calcErrorBoxM+ was
+generated with a Mathematica notebook which was used to solve the equations
+derived from the error box in \cref{sec:vna}. With the impedance values from
+the calibration kit and the calibration measurement values this function calculates
+the \glspl{sparam} of the error box.
 
-\begin{lstlisting}[float=htb,caption={One Port \gls{vna} calibration and measurement script},label=src:vna,basicstyle=\hack\tiny]
-ml507 = ML507.ML507();
-oszi = Scope(...);
-smbv = SMBV(...);
-
-span = 25e6;
-center = 900e6;
-resa = 50e-3;
-resb = 50e-3;
-N = 10;
-
-ml507.out_inactive = ones(1, 20000)*32767;
-ml507.transmitter.toggle();
-ml507.transmitter.shift = 2;
-ml507.transmitter.mul=32767;
-smbv.pow = 0;
-
-[xincrement, a, b] = oszi.acquireAB(resa,resb,10e-6);
-dfreq = 1/xincrement/length(a);
-
-start = floor((center - span/2)/dfreq);
-stop = ceil((center + span/2)/dfreq);
-step = floor((stop-start)/21);
-freqs = start:step:stop;
-if freqs(end) ~= stop
-    freqs(end+1) = stop;
-end
-freqs = freqs.*dfreq;
-
-%measure open short match
-data = zeros([3 length(freqs)]);
-msg = {'open' 'short' 'match'};
-for which = 1:3
-    fprintf('connect %s and press <enter>', cell2mat(msg(which)));
-    pause();
-    fprintf('\n');
-    for i = 1:numel(freqs)
-        smbv.freq = freqs(i);
-        tmp = zeros(1, N);
-        for j = 1:N
-            [xincrement, a, b] = oszi.acquireAB(resa,resb,10e-6);
-            tmp(j) = manyRho(xincrement, a, b, freqs(i));
-        end
-        data(which, i) = mean(tmp);
-    end
-end
-fprintf('done.\n');
-
-freqs_interp = (start:stop).*dfreq;
-dataa = zeros(3, length(freqs_interp));
-datam = zeros(3, length(freqs_interp));
-datap = zeros(3, length(freqs_interp));
-for i = 1:3
-    dataa(i,:) = interp1(freqs, unwrap(angle(data(i,:))), freqs_interp, 'linear');
-    datam(i,:) = interp1(freqs, abs(data(i,:)), freqs_interp, 'linear');
-    datap(i,:) = datam(i,:) .* exp(1i*dataa(i,:));
-end
-
-[open, short, match] = arrayfun(@(x) calcZ132(x, 'female'), freqs_interp);
-[S11, S12, S22] = arrayfun(@calcErrorBoxM, datap(1,:), datap(2,:), datap(3,:), open, short, match);
-
-%%
-
-nf = floor(f/dfreq)-start+1;
-[xincrement, a, b] = oszi.acquireAB(resa,resb,10e-6);
-result = calcGl(S11(nf), S12(nf), S22(nf), manyRho(xincrement, a, b, f));
-\end{lstlisting}
-
-\begin{itemize}
-    \item usage
-\end{itemize}
+The developed function \lstinline+calcGl+ is able to calculated a corrected \gls{GammaL}
+with these \glspl{sparam} and a reflection coefficient calculated with \lstinline+manyRho+
+from acquired samples. The described functions and the example script \lstinline+measureVNA+
+can be found in \cref{sec:sources}. This example script is split into four parts. The
+first part initializes the used instruments, the second part carries out the
+calibration measurements, and the third part implements the interpolation
+and error box calculations. The fourth part contains the measurement used to generate
+the verification data for \cref{sec:vna_verify}.
 
 % ---------------------------------------------------------------------------
 
