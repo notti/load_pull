@@ -164,12 +164,14 @@ pdfpagelabels,
 \newacronym{dut}{DUT}{device under test}
 \newacronym{elp}{ELP}{envelope load-pull}
 \newacronym{emt}{EMT}{electromechanical tuner}
+\newacronym{html}{HTML}{HyperText Markup Language}
 \newacronym{fft}{FFT}{fast Fourier transform}
 \newacronym{fir}{FIR}{finite impulse response}
 \newacronym{fpga}{FPGA}{field programmable gate array}
 \newacronym[longplural={general-purpose inputs/outputs}]{gpio}{GPIO}{general-purpose input/output}
 \newacronym{gui}{GUI}{graphical user interface}
 \newacronym{if}{IF}{intermediate frequency}
+\newacronym{ip}{IP}{internet protocol}
 \newacronym{iq}{IQ}{in-phase/quadrature-phase}
 \newacronym{json}{JSON}{JavaScript Object Notation}
 \newacronym{led}{LED}{light emitting diode}
@@ -3256,13 +3258,59 @@ for events on the same file with this mechanism.
 
 % ---------------------------------------------------------------------------
 
-\section{Network Server and Web-Interface}
+\section{Network Daemon and Web-Interface}
 \label{sec:daemon}
+\lstset{language=python}
+
+A network daemon with an accompanying web interface was developed to allow
+controlling the digital signal processing chain via Ethernet. This daemon
+is written in python using the event-driven network library Twisted\cite{twisted}.
+This network library encapsulates the different network layers and protocols
+into python classes simplifying network development.
+
+Protocol classes in Twisted provide a \lstinline{Received} method. This method
+is called with the received data as argument after a complete line for a text based
+protocol, a complete packet for a packet based protocol, or binary chunk for a binary
+protocol was received. By sub classing base protocols two communication methods were
+implemented. A websocket based protocol for a web interface and a text based protocol
+to enable communication with Matlab.
+
+The web interface uses \gls{json} encoded packets for communication. The \gls{json}
+packets contain an object with at least a \lstinline+"cmd"+ parameter. This parameter
+provides the allowed commands \lstinline+"set"+, \lstinline+"do"+, and \lstinline+"get"+.
+With the additional parameters \lstinline+"target"+ and \lstinline+"value"+ the signal
+processing setting target can be set to a specific value or queried. An example
+can be seen in \cref{src:json}. The daemon replies
+with \lstinline+"update"+ set as \lstinline+"cmd"+, the specific target name and the
+new value. Additionally interrupts are reported with \lstinline+"update"+ set as the
+\lstinline+"cmd"+ value and the interrupt target name. The target names correspond
+directly to the \device{sysfs} files of provide by the kernel module described in
+\cref{sec:kernel_module}. Therefore, the daemon just opens the file given by target
+and performs the required read or write.
+
+\begin{lstlisting}[language=Java,float=htb,caption={Example \gls{json} formated packet to set $\gls{L}=2000$},label=src:json,basicstyle=\hack\scriptsize]
+{
+    "cmd": "set",
+    "target": "core/L",
+    "value": "2000"
+}
+\end{lstlisting}
+
+The web interface utilizing this protocol is developed in \gls{html} version 5 and JavaScript and exposes
+every possible setting of the kernel module. This web interface can be reached
+by opening the \gls{ip} address of the \gls{fpga} module in the web browser. The
+web interface is served by a small web server build into the daemon. The \gls{ip}
+address is hard coded in the software image and defaults to {\ttfamily 192.168.2.2}.
+A screen shot of the web interface can be seen in \cref{fig:webinterface}.
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\textwidth]{webinterface}
+    \caption{Screen shot of the web interface.}
+    \label{fig:webinterface}
+\end{figure}
 
 \begin{itemize}
-    \item python
-    \item webinterface \rightarrow json
-    \item screenshot?
     \item matlab protocol \rightarrow text
 \end{itemize}
 
