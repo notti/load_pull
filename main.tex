@@ -4479,7 +4479,7 @@ and processed verification results necessary to build this document can be found
     \hspace{2em} calibrated with      & Agilent Technologies N4433A\\
 \end{longtable}
 
-\section{Register Assignment}
+\section{Register Assignment and Protocols}
 \label{sec:registers}
 %TODO:
 \begin{register}{h}{reg(0)}{0x00}%
@@ -4654,7 +4654,6 @@ and processed verification results necessary to build this document can be found
     \reglabel{Reset}\regnewline%
 \end{register}
 \FloatBarrier %FIXME
-\section{Protocol and Matlab Classes}
 \begingroup
 \renewcommand{\cleardoublepage}{}
 \renewcommand{\clearpage}{}
@@ -4662,8 +4661,30 @@ and processed verification results necessary to build this document can be found
 \endgroup
 \section{Hardware}
 \label{sec:build:hw}
+
+The needed project files in order to be able to build the hardware can be found
+in \cref{sec:sources}. In order to be able to compile the project files, the
+Xilinx ISE Design Suite version 14.7 including all updates is needed. Since
+this design has very strict timing conditions, the design needs to be built
+using the SmartXplorer iterating different cost tables.
+
 \section{Software}
 \label{sec:build:sw}
+
+To build the complete software, the buildroot-add repository specified in
+\cref{sec:sources} and buildroot version 2015.02 \cite{buildroot} need to be downloaded. Furthermore
+all the prerequisites listed at \cite{buildroot} need to be installed. After
+downloading buildroot-add and buildroot, both need to be extracted into a temporary directory. Next
+the following commands need to be executed from within the buildroot directory:
+
+\begin{lstlisting}[language=sh]
+make BR2_EXTERNAL=/path/to/buildroot-add ml507_defconfig
+make
+\end{lstlisting}
+
+These commands build the complete image including all the necessary software. The target image
+can be found in the directory {\ttfamily output/images/}. The kernel image called {\ttfamily simpleImage.virtex440-final.elf} needed for booting
+the processor is in the folder {\ttfamily output/build/linux-3.18.6/arch/powerpc/boot/}.
 
 \bibliographystyle{IEEEtran}
 \bibliography{main}
