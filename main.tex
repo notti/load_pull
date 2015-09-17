@@ -3094,52 +3094,57 @@ represented by the character device. With this technique a user space program
 can access the memory directly via a pointer, which avoids the copy operation
 mentioned above. This method is different to mapping \mbox{\device{mmap}}
 directly by providing the correct offset and bounds of the access buffer.
-Therefore, this method doesn't bear the risks mentioned in the beginning
-of \cref{chap:software}.
+Therefore, this method doesn't bear the risks of system crashed by writing
+to the wrong address.
 
 % ---------------------------------------------------------------------------
 
 \subsection{Register access}
 \label{sec:register_access}
 
-Access to the registers is provided via files in sysfs\cite{sysfs}. To ease
-user space handling and follow the spirit of sysfs with one setting per file,
-every single flag from \Crefrange{reg0}{reg5} is implemented as a file in
-sysfs. The linux kernel provides a very easy to use interface. A sysfs file
+Access to the registers is provided via files in \device{sysfs}\cite{sysfs}. To ease
+user space handling and following the guidelines of \device{sysfs} with one setting per file,
+every single flag from the registers is implemented as a file in \device{sysfs}. A \device{sysfs} file
 can be allocated with a \lstinline+device_attribute+ structure, which needs
-a function pointer to a \emph{show} and \emph{store} function, access rights,
-and a file name. Setting one of the function pointers to zero, disables read
-and or write access. \emph{Show} is called if user space reads from a file 
-and \emph{store} if user space writes to a file. Since these files are
-supposed to represent a single value there are no \emph{open} and \emph{close}
-functions or file positions. \emph{Show} is given a pointer to a single page
-that has to be filled and the number of written bytes returned, where is
-\emph{store} receives a pointer to a buffer with the user supplied data and
-a size parameter.\\
-The flags are assigned to attribute groups which in turn represent
-subdirectories below the driver directory. For easier handling the driver
-has two standard functions and some accompanying macros which can handle
-flags in a bit field:
+a function pointer to a \lstinline+show+ and a \lstinline+store+ function, access rights,
+and a file name. Setting one of the function pointers to \lstinline+NULL+ disallows the
+respective access. \lstinline+show+ is called if user space reads from a file and
+\lstinline+store+ if user space writes to a file. Since these files are supposed
+to represent a single value there are no \lstinline+open+ and \lstinline+close+
+functions.
+
+If user space writes a value to one of this files, then the \lstinline+store+
+function is called. Additionally a pointer to a single page containing the written
+contents and the number of written bytes is passed to the function. The
+\lstinline+show+ function is called if user space reads from a file in \device{sysfs}.
+A pointer to one preallocated page is provided to the function. The function
+has to return the number of bytes written.
+
+The \device{sysfs} files have to be assigned to attribute groups which in turn represent
+subdirectories below the driver directory\cite{sysfs}. For easier handling
+general \lstinline+show+ and \lstinline+store+ functions and the following
+accompanying macros were developed:
 \begin{description}
     \lstitem{FPGA_FLAG(base, name, access, register, bit, length)}
-        This macro creates a flag within the group \emph{base} with the name
-        \emph{name} and access right \emph{access}. \emph{Register} represents
-        the base address, \emph{bit} the bit number within the register and
-        \emph{length} the bit width of the flag. \lstinline+_+ represents the
-        base directory of the driver.
+        This macro creates a flag which represents part of a register within the
+        group \lstinline+base+ with the name \lstinline+name+ and access rights
+        \lstinline+access+. The physical base address of the register has to be
+        provided with \lstinline+register+, the bit number within the register with \lstinline+bit+,
+        and the length of the flag with \lstinline+length+.
     \lstitem{FPGA_FLAGM(..., max)}
         This macro has the same arguments as \lstinline+FPGA_FLAG+ with an
-        additional \emph{max}, which is the maximum value + 1, that is allowed.
+        additional \lstinline+max+, which is the maximum value + 1, that is allowed.
     \lstitem{FPGA_FLAGC(..., show, store)}
         Same as \lstinline+FPGA_FLAGM+ but with the two additional
-        arguments \lstinline+show+ and \lstinline+store+ so custom functions
-        can be used.
+        arguments \lstinline+show+ and \lstinline+store+ which allow the use of custom functions.
 \end{description}
-Writing to the memory mapped registers is done with a read modify write cycle,
-that is protected by a spin lock. This spin lock isn't actually needed by a
+Writing to the memory mapped registers is done with a read modify write cycle
+which is protected by a spin lock. This spin lock isn't actually needed by an
 uni processor system and gets optimized away during the compilation. Since
-one day this might run on another FPGA which could have a SMP system it is
-advised to keep the spin lock.
+this code could also be used on a different processor it is best practice to keep
+the spin lock. The source code implementing and using this macros can be found in
+\cref{sec:sources} and a overview of the registers including the flags can be
+seen in \cref{sec:registers}.
 
 % ---------------------------------------------------------------------------
 
