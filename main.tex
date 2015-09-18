@@ -3394,7 +3394,7 @@ filter calibration script described in \cref{sec:filtercal} was developed.
 \label{sec:mvna}
 
 The one port \gls{vna} as described in \cref{sec:vna} determines the reflection
-coefficient $\Gamma_L$ by measuring the magnitude and the phase of the incident
+coefficient \gls{GammaL} by measuring the magnitude and the phase of the incident
 and reflected power waves. This measurement has to be corrected for systematic
 errors with the error box described in \cref{sec:vna}. To be able to use
 this error box additional calibration measurements have to be carried out
@@ -3402,7 +3402,7 @@ beforehand.
 
 The sampled data and the timebase from the oscilloscope were acquired using the
 Instrument Control Toolbox in Matlab. To extract the magnitude and the phase
-with high accuracy for specific frequencies the samples were multiplied by
+with high accuracy for specific frequencies the samples were multiplied with
 a flat top window (see \cref{sec:vna}). Next, this modified data was transformed
 with the \gls{fft} into the frequency domain. After that the reflection coefficient
 was calculated by dividing the transformed data from the incident and the reflected
@@ -3581,82 +3581,30 @@ trajectory of this algorithm invocation.
 \subsection{Filter Calibration}
 \label{sec:filtercal}
 
-\begin{itemize}
-    \item why filter calibration
-    \item describe filter calibration/interpolation
-    \item \cref{src:modifyfilter}
-\end{itemize}
+The digital filter in the signal processing chain is needed to be able to
+synthesize evenly distributed \gls{GammaL} over a wide frequency range. This
+filter is needed to compensate for the frequency responses of the different
+components of the setup. Furthermore, signals at different frequencies have different
+wavelengths and therefore the fixed electrical length of the setup causes
+different phase shifts.
 
-\begin{lstlisting}[float=htb,caption={Function for applying calibration data to low-pass filter},label=src:modifyfilter,basicstyle=\hack\tiny]
-function [ H ] = modifyFilter( H, freqs, sample, nfft, multipliers)
-    fstep = sample/nfft;
-    freqs_interp = (-floor(12.5e6/fstep):floor(12.5e6/fstep))*fstep;
+Calibrating this filter was carried out by measuring the needed
+$\glsdisp{GammaL}{\Gamma_{L,set}}$ for a specific calibration point over
+the required frequency range. This calibration data was linearly interpolated to
+cover every frequency point of the digital filter. Since the measured values
+experience very high phase differences, the data was split into magnitude and
+unwrapped phase for the interpolation. After interpolation, the
+$\glsdisp{GammaL}{\Gamma_{L,set}}$ values were added to the filter by multiplying
+them with the transfer function. An example of the resulting transfer function
+can be seen in \cref{sec:filter}.
 
-    multinterpa = interp1(freqs, unwrap(angle(multipliers)), freqs_interp, 'linear');
-    multinterpm = interp1(freqs, abs(multipliers), freqs_interp, 'linear');
-    multinterp = multinterpm .* exp(1i*multinterpa);
-
-    zero = floor(length(freqs_interp)/2)+1;
-
-    H(1:zero) = H(1:zero).*multinterp(zero:end);
-    H(end-zero+2:end) = H(end-zero+2:end).*multinterp(1:zero-1);
-end
-\end{lstlisting}
-
-\begin{itemize}
-    \item \cref{src:filter}
-\end{itemize}
-
-\begin{lstlisting}[float=htb,caption={Filter calibration script},label=src:filter,basicstyle=\hack\tiny]
-ml507 = ML507.ML507();
-vna = VNA( ... );
-
-center = 900e6;
-nfft = 4096;
-sample = 100e6;
-targets = [0.5*exp(1i*pi*3/4) 0.5*exp(-1i*pi/4)];
-freqs = (-13:13)*1e6;
-
-f = designfilt('lowpassfir', 'FilterOrder', nfft-1, 'CutoffFrequency', 25e6, 'SampleRate', sample, 'Window', 'hamming');
-H_orig = fft(impz(f)).';
-ml507.H = int16(H_orig.*32767./max([max(real(H_orig)) max(imag(H_orig))]));
-
-ml507.depth = 20000;
-ml507.transmitter.mul = 32767;
-ml507.transmitter.shift = 5;
-ml507.core.n = nfft;
-ml507.core.L = 2000;
-ml507.core.scale_sch(1:6) = [2 0 0 0 0 0];
-ml507.core.scale_schi(1:6) = [2 1 0 0 0 0];
-ml507.core.scale_cmul = 1;
-ml507.core.iq = 1;
-ml507.core.circular = 1;
-ml507.transmitter.resync();
-ml507.trigger.arm();
-ml507.trigger.fire();
-
-if ~ml507.running
-    ml507.run();
-end
-
-multipliers = zeros(length(freqs), length(targets));
-for i = 1:length(freqs)
-    vna.freq = freqs(i) + center;
-    for j = 1:length(targets)
-        [~, mul, ~] = findTarget(ml507, targets(j), @()1/mean(vna.y), 0.1);
-        multipliers(i,j) = mul./(targets(j)*32767);
-    end
-end
-
-H = zeros(length(targets), length(H_orig));
-for i=1:length(targets)
-    H = modifyFilter(H_orig, freqs, sample, nfft, multipliers(:,i));
-end
-
-%%
-
-ml507.H = int16(H(1,:).*32767./max([max(real(H(1,:))) max(imag(H(1,:)))]));
-\end{lstlisting}
+An example script named \lstinline+filterCalibration+ is provided in
+\cref{sec:sources}. This script acquires a filter calibration for the points
+$1$, $-1$, $0.5\Angle\SI{135}{\degree}$ and $0.5\Angle\SI{-45}{\degree}$.
+Additionally it calculates filters for the mean of the measurements $1$ and $-1$,
+and $0.5\Angle\SI{135}{\degree}$ and $0.5\Angle\SI{-45}{\degree}$. After these
+calculations the script performs verification measurements for the different
+filter calibrations. The results of these measurements can be seen in \cref{sec:filter}.
 
 % ===========================================================================
 
