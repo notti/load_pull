@@ -3451,11 +3451,23 @@ the verification data for \cref{sec:vna_verify}.
 \subsection{Target Algorithm}
 \label{sec:target}
 
-\begin{itemize}
-    \item why?
-    \item describe
-    \item describe \cref{fig:phases}
-\end{itemize}
+As described above, the resulting \gls{GammaL} of the complete setup is
+influenced by additional reflections resulting from imperfections in the
+measurement setup. These imperfections could be compensated with an error
+box as has been done for the one port \gls{vna}. Since highly non-linear \gls{dut}
+can experience load-dependent $\gls{S}[_{22}]$, this approach could prove
+futile. Therefore, an iterative target algorithm was developed.
+
+The iterative target algorithm used in this work uses the following steps:
+\begin{enumerate}
+    \item Start at arbitrary start point by setting $\glsdisp{GammaL}{\Gamma_{L,set}}$.
+    \item Measure the resulting \gls{GammaL}.
+    \item If $\abs{\Gamma_L - \Gamma_{L,target}} < accuracy$ then the algorithm is done. The
+        accuracy used in this work was a magnitude difference \num{< 1e-3} and a phase difference \SI{<0.25}{\degree}.
+    \item Scale $\glsdisp{GammaL}{\Gamma_{L,set}}$ according to $\frac{\Gamma_{L,target}}{\Gamma_L}$.
+    \item Pause to compensate for lag time introduced by the digital signal processing chain.
+    \item Repeat from step 2.
+\end{enumerate}
 
 \begin{figure}[htb]
     \centering
@@ -3541,32 +3553,28 @@ the verification data for \cref{sec:vna_verify}.
     \label{fig:phases}
 \end{figure}
 
-\begin{itemize}
-    \item describe \cref{src:findtarget}
-\end{itemize}
+The pause is needed, because the digital signal processing chain experiences
+lag times up to \SI{1}{\milli\second}. Since this algorithm and the digital
+signal processing chain run completely independent, the algorithm can
+experience stability issues if the pause of the algorithm is too short. A
+visualization of the different phases of the digital signal processing chain
+and the algorithm can be seen in \cref{fig:phases}. The algorithm starts by
+measuring \gls{GammaL}. After the new $\glsdisp{GammaL}{\Gamma_{L,set}}$ is
+set, the wave $\gls{a}[_2]$ is modified immediately, which in turn results in
+a new $\gls{b}[_2]$. After the next acquire, filter, and switch cycle of the
+digital signal processing chain, a new wave $\gls{a}[_2]$ is generated, which
+results again in a new $\gls{b}[_2]$. If the pause of iterative algorithm
+is too short, then the next step will be based on a wrong \gls{GammaL}
+measurement, which can lead to a high number of algorithm steps.
 
-\begin{lstlisting}[float=htb,caption={Target algorithm function},label=src:findtarget,basicstyle=\hack\tiny]
-function [Gl, mul] = findTarget(ml507, target, Gl_fun, p, mul)
-    if nargin < 5
-        mul = 32767;
-    end
-    diff = 1;
-
-    while true
-        mul = mul * exp(1i*angle(diff)) * abs(diff);
-        ml507.transmitter.mul = mul;
-
-        pause(p);
-
-        Gl = 1/Gl_fun();
-        diff = target/Gl;
-
-        if abs(abs(diff) - 1) < 0.001 && abs(angle(diff)/pi*180) < 0.25
-            break
-        end
-    end
-end
-\end{lstlisting}
+This algorithm was implement in the Matlab function \lstinline+findTarget+.
+The source code of this function can be found in \cref{sec:sources}. The needed
+arguments are a \lstinline+ML507+ object for controlling the signal processing
+chain, the target, a function handle to a function implementing the
+\gls{GammaL}-measurement, and the pause time. Additionally a start point
+can be specified. This function returns upon algorithm termination the actual
+\gls{GammaL}, the needed $\glsdisp{GammaL}{\Gamma_{L,set}}$ and the complete
+trajectory of this algorithm invocation.
 
 % ---------------------------------------------------------------------------
 
