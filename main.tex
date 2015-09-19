@@ -605,7 +605,11 @@ The aim of this thesis was to setup a broadband active \gls{lp} measurement syst
 As mentioned in \cref{chap:introduction} these traditional classic systems can only synthesize
 narrow band reflections. To overcome these limitations an \gls{elp} measurement system, which
 synthesizes the reflections in the digital domain, was chosen as the base for this work. This approach solves the stability problem
-and the problem of the \gls{if} calibration with a fully configurable digital \gls{fir} filter.
+and the problem of the \gls{if} calibration with a fully configurable digital \gls{fir} filter. Furthermore,
+this filter is capable of compensating the group delay caused by the measurement setup and
+the cabling needed to reach the \gls{dut}. This allows synthesizing constant reflection
+coefficients over a broad bandwidth, which in turn allows the use of modulated signals
+used in modern applications during measurements.
 
 \begin{figure}[htb]
     \centering
@@ -1530,18 +1534,28 @@ suppress the aliases generated from the sampling process, as can be seen in
 filter \device{fir1} in the next processing step. Therefore the aliasing filter
 was left out of the design to keep resource usage at a minimum.
 
-Next in the signal processing chain is the filter \device{fir1}.
-As meantioned earlier this filter is needed to be able to synthesize a reflection coefficient
-$\gls{GammaL}$ over a frequency range of \SI{20}{\mega\hertz}. This filter is a causal \gls{fir} filter with
-the input $x\XN$, the length $\gls{nfft}$, the impulse response $h\XN$, and the output $y\XN$. The input samples
-$x\XN$ represent the samples in buffer \device{buffer1} and the output samples $y\XN$ the samples in buffer \device{buffer2}. This filter is
-implemented with linear convolution using the \gls{fft}:
+Next in the signal processing chain is the \gls{fir} filter \device{fir1}. As mentioned earlier
+this filter is needed to compensate the group delay and frequency responses caused by the
+measurement setup. Implementing \gls{fir} filters consisting of a high number of filter
+coefficients uses significantly more resources with a tapped delay line than with
+the \gls{fft}. Therfore, the filter \device{fir1} was implemented with linear convolution:
 \begin{equation}
     \begin{split}
     \label{eq:circ} y\XN = h\XN * x\XN & = \sum_{k=0}^{\gls{nfft}-1} h\XN{}x\glsdisp{xn}{[n-k]}\\
-         & = \gls{DFT}^{-1}\left\{\gls{DFT}(x\XN)\,\gls{DFT}(h\XN)\right\}
+         & = \gls{DFT}^{-1}\left\{\gls{DFT}(x\XN)\,H\XN\right\}
     \end{split}
 \end{equation}
+with
+\begin{equation}
+    \label{eq:transfer} H\XN = \gls{DFT}(h\XN)
+\end{equation}
+This filter is a causal \gls{fir} filter with the input $x\XN$, the length $\gls{nfft}$,
+the impulse response $h\XN$, and the output $y\XN$. The input samples $x\XN$ represent
+the samples in buffer \device{buffer1} and the output samples $y\XN$ the samples in
+buffer \device{buffer2}. To further reduce the needed hardware resources the implemented
+filter \device{fir1} uses the transfer function $H\XN$ instead of the impulse response $h\XN$
+(see \cref{eq:transfer}).
+
 Since implementing the \gls{fft} in hardware uses a lot of resources, overlap add
 was used to allow for larger signal periods than $\gls{nfft}$. As shown by \cite{schaums_2011}
 this algorithm splits the signal $x\XN$ into non-overlapping
@@ -1886,7 +1900,8 @@ in \cref{fig:main_overview} the different parts of the processing chain (\cref{f
 to three modules (\cref{fig:main}). The module \device{inbuf} contains the digital receive interface
 for the \gls{adc} and the sample buffer \device{buffer1}. This module is described
 in \cref{sec:acquisition}. The \device{core} module contains the frequency
-mixer \device{mix2}, the \gls{lo} \device{lo3}, and the digital filter \device{fir1}.
+mixer \device{mix2}, the \gls{lo} \device{lo3}, and the digital filter \device{fir1} with
+the accompanying buffer \device{H} containing the transfer function $H\XN$.
 A detailed description can be seen in \cref{sec:overlap_add}. The third part
 is the \device{outbuf} module. This module contains the sample buffer \device{buffer2},
 the multiplier \device{mul1}, and the digital \gls{iq} interface and is described in \cref{sec:smbv_interface}. The
@@ -3354,7 +3369,7 @@ same naming scheme as the \device{sysfs} interface with a dot instead of a slash
 as the path separator. The sample buffers can be accessed via the properties
 \mbox{\lstinline+inbuf+} for \mbox{\device{inbuf}}, \mbox{\lstinline+H+} for \mbox{\device{H}},
 \mbox{\lstinline+out_inactive+} for inactive \mbox{\device{outbuf}}, and \mbox{\lstinline+out_active+}
-for active \mbox{\device{outbuf}}. Those dependent properties automatically convert
+for active \mbox{\device{outbuf}} (see \cref{sec:digital_processing}). Those dependent properties automatically convert
 the raw data to complex vectors and vice versa. The interrupts are exposed via
 Matlab events. All the classes are fully documented with Matlab comments and
 can be found in \cref{sec:sources}. A description of all the properties can
@@ -3582,11 +3597,11 @@ trajectory of this algorithm invocation.
 \label{sec:filtercal}
 
 The digital filter in the signal processing chain is needed to be able to
-synthesize evenly distributed \gls{GammaL} over a wide frequency range. This
-filter is needed to compensate for the frequency responses of the different
-components of the setup. Furthermore, signals at different frequencies have different
-wavelengths and therefore the fixed electrical length of the setup causes
-different phase shifts.
+synthesize a constant \gls{GammaL} over a wide frequency range. This
+filter is needed to compensate the group delay caused by the measurement
+setup and cabling needed for to be able to reach the \gls{dut}. Furthermore,
+it is able to compensate the frequency responses of the components used
+in the measurement setup.
 
 Calibrating this filter was carried out by measuring the needed
 $\glsdisp{GammaL}{\Gamma_{L,set}}$ for a specific calibration point over
