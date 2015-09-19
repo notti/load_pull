@@ -2756,17 +2756,17 @@ As described in \cref{chap:fpga}, the \gls{fpga} contains a general
 purpose processor. To enable controlling the digital signal processing chain
 described in \cref{sec:digital,sec:digital_processing} with a \gls{pc},
 software was developed for this processor. This software is needed e.g. to control the
-filter transfer function needed for correcting the frequency response (see
-\cref{sec:overlap_add}) or modifying $\glsdisp{GammaL}{\Gamma_{L,set}}$ (see
+filter transfer function which is needed for correcting the frequency response (see
+\cref{sec:overlap_add}) or setting the targeted hardware reflection coefficient $\glsdisp{GammaL}{\Gamma_{L,set}}$ (see
 \cref{sec:smbv_interface}). To allow high speed transfers of the filter
 transfer function or sample data, Ethernet was chosen as the communication
 interface. Furthermore this communication interface is cheap, widely supported
 by \gls{pc}-hardware, and can be used by \gls{pc}-software such as Matlab with the
 Instrument Control Toolbox.
 
-To simplify the needed development process an \gls{os} was used as the base. An
-\gls{os} provides the necessary drivers supporting the needed peripherals and
-network communication. Linux was chosen as the \gls{os} since it can be targeted
+To simplify the needed development process an \gls{os} was used as the base which
+provides the necessary drivers supporting the needed peripherals and
+network communication. Linux was chosen since it can be targeted
 specifically for this platform due to its open nature. The cross compilation tool
 chain needed for compiling the software
 components and the base system were built using buildroot\cite{buildroot}. The
@@ -2775,10 +2775,10 @@ configuration files needed for configuring buildroot can be found in
 
 Controlling the hardware from within the Linux operating system can be
 achieved with either memory mapping \mbox{\device{/dev/mem}} or by writing a kernel
-module \cite{ldd}. Memory mapping has the disadvantage that interrupts can not
+module \cite{ldd}. Memory mapping has the disadvantage that interrupts cannot
 be used and concurrent access leads to undefined behaviour. Another disadvantage
 is that directly using \mbox{\device{/dev/mem}} is dangerous and can lead to
-system crashes\cite{ldd}. Furthermore a kernel module can provide an easy \gls{api} that
+system crashes\cite{ldd}. In opposition to that a kernel module can provide an easy \gls{api} that
 can be used by any programming language, shell script, or even shell commands
 like \lstinline[language=sh]+echo+. Because of these advantages a kernel module
 was implemented. A description of this kernel module can be found in
@@ -2869,11 +2869,11 @@ needed for correcting the systematic errors (see \cref{sec:vna}). Furthermore
 a Matlab function for performing an iterative target algorithm in order to
 achieve a specific $\glsdisp{GammaL}{\Gamma_{L,target}}$ was developed. This algorithm
 is necessary, because reflections caused by the measurement setup and
-non-linear \glspl{dut} influence the resulting \gls{GammaL} controlled by the
+non-linear \glspl{dut} influence the resulting effective \gls{GammaL} which is controlled by the
 $\glsdisp{GammaL}{\Gamma_{L,set}}$ setting provided by the digital signal
 processing chain. Next the calibration routine for the digital filter was
-implemented. This filter enables broadband reflection synthesis with
-an evenly distributed \gls{GammaL} (see \cref{sec:digital}). A description
+implemented. This filter enables the frequency response compensated broadband
+reflection synthesis (see \cref{sec:digital}). A description
 of the implemented Matlab scripts can be found in \cref{sec:matlab}.
 
 % ---------------------------------------------------------------------------
@@ -2941,7 +2941,7 @@ device data, reserve ownership of device associated memories, allocate
 devices and files, setup the interrupt function, and initialize the
 interrupt registers. For freeing the resources, everything has to be
 released in the \lstinline+remove+ function. Omitting this prevents reloading the driver.
-All the code examples in this chapter are taken from the developed kernel module source code and the
+All the code examples in this chapter are taken from the developed kernel module source. The
 complete source code can be found in \cref{sec:sources}.
 
 % ---------------------------------------------------------------------------
@@ -2950,7 +2950,7 @@ complete source code can be found in \cref{sec:sources}.
 \label{sec:memory_access}
 
 The sample buffers \device{inbuf} and \device{outbuf} as well as the transfer
-function \device{H} of the filter (see \cref{sec:digital_processing}) are are
+function \device{H} of the filter (see \cref{sec:digital_processing}) are
 exposed to user space via character devices\cite{ldd}. A character device
 is a special file that can be opened, closed, read and written to. Instead of
 operating on a real file in the file system, these operations are handled by
@@ -3033,7 +3033,7 @@ major number is automatically allocated and assigned and the minor number
 corresponds to the internal memory number. The rest of the code is boilerplate
 which causes the kernel to create the device nodes \mbox{\device{/dev/emce0}} to
 \mbox{\device{/dev/emce3}}. Without this routines these nodes would need to be created
-manually with \lstinline[language=sh]+mknod+.
+manually using \lstinline[language=sh]+mknod+.
 
 \begin{lstlisting}[float=htb,caption={Character device access functions},label=src:cdev,basicstyle=\hack\scriptsize]
 ssize_t mem_read (struct file *file, char __user *buf,
@@ -3117,11 +3117,11 @@ respective access. \lstinline+show+ is called if user space reads from a file an
 to represent a single value there are no \lstinline+open+ and \lstinline+close+
 functions.
 
-If user space writes a value to one of this files, then the \lstinline+store+
+If user space writes a value to one of these files, then the \lstinline+store+
 function is called. Additionally a pointer to a single page containing the written
 contents and the number of written bytes is passed to the function. The
 \lstinline+show+ function is called if user space reads from a file in \device{sysfs}.
-A pointer to one preallocated page is provided to the function. The function
+A pointer to one pre-allocated page is provided to the function. The function
 has to return the number of bytes written.
 
 The \device{sysfs} files have to be assigned to attribute groups which in turn represent
@@ -3132,7 +3132,7 @@ of the passed number to an integer and performs out of bound checking. This numb
 shifted to the right position in the register and the memory mapped register updated with
 a read modify write cycle. This read modify write cycle is protected by a spin lock to
 ensure that possibly concurrent write operation to the registers doesn't interfere. This
-spin lock isn't actually needed by an uni processor system and gets optimized away during
+spin lock isn't actually needed by a uniprocessor system and gets optimized away during
 the compilation. Since this code could also be used on a different processor it is best
 practice to keep the spin lock. The generalized \lstinline+show+ function
 (\mbox{\lstinline+fpga_flag_show+}) reads the desired value from the register, shifts it to the
@@ -3140,14 +3140,14 @@ correct position, and truncates the value to the correct length. This value is t
 converted to a textual representation and written to the buffer.
 
 Since the digital signal processing chain features a lot of configuration options,
-macros that allow instantiating a single configuration option with one line of cod
+macros that allow instantiating a single configuration option with one line of code
 were developed. A single configuration option is called flag and it possesses a
 register address, a bit position within the register, a bit width and possibly a
 maximum value. The following macros allow instantiating the above mentioned
 \device{sysfs} functions:
 \begin{description}
     \lstitem{FPGA_FLAG(base, name, access, register, bit, length)}
-        This macro creates a flag which represents part of a register within the
+        This macro creates a flag which represents a part of a register within the
         group \lstinline+base+ with the name \lstinline+name+ and access rights
         \lstinline+access+. The physical base address of the register has to be
         provided with \lstinline+register+, the bit number within the register with \lstinline+bit+,
@@ -3161,7 +3161,7 @@ maximum value. The following macros allow instantiating the above mentioned
 \end{description}
 
 The source code implementing and using this macros can be found in
-\cref{sec:sources} and a overview of the registers including the flags can be
+\cref{sec:sources} and an overview of the registers including the flags can be
 seen in \cref{sec:registers}.
 
 % ---------------------------------------------------------------------------
@@ -3231,11 +3231,11 @@ the file passed as the first argument to the script is opened for reading in
 \cref{open_file}. In \crefrange{poll_a}{poll_b} the \lstinline+poll+ system call
 is configured with the above mentioned event codes on the opened file. In order for
 the notification to work, the file has to be read completely. This is done by
-reseting the file position to 0 (\cref{file_reset}) followed by reading the
+resetting the file position to 0 (\cref{file_reset}) followed by reading the
 complete contents (\cref{file_read}). Resetting the file position ensures that
 further invocations after the first event also work. Next the \lstinline+poll+
 system call is invoked which blocks execution of the program until the
-interrupt occurs (\cref{file_poll}). After interrupt occurrence a line is
+interrupt occurs (\cref{file_poll}). After an interrupt occurrence a line is
 printed and the waiting procedure is repeated.
 
 \begin{lstlisting}[language=python,float=htb,caption={Wait for interrupt example in python},label=src:pint,basicstyle=\hack\scriptsize]
@@ -3255,7 +3255,7 @@ with open(sys.argv[1], "r") as f: <*\label{open_file}*>
 
 During the blocked wait the program is not running and therefore not
 consuming \gls{cpu} cycles. Multiple programs and threads can wait
-for events on the same file with this mechanism.
+for events on the same file utilizing this mechanism.
 
 % ---------------------------------------------------------------------------
 
@@ -3272,7 +3272,7 @@ into python classes simplifying network development.
 Protocol classes in Twisted provide a \lstinline{Received} method. This method
 is called with the received data as argument after a complete line for a text based
 protocol, a complete packet for a packet based protocol, or binary chunk for a binary
-protocol was received. By sub classing base protocols two communication methods were
+protocol was received. By sub-classing base protocols two communication methods were
 implemented. A websocket based protocol for a web interface and a text based protocol
 to enable communication with Matlab.
 
@@ -3280,7 +3280,7 @@ The web interface uses \gls{json} encoded packets for communication. The \gls{js
 packets contain an object with at least a \lstinline+"cmd"+ parameter. This parameter
 provides the allowed commands \lstinline+"set"+, \lstinline+"do"+, and \lstinline+"get"+.
 With the additional parameters \lstinline+"target"+ and \lstinline+"value"+ the signal
-processing setting specified by target can be set to a specific value or queried. An example
+processing setting specified by target can be set to a specific value or can be queried. An example
 can be seen in \cref{src:json}. The daemon replies
 with \lstinline+"update"+ set as \lstinline+"cmd"+, the specific target name and the
 new value. Additionally interrupts are reported with \lstinline+"update"+ set as the
@@ -3318,8 +3318,8 @@ connection within Matlab. Therefore, a synchronous line based protocol was imple
 One command can be transmitted per line and every line starts with a command, followed
 by a space separated list of arguments. The commands are the same as in the \gls{json}
 based protocol ({\ttfamily get}, {\ttfamily set}, {\ttfamily do}). Since this protocol is synchronous, the
-{\ttfamily do} command waits for the appropriate interrupt before replying. The daemon replies with
-{\ttfamily OK} in case of success or {\ttfamily ERROR} in case of an error (e.g. timeout). An example
+{\ttfamily do} command waits for the appropriate interrupt before replying. The daemon replies
+{\ttfamily OK} in the case of success or {\ttfamily ERROR} in case of an error (e.g. timeout). An example
 command can be seen in \cref{src:text}. The additional commands {\ttfamily read} and {\ttfamily write}
 implement interacting with the sample buffers. Both commands need the name of the target memory as
 the first argument ({\ttfamily emce0} to {\ttfamily emce3}) and the number of bytes as the second
@@ -3437,7 +3437,7 @@ derived from the error box in \cref{sec:vna}. With the impedance values from
 the calibration kit and the calibration measurement values this function calculates
 the \glspl{sparam} of the error box.
 
-The developed function \lstinline+calcGl+ is able to calculated a corrected \gls{GammaL}
+The developed function \lstinline+calcGl+ is able to calculate a corrected \gls{GammaL}
 with these \glspl{sparam} and a reflection coefficient calculated with \lstinline+manyRho+
 from acquired samples. The described functions and the example script \lstinline+measureVNA+
 can be found in \cref{sec:sources}. This example script is split into four parts. The
@@ -3458,7 +3458,7 @@ box as has been done for the one port \gls{vna}. Since highly non-linear \gls{du
 can experience load-dependent $\gls{S}[_{22}]$, this approach could prove
 futile. Therefore, an iterative target algorithm was developed.
 
-The iterative target algorithm used in this work uses the following steps:
+The iterative target algorithm used in this work makes use the following steps:
 \begin{enumerate}
     \item Start at arbitrary start point by setting $\glsdisp{GammaL}{\Gamma_{L,set}}$.
     \item Measure the resulting \gls{GammaL}.
@@ -3599,12 +3599,12 @@ them with the transfer function. An example of the resulting transfer function
 can be seen in \cref{sec:filter}.
 
 An example script named \lstinline+filterCalibration+ is provided in
-\cref{sec:sources}. This script acquires a filter calibration for the points
+\cref{sec:sources} which acquires a filter calibration for the points
 $1$, $-1$, $0.5\Angle\SI{135}{\degree}$ and $0.5\Angle\SI{-45}{\degree}$.
 Additionally it calculates filters for the mean of the measurements $1$ and $-1$,
 and $0.5\Angle\SI{135}{\degree}$ and $0.5\Angle\SI{-45}{\degree}$. After these
 calculations the script performs verification measurements for the different
-filter calibrations. The results of these measurements can be seen in \cref{sec:filter}.
+filter calibrations. The results of these measurements can be found in \cref{sec:filter}.
 
 % ===========================================================================
 
