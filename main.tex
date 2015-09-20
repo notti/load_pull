@@ -131,7 +131,7 @@
 \automark[chapter]{chapter}
 \automark*[section]{}
 
-\def\device#1{\textit{#1}}
+\def\device#1{\mbox{\textit{#1}}}
 
 \ifthenelse{\equal{\PrintVersion}{true}}{
     \def\HideLinks{hidelinks,}
@@ -2789,11 +2789,11 @@ configuration files needed for configuring buildroot can be found in
 \cref{sec:sources} and a guide for building the base software in \cref{sec:build:sw}.
 
 Controlling the hardware from within the Linux operating system can be
-achieved with either memory mapping \mbox{\device{/dev/mem}} or by writing a kernel
+achieved with either memory mapping \device{/dev/mem} or by writing a kernel
 module \cite{ldd}. Memory mapping has the disadvantage that interrupts cannot
 be used and concurrent access leads to undefined behaviour. Another disadvantage
-is that directly using \mbox{\device{/dev/mem}} is dangerous and can lead to
-system crashes\cite{ldd}. In opposition to that a kernel module can provide an easy \gls{api} that
+is that directly using \device{/dev/mem} is only possible by the
+privileged user\cite{ldd}. In opposition to that a kernel module can provide an easy \gls{api} that
 can be used by any programming language, shell script, or even shell commands
 like \lstinline[language=sh]+echo+. Because of these advantages a kernel module
 was implemented. A description of this kernel module can be found in
@@ -2896,7 +2896,6 @@ of the implemented Matlab scripts can be found in \cref{sec:matlab}.
 \section{Kernel Module}
 \label{sec:kernel_module}
 \lstset{language=C,numbers=left,numberstyle=\tiny,stepnumber=5,numbersep=5pt,frame=single,
-breaklines=true,postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\hookrightarrow\space}},
 captionpos=b,escapeinside={<*}{*>},mathescape=true,deletekeywords={register},basicstyle=\ttfamily}
 
 \begin{lstlisting}[float=htb,caption={Basic elements of a platform driver module},label=src:pdriver,basicstyle=\hack\scriptsize]
@@ -3029,8 +3028,8 @@ Character device initialization was implemented in the \lstinline+probe+
 function mentioned above. To set up a character device a
 \lstinline+struct file_operations+\cite{ldd} is needed. This \lstinline+struct+
 has an entry for every possible file operation which needs to point to the
-implementation this operation. Not implemented functions need to
-point to \lstinline+NULL+ which is taken care of by leaving out the fields
+implementation this operation. Not implemented functions need to be null pointers
+which is taken care of by leaving out the fields
 in the GNU style initialization seen in \cref{src:cdevinit} \cref{fops}. In
 the example in \cref{src:cdevinit} the \lstinline+close+ function is left
 out, since it is not needed. This function would normally be used for
@@ -3045,9 +3044,9 @@ and initializes the operations, and \lstinline+device_create+ which allocates
 and creates the actual devices\cite{ldd}. Every device needs a major and a minor number
 which are used to identify which device a file belongs to. In this example the
 major number is automatically allocated and assigned and the minor number
-corresponds to the internal memory number. The rest of the code is boilerplate
-which causes the kernel to create the device nodes \mbox{\device{/dev/emce0}} to
-\mbox{\device{/dev/emce3}}. Without this routines these nodes would need to be created
+corresponds to the internal memory number. The rest of the code
+causes the kernel to create the device nodes \device{/dev/emce0} to
+\device{/dev/emce3}. Without this routines these nodes would need to be created
 manually using \lstinline[language=sh]+mknod+.
 
 \begin{lstlisting}[float=htb,caption={Character device access functions},label=src:cdev,basicstyle=\hack\scriptsize]
@@ -3100,7 +3099,7 @@ is already in memory, the only things that need to be done are:
 \begin{enumerate}
     \item Boundary check (\crefrange{mem_read_checka}{mem_read_checkb}).
     \item Copy the data to user space (\cref{mem_read_copy}). This must be
-        done with the \mbox{\lstinline+copy_*_user+} macros. Kernel memory and
+        done with the \lstinline+copy_*_user+ macros. Kernel memory and
         user memory must never be mixed, since this can cause security
         problems\cite{ldd}.
     \item Advance the file position (\cref{mem_read_advance}).
@@ -3111,7 +3110,7 @@ Additionally to the traditional access methods the function \lstinline+mmap+
 was implemented. This function allows user space to directly map the memory
 represented by the character device. With this technique a user space program
 can access the memory directly via a pointer, which avoids the copy operation
-mentioned above. This method is different to mapping \mbox{\device{mmap}}
+mentioned above. This method is different to mapping \device{mmap}
 directly by providing the correct offset and bounds of the access buffer.
 Therefore, this method doesn't bear the risks of system crashed by writing
 to the wrong address.
@@ -3142,7 +3141,7 @@ has to return the number of bytes written.
 The \device{sysfs} files have to be assigned to attribute groups which in turn represent
 subdirectories below the driver directory\cite{sysfs}. For easier handling
 generalized \lstinline+show+ and \lstinline+store+ functions were developed. The generalized
-\lstinline+store+ function (\mbox{\lstinline+fpga_flag_store+}) converts the textual representation
+\lstinline+store+ function (\lstinline+fpga_flag_store+) converts the textual representation
 of the passed number to an integer and performs out of bound checking. This number is then
 shifted to the right position in the register and the memory mapped register updated with
 a read modify write cycle. This read modify write cycle is protected by a spin lock to
@@ -3150,7 +3149,7 @@ ensure that possibly concurrent write operation to the registers doesn't interfe
 spin lock isn't actually needed by a uniprocessor system and gets optimized away during
 the compilation. Since this code could also be used on a different processor it is best
 practice to keep the spin lock. The generalized \lstinline+show+ function
-(\mbox{\lstinline+fpga_flag_show+}) reads the desired value from the register, shifts it to the
+(\lstinline+fpga_flag_show+) reads the desired value from the register, shifts it to the
 correct position, and truncates the value to the correct length. This value is then
 converted to a textual representation and written to the buffer.
 
@@ -3367,9 +3366,9 @@ The text based protocol described in \cref{sec:daemon} was implemented in a set 
 Matlab classes to ease controlling the hardware. These Matlab classes depict the
 same naming scheme as the \device{sysfs} interface with a dot instead of a slash
 as the path separator. The sample buffers can be accessed via the properties
-\mbox{\lstinline+inbuf+} for \mbox{\device{inbuf}}, \mbox{\lstinline+H+} for \mbox{\device{H}},
-\mbox{\lstinline+out_inactive+} for inactive \mbox{\device{outbuf}}, and \mbox{\lstinline+out_active+}
-for active \mbox{\device{outbuf}} (see \cref{sec:digital_processing}). Those dependent properties automatically convert
+\lstinline+inbuf+ for \device{inbuf}, \lstinline+H+ for \device{H},
+\lstinline+out_inactive+ for inactive \device{outbuf}, and \lstinline+out_active+
+for active \device{outbuf} (see \cref{sec:digital_processing}). Those dependent properties automatically convert
 the raw data to complex vectors and vice versa. The interrupts are exposed via
 Matlab events. All the classes are fully documented with Matlab comments and
 can be found in \cref{sec:sources}. A description of all the properties can
@@ -3397,7 +3396,10 @@ Utilizing these classes the one port \gls{vna} as described in \cref{sec:vna}
 was implemented in a Matlab script. A description of this script can be found
 in \cref{sec:mvna}. Additional reflections caused by the measurement setup and the \gls{dut} cause
 the setup to exhibit a different \gls{GammaL} than was set by
-$\glsdisp{GammaL}{\Gamma_{L,set}}$. Therefore, an iterative target algorithm
+$\glsdisp{GammaL}{\Gamma_{L,set}}$. These imperfections could be compensated with an error
+box as has been done for the one port \gls{vna} (see \cref{sec:vna}).
+Since highly non-linear \gls{dut} can experience load-dependent
+$\gls{S}[_{22}]$, this approach could prove futile. Therefore, an iterative target algorithm
 was developed to find the correct $\glsdisp{GammaL}{\Gamma_{L,set}}$ needed
 to achieve a specific $\glsdisp{GammaL}{\Gamma_{L,target}}$. This algorithm
 is described in \cref{sec:target}. Using this target algorithm the
@@ -3468,12 +3470,12 @@ the verification data for \cref{sec:vna_verify}.
 
 As described above, the resulting \gls{GammaL} of the complete setup is
 influenced by additional reflections resulting from imperfections in the
-measurement setup. These imperfections could be compensated with an error
-box as has been done for the one port \gls{vna}. Since highly non-linear \gls{dut}
-can experience load-dependent $\gls{S}[_{22}]$, this approach could prove
-futile. Therefore, an iterative target algorithm was developed.
+measurement setup. Furthermore, highly non-linear \gls{dut}
+can experience load-dependent $\gls{S}[_{22}]$ which influence
+the resulting \gls{GammaL} additionally. Therefore, the following iterative
+target algorithm was developed.
 
-The iterative target algorithm used in this work makes use the following steps:
+The iterative target algorithm used in this work makes the following steps:
 \begin{enumerate}
     \item Start at arbitrary start point by setting $\glsdisp{GammaL}{\Gamma_{L,set}}$.
     \item Measure the resulting \gls{GammaL}.
@@ -3573,7 +3575,8 @@ lag times up to \SI{1}{\milli\second}. Since this algorithm and the digital
 signal processing chain run completely independent, the algorithm can
 experience stability issues if the pause of the algorithm is too short. A
 visualization of the different phases of the digital signal processing chain
-and the algorithm can be seen in \cref{fig:phases}. The algorithm starts by
+and the algorithm can be seen in \cref{fig:phases}. In this visualisation it
+can be seen that the algorithm starts by
 measuring \gls{GammaL}. After the new $\glsdisp{GammaL}{\Gamma_{L,set}}$ is
 set, the wave $\gls{a}[_2]$ is modified immediately, which in turn results in
 a new $\gls{b}[_2]$. After the next acquire, filter, and switch cycle of the
@@ -3582,14 +3585,24 @@ results again in a new $\gls{b}[_2]$. If the pause of iterative algorithm
 is too short, then the next step will be based on a wrong \gls{GammaL}
 measurement, which can lead to a high number of algorithm steps.
 
+Preliminary tests showed that this iterative target algorithm is capable
+of reaching multiple specific $\glsdisp{GammaL}{\Gamma_{L,target}}$. Therefore,
+the algorithm is capable of compensating the reflections introduced by
+the measurement setup. These are caused by connectors and mismatches between
+the components. This algorithm also
+worked after additional reflections have been introduced in the
+measurement setup. A more detailed verification of this algorithm can be found
+in \cref{sec:iterative}.
+
 This algorithm was implement in the Matlab function \lstinline+findTarget+.
 The source code of this function can be found in \cref{sec:sources}. The needed
 arguments are a \lstinline+ML507+ object for controlling the signal processing
 chain, the target, a function handle to a function implementing the
 \gls{GammaL}-measurement, and the pause time. Additionally a start point
 can be specified. This function returns upon algorithm termination the actual
-\gls{GammaL}, the needed $\glsdisp{GammaL}{\Gamma_{L,set}}$ and the complete
-trajectory of this algorithm invocation.
+\gls{GammaL} and the needed $\glsdisp{GammaL}{\Gamma_{L,set}}$. Additionally the complete
+trajectory consisting of every reached \gls{GammaL}, including start and stop point,
+is returned.
 
 % ---------------------------------------------------------------------------
 
