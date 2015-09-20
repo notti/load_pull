@@ -61,7 +61,7 @@
 \usepgfplotslibrary{external}
 \tikzsetexternalprefix{figures/}
 \ifthenelse{\equal{\NoExternal}{true} \or \equal{\PrintVersion}{true} }{
-
+    \usepackage{hyperxmp}
 }{
     \tikzexternalize[mode=list and make]
 }
@@ -125,6 +125,9 @@
 \usepackage{register}
 \usepackage{metalogo} % \LuaLaTeX
 \usepackage{longtable}
+\usepackage{multirow}
+\usepackage{tabularx}
+\usepackage[type={CC},modifier={by-sa},version={4.0},imagemodifier={-eu}]{doclicense}
 
 \usepackage{scrlayer-scrpage}
 \pagestyle{scrheadings}
@@ -226,8 +229,6 @@ pdfpagelabels,
 \makeglossaries
 
 \usepackage[noabbrev]{cleveref} %needs to be last
-\crefname{Regfloat}{register}{registers}
-\Crefname{Regfloat}{Register}{Registers}
 
 \pagenumbering{roman}
 \begin{document}
@@ -252,7 +253,7 @@ pdfpagelabels,
     \vspace*{2cm}
 
     \rule{\linewidth}{0.4pt}
-    \begin{minipage}[t]{0.55\linewidth}
+    \begin{minipage}[t]{0.60\linewidth}
         \flushleft
         \begin{large}
             EMCE - Institute of Electrodynamics, Microwave and Circuit Engineering
@@ -260,7 +261,7 @@ pdfpagelabels,
         Vienna University of Technology
     \end{minipage}
     \hfill
-    \begin{minipage}[t]{0.27\linewidth}
+    \begin{minipage}[t]{0.30\linewidth}
         \flushright
         Gusshausstrasse 25\\
         1040 Vienna\\
@@ -270,6 +271,19 @@ pdfpagelabels,
     \rule{\linewidth}{0.4pt}
     \clearpage
 \end{titlepage}
+
+\thispagestyle{empty}
+\vspace*{\fill}
+\begin{center}
+\begin{minipage}{.3\textwidth}
+    \doclicenseImage
+\end{minipage}
+\begin{minipage}{.6\textwidth}
+    This work is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License.
+    To view a copy of this license, visit \url{http://creativecommons.org/licenses/by-sa/4.0/}.
+\end{minipage}
+\end{center}
+\vfill
 
 \begin{abstract}
     %TODO
@@ -4423,7 +4437,7 @@ the different parts of the measurement setup.
 \chapter{Conclusions and Outlook}
 
 \appendix
-\chapter{References}
+\chapter{Sources and Documentation}
 \section{Source Codes}
 \label{sec:sources}
 
@@ -4436,118 +4450,123 @@ can be found at \url{https://github.com/notti/load_pull-sw}. The complete \LuaLa
 and processed verification results necessary to build this document can be found at
 \url{https://github.com/notti/load_pull}.
 
-\section{Used Equipment}
-\label{sec:instruments}
-
-\begin{longtable}{ll}
-    Directional Coupler \device{dir1} & Krytar Model 1850\\
-    Directional Coupler \device{dir2} & Krytar Model 1850\\
-    Attenuator \device{att1}          & \SI{10}{\deci\bel} Mini-Circuits VAT-10W2+\\
-    Frequency mixer \device{mix1}     & Hittite HMC208MS8E \\
-    Low pass filter \device{lp2}      & Mini-Circuits SLP-90+\\
-    \gls{adc} \device{adc1}           & Linear Technology 1151A-D Eval Board (LTC2274) \\
-    \gls{fpga}                        & Xilinx ML507 Eval Board (XC5VFX70T) \\
-    Vector signal generator           & Rhode \& Schwarz SMBV100a \\
-    \gls{lo} \device{lo1}             & Rhode \& Schwarz SMIQ 06B \\
-    \gls{lo} \device{lo2}             & Rhode \& Schwarz SMGU \\
-    Oscilloscope                      & Agilent Technologies MSO7104A \\
-    2. Oscilloscope                   & Agilent Technologies MSO7104A \\
-    Trigger                           & Hewlett Packard 33120A \\
-    Stub tuner                        & Maury Microwave 1819B \\
-    Calibration Kit                   & Rhode \& Schwarz ZV-Z132 (female) \\
-    \gls{vna} (\gls{dut})             & Agilent Technologies E8364A\\
-    \hspace{2em} calibrated with      & Agilent Technologies N4433A\\
-\end{longtable}
-
-\section{Register Assignment and Protocols}
+\section{Register Assignment and Protocol Reference}
 \label{sec:registers}
-%TODO:
-\begin{register}{h}{reg(0)}{0x00}%
-    \label{reg0}%
-    \regfield{rec\_rst}{1}{31}{0}%
+\providecommand{\flag}[1]{{\scriptsize\hack #1}}
+
+The following list of registers includes every signal exposed by the \device{main} module which can be used
+to control the complete digital signal processing chain. Additionally the path names of
+the \device{sysfs} interface implemented by the kernel module are listed (see \cref{sec:kernel_module}).
+
+The Matlab source code repository (see \cref{sec:sources}) contains a package
+named \device{ML507} which in turn contains the class \lstinline[language=matlab]+ML507.ML507+. This
+class can be used to control the hardware implementation. If not otherwise noted,
+the Matlab property is the same as the path names listed in the following tables
+with a dot instead of a slash. For instance \gls{L} can be set to 2000 with the
+Matlab command \lstinline[language=matlab]+instance.core.L = 2000;+ where instance
+is an instance of \lstinline[language=matlab]+ML507.ML507+.
+
+\begin{figure}[h]
+    \centering
+    \regfield{\flag{rec\_rst}}{1}{31}{0}%
     \regfield{Reserved}{4}{27}{0}%
-    \regfield{rec\_stream\_valid}{1}{26}{0}%
+    \regfield{\flag{rec\_stream\_valid}}{1}{26}{0}%
     \regfield{Reserved}{1}{25}{0}%
-    \regfield{rec\_input\_select}{1}{24}{0}%
+    \regfield{\flag{rec\_input\_select}}{1}{24}{0}%
     \regfield{Reserved}{10}{14}{0}%
-    \regfield{rec\_data\_valid(1)}{1}{13}{0}%
-    \regfield{rec\_rxeqmix(1)}{2}{11}{0}%
-    \regfield{rec\_descramble(1)}{1}{10}{1}%
-    \regfield{rec\_polarity(1)}{1}{9}{1}%
-    \regfield{rec\_enable(1)}{1}{8}{1}%
+    \regfield{\flag{rec\_data\_valid(1)}}{1}{13}{0}%
+    \regfield{\flag{rec\_rxeqmix(1)}}{2}{11}{0}%
+    \regfield{\flag{rec\_descramble(1)}}{1}{10}{1}%
+    \regfield{\flag{rec\_polarity(1)}}{1}{9}{1}%
+    \regfield{\flag{rec\_enable(1)}}{1}{8}{1}%
     \regfield{Reserved}{2}{6}{0}%
-    \regfield{rec\_data\_valid(0)}{1}{5}{0}%
-    \regfield{rec\_rxeqmix(0)}{2}{3}{0}%
-    \regfield{rec\_descramble(0)}{1}{2}{1}%
-    \regfield{rec\_polarity(0)}{1}{1}{1}%
-    \regfield{rec\_enable(0)}{1}{0}{1}%
-    \reglabel{Reset}\regnewline%
-    \begin{regdesc}\begin{reglist}[rec\_descramble(n)]
-        \item[rec\_rst] Writing a 1 to this bit resets the whole receiver.
-        \item[rec\_stream\_valid] 1 if stream is valid.
-        \item[rec\_input\_select] With this the data stream of receivers 0 or 1
-            can be selected.
-        \item[rec\_data\_valid(n)] 1 if the data received by n is valid.
-        \item[rec\_rxeqmix(n)] Controls the equalizer of the receiver
-            \cite{gtx}.
-        \item[rec\_descramble(n)] Turns on the descrambler (see
-            \cref{sec:acquisition}).
-        \item[rec\_polarity(n)] Sets the polarity of the LVDs pair.
-        \item[rec\_enable(n)] Enable/Disable transceiver. Disabling unneeded
-            transceivers saves power.
-    \end{reglist}\end{regdesc}
-\end{register}
-\begin{register}{h}{reg(1)}{0x04}%
-    \label{reg1}%
-    \regfield{avg\_rst}{1}{31}{0}%
+    \regfield{\flag{rec\_data\_valid(0)}}{1}{5}{0}%
+    \regfield{\flag{rec\_rxeqmix(0)}}{2}{3}{0}%
+    \regfield{\flag{rec\_descramble(0)}}{1}{2}{1}%
+    \regfield{\flag{rec\_polarity(0)}}{1}{1}{1}%
+    \regfield{\flag{rec\_enable(0)}}{1}{0}{1}%
+    \reglabel{Reset}\regnewline
+
+    \vspace{3mm}
+
+    \begin{tabularx}{\textwidth}{lllX}
+        \toprule
+        \textbf{Signal name} & \textbf{Path name} & \textbf{r/w} & \textbf{Description} \\
+        \midrule
+        \flag{rec\_rst}            & \flag{receiver/rst}            & w  & Reset receiver. \\
+        \flag{rec\_stream\_valid}  & \flag{receiver/stream\_valid}  & r  & Indicates a valid data stream. \\
+        \flag{rec\_input\_select}  & \flag{receiver/input\_select}  & rw & Select active receiver. \\
+        \flag{rec\_data\_valid(n)} & \flag{gtx(n)/rec\_data\_valid} & r  & Indicates a valid data stream. \\
+        \flag{rec\_rxeqmix(n)}     & \flag{gtx(n)/rxeqmix}          & rw & Controls equalizer of receiver \cite{gtx}. \\
+        \flag{rec\_descramble(n)}  & \flag{gtx(n)/descramble}       & rw & Enables descrambler (see \cref{sec:acquisition}). \\
+        \flag{rec\_polarity(n)}    & \flag{gtx(n)/polarity}         & rw & Controls polarity of \gls{lvds} pair \cite{gtx}. \\
+        \flag{rec\_enable(n)}      & \flag{gtx(n)/enable}           & rw & Enables transceiver. \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Register 0 (0x00)}
+\end{figure}
+
+\begin{figure}[h]
+    \regfield{\flag{avg\_rst}}{1}{31}{0}%
     \regfield{Reserved}{3}{28}{0}%
-    \regfield{avg\_err}{1}{27}{0}%
-    \regfield{avg\_active}{1}{26}{0}%
-    \regfield{avg\_width}{2}{24}{0}%
-    \regfield{trig\_rst}{1}{23}{0}%
-    \regfield{auto\_rst}{1}{22}{0}%
-    \regfield{auto\_single}{1}{21}{0}%
-    \regfield{auto\_run}{1}{20}{0}%
-    \regfield{trig\_int}{1}{19}{0}%
-    \regfield{trig\_arm}{1}{18}{0}%
+    \regfield{\flag{avg\_err}}{1}{27}{0}%
+    \regfield{\flag{avg\_active}}{1}{26}{0}%
+    \regfield{\flag{avg\_width}}{2}{24}{0}%
+    \regfield{\flag{trig\_rst}}{1}{23}{0}%
+    \regfield{\flag{auto\_rst}}{1}{22}{0}%
+    \regfield{\flag{auto\_single}}{1}{21}{0}%
+    \regfield{\flag{auto\_run}}{1}{20}{0}%
+    \regfield{\flag{trig\_int}}{1}{19}{0}%
+    \regfield{\flag{trig\_arm}}{1}{18}{0}%
     \regfield{Reserved}{1}{17}{0}%
-    \regfield{trig\_type}{1}{16}{0}%
-    \regfield{depth}{16}{0}{0}%
-    \reglabel{Reset}\regnewline%
-    \begin{regdesc}\begin{reglist}[auto\_single]
-        \item[avg\_rst] Writing a 1 to this bit resets \device{average\_mem}.
-        \item[avg\_err] 1 if the data stream became invalid during data
-            acquisition. Gets on next trigger event.
-        \item[avg\_active] 1 during data acquisition.
-        \item[avg\_width] Number of samples over which averaging is done.
-        \item[auto\_rst] Writing a 1 to this bit resets \device{auto}.
-        \item[auto\_single] Does a single automatic mode cycle
-            (acquire, convolute, switch output).
-        \item[auto\_run] Automatic mode.
-        \item[trig\_rst] Writing a 1 to this bit resets \device{trigger}.
-        \item[trig\_int] Writing a 1 to this bit manually triggers the
-            internal trigger.
-        \item[trig\_arm] Writing a 1 to this bit arms the trigger.
-        \item[trig\_type] 0: Internal trigger. 1: External trigger.
-        \item[depth] Number of samples to acquire. Can be range 1 - 49152.
-    \end{reglist}\end{regdesc}
-\end{register}
-\begin{register}{h}{reg(2)}{0x08}%
-    \label{reg2}%
+    \regfield{\flag{trig\_type}}{1}{16}{0}%
+    \regfield{\flag{depth}}{16}{0}{0}%
+    \reglabel{Reset}\regnewline
+
+    \vspace{3mm}
+
+    \begin{tabularx}{\textwidth}{lllX}
+        \toprule
+        \textbf{Signal name} & \textbf{Path name} & \textbf{r/w} & \textbf{Description} \\
+        \midrule
+        \flag{avg\_rst}     & \flag{average/rst}    & w  & Reset \device{average\_mem}. \\
+        \flag{avg\_err}     & \flag{average/err}    & r  & Indicates error during last acquisition. \\
+        \flag{avg\_active}  & \flag{average/active} & r  & Indicates active data acquisition. \\
+        \flag{avg\_width}   & \flag{average/width}  & rw & Number of samples for averaging. \\
+        \flag{auto\_rst}    & \flag{auto/rst}       & w  & Reset \device{auto}. \\
+        \flag{auto\_single} & \flag{auto/single}    & w  & Execute single \device{auto} cycle (see \cref{sec:auto}). \\
+        \flag{auto\_run}    & \flag{auto/run}       & rw & Enable automatic mode (see \cref{sec:auto}). \\
+        \flag{trig\_rst}    & \flag{trigger/rst}    & w  & Reset \device{trigger}. \\
+        \flag{trig\_int}    & \flag{trigger/int}    & w  & Manually trigger. \\
+        \flag{trig\_arm}    & \flag{trigger/arm}    & rw & Arm trigger. \\
+        \flag{trig\_type}   & \flag{trigger/type}   & rw & 0: Internal trigger. 1: External trigger. \\
+        \flag{depth}        & \flag{depth}          & rw & Number of samples to acquire (1 - 49152). \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Register 1 (0x04)}
+\end{figure}
+
+\begin{figure}[h]
     \regfield{Reserved}{4}{28}{0}%
     \regfield{core\_scale\_schi}{12}{16}{011010101010}%
     \regfield{Reserved}{4}{12}{0}%
     \regfield{core\_scale\_sch}{12}{0}{011010101010}%
-    \reglabel{Reset}\regnewline%
-    \begin{regdesc}\begin{reglist}[core\_scale\_schi]
-        \item[core\_scale\_schi] Scaling schedule for iFFT run (See
-            \cite{xilinx_fft}).
-        \item[core\_scale\_sch] Scaling schedule for FFT run (See
-            \cite{xilinx_fft}).
-    \end{reglist}\end{regdesc}
-\end{register}
-\begin{register}{h}{reg(3)}{0x0C}%
-    \label{reg3}%
+    \reglabel{Reset}\regnewline
+
+    \vspace{3mm}
+
+    \begin{tabularx}{\textwidth}{lllX}
+        \toprule
+        \textbf{Signal name} & \textbf{Path name} & \textbf{r/w} & \textbf{Description} \\
+        \midrule
+        \flag{core\_scale\_sch}  & \flag{core/scale\_sch(n)}  & rw & \multirow{2}{\hsize}{Scaling Schedule for \gls{fft} (see \cref{sec:overlap_add})} \\
+        \flag{core\_scale\_schi} & \flag{core/scale\_schi(n)} & rw &  \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Register 2 (0x08)}
+\end{figure}
+
+\begin{figure}[h]
     \regfield{core\_rst}{1}{31}{0}%
     \regfield{Reserved}{1}{30}{0}%
     \regfield{core\_circular}{1}{29}{0}%
@@ -4561,32 +4580,48 @@ and processed verification results necessary to build this document can be found
     \regfield{core\_scale\_cmul}{2}{14}{0}%
     \regfield{Reserved}{2}{12}{0}%
     \regfield{core\_L}{12}{0}{0}%
-    \reglabel{Reset}\regnewline%
-    \begin{regdesc}\begin{reglist}[core\_scale\_cmul]
-        \item[core\_rst] Writing a 1 to this bit resets \device{core}.
-        \item[core\_circular] Set to 1 for circular convolution.
-        \item[core\_ov\_cmul] 1 if complex multiplication has overflown.
-        \item[core\_ov\_ifft] 1 if iFFT has overflown.
-        \item[core\_ov\_fft] 1 if FFT has overflown.
-        \item[core\_start] Write 1 to this bit to start a convolution run.
-        \item[core\_iq] Set to 1 for I/Q demodulation.
-        \item[core\_n] Transform size in $\log_2(\gls{nfft})$. Valid values: 3-12.
-        \item[core\_scale\_cmul] Scaling schedule for complex multiplication. Valid values: 0-3.
-        \item[core\_L] $L$. See \cref{sec:overlap_add}.
-    \end{reglist}\end{regdesc}
-\end{register}
-\begin{register}{h}{reg(4)}{0x10}%
-    \label{reg4}%
+    \reglabel{Reset}\regnewline
+
+    \vspace{3mm}
+
+    \begin{tabularx}{\textwidth}{lllX}
+        \toprule
+        \textbf{Signal name} & \textbf{Path name} & \textbf{r/w} & \textbf{Description} \\
+        \midrule
+        \flag{core\_rst}         & \flag{core/rst}         & w  & Reset \device{core}. \\
+        \flag{core\_circular}    & \flag{core/circular}    & rw & Enable circular convolution. \\
+        \flag{core\_ov\_cmul}    & \flag{core/ov\_cmul}    & r  & Indicates complex multiplication overflow. \\
+        \flag{core\_ov\_ifft}    & \flag{core/ov\_ifft}    & r  & Indicates inverse \gls{fft} overflow. \\
+        \flag{core\_ov\_fft}     & \flag{core/ov\_fft}     & r  & Indicates \gls{fft} overflow. \\
+        \flag{core\_start}       & \flag{core/start}       & rw & Start filter execution. \\
+        \flag{core\_iq}          & \flag{core/iq}          & rw & Enable \gls{iq} demodulation. \\
+        \flag{core\_n}           & \flag{core/n}           & rw & Transform size in $\log_2(\gls{nfft})$ (3-12). \\
+        \flag{core\_scale\_cmul} & \flag{core/scale\_cmul} & rw & Scaling schedule for complex multiplication. \\
+        \flag{core\_L}           & \flag{core/L}           & rw & \gls{L}. See \cref{sec:overlap_add}. \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Register 3 (0x0C)}
+\end{figure}
+
+\begin{figure}[h]
     \regfield{tx\_mulq}{16}{16}{0}%
     \regfield{tx\_muli}{16}{0}{0}%
     \reglabel{Reset}\regnewline%
-    \begin{regdesc}\begin{reglist}[tx\_mulq]
-        \item[tx\_mulq] See \cref{sec:smbv_interface}.
-        \item[tx\_muli] See \cref{sec:smbv_interface}.
-    \end{reglist}\end{regdesc}
-\end{register}
-\begin{register}{h}{reg(5)}{0x14}%
-    \label{reg5}%
+
+    \vspace{3mm}
+
+    \begin{tabularx}{\textwidth}{llllX}
+        \toprule
+        \textbf{Signal name} & \multicolumn{2}{c}{\textbf{Path name}} & \textbf{r/w} & \textbf{Description} \\
+        \midrule
+        \flag{tx\_muli} & \flag{transmitter/muli} & \multirow{2}{*}{\flag{transmitter.mul}} & rw  & \multirow{2}{*}{$\glsdisp{GammaL}{\Gamma_{L,set}}$} \\
+        \flag{tx\_mulq} & \flag{transmitter/mulq} &                                         & rw  & \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Register 4 (0x10)}
+\end{figure}
+
+\begin{figure}[h]
     \regfield{tx\_shift}{4}{28}{0}%
     \regfield{Reserved}{2}{26}{0}%
     \regfield{tx\_ovfl}{1}{25}{0}%
@@ -4598,25 +4633,29 @@ and processed verification results necessary to build this document can be found
     \regfield{tx\_dc\_balance}{1}{17}{0}%
     \regfield{tx\_deskew}{1}{16}{0}%
     \regfield{tx\_frame\_offset}{16}{0}{0}%
-    \reglabel{Reset}\regnewline%
-    \begin{regdesc}\begin{reglist}[tx\_frame\_offset]
-        \item[tx\_shift] Scaling schedule for complex multiplication. Valid values 0-15.
-        \item[tx\_ovfl] 1 if an overflow occurred in the complex multiplier.
-            Write a 0 to this bit to reset the overflow.
-        \item[tx\_sat] Enable saturation for complex multiplier.
-        \item[tx\_rst] Writing a 1 to this bit resets \device{outbuf}.
-        \item[tx\_resync] Resynchronizes the sample output to
-            tx\_frame\_offset on the internal frame clock.
-        \item[tx\_toggle] Writing a 1 to this bit switches the output buffers.
-        \item[tx\_dc\_balance] Turns DC balance on for the output. (See
-            \cite{ds90cr485}).
-        \item[tx\_deskew] Writing a 1 to this bit starts a deskew cycle. (See
-            \cite{ds90cr485}).
-        \item[tx\_frame\_offset] Frame offset.
-    \end{reglist}\end{regdesc}
-\end{register}
-\begin{register}{h}{intr}{0x220}%
-    \label{intr}%
+    \reglabel{Reset}\regnewline
+
+    \vspace{3mm}
+
+    \begin{tabularx}{\textwidth}{lllX}
+        \toprule
+        \textbf{Signal name} & \textbf{Path name} & \textbf{r/w} & \textbf{Description} \\
+        \midrule
+        \flag{tx\_shift}         & \flag{transmitter/shift}         & rw & Scaling schedule output multiplier (0-15). \\
+        \flag{tx\_ovfl}          & \flag{transmitter/ovfl}          & r  & Indicates output multiplier overflow. Write a 0 to reset overflow. \\
+        \flag{tx\_sat}           & \flag{transmitter/sat}           & rw & Enable saturation for complex multiplier. \\
+        \flag{tx\_rst}           & \flag{transmitter/rst}           & w  & Reset \device{outbuf}. \\
+        \flag{tx\_resync}        & \flag{transmitter/resync}        & w  & Resynchronize sample buffer to input buffer. \\
+        \flag{tx\_toggle}        & \flag{transmitter/toggle}        & w  & Toggle output buffers. \\
+        \flag{tx\_dc\_balance}   & \flag{transmitter/dc\_balance}   & rw & Enable \gls{dc} balance for output \cite{ds90cr485}. \\
+        \flag{tx\_deskew}        & \flag{transmitter/deskew}        & w  & Start deskew cycle \cite{ds90cr485}. \\
+        \flag{tx\_frame\_offset} & \flag{transmitter/frame\_offset} & rw & Frame offset. \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Register 5 (0x14)}
+\end{figure}
+
+\begin{figure}[h]
     \regfield{Reserved}{19}{13}{0}%
     \regfield{auto\_stop}{1}{12}{0}%
     \regfield{auto\_start}{1}{11}{0}%
@@ -4631,14 +4670,31 @@ and processed verification results necessary to build this document can be found
     \regfield{rec1\_valid}{1}{2}{0}%
     \regfield{rec0\_invalid}{1}{1}{0}%
     \regfield{rec0\_valid}{1}{0}{0}%
-    \reglabel{Reset}\regnewline%
-\end{register}
-\FloatBarrier %FIXME
-\begingroup
-\renewcommand{\cleardoublepage}{}
-\renewcommand{\clearpage}{}
+    \reglabel{Reset}\regnewline
+
+    \vspace{3mm}
+
+    \begin{tabularx}{\textwidth}{llX}
+        \toprule
+        \textbf{Signal name} & \textbf{Path name} & \textbf{Description} \\
+        \midrule
+        \flag{auto\_stop}      & \flag{intr/auto\_stop}      & Automatic mode stopped.\\
+        \flag{auto\_start}     & \flag{intr/auto\_start}     & Automatic mode started.\\
+        \flag{tx\_ovfl}        & \flag{intr/tx\_ovfl}        & Transmitter overflow.\\
+        \flag{tx\_toggled}     & \flag{intr/tx\_toggled}     & Output buffer toggled.\\
+        \flag{core\_done}      & \flag{intr/core\_done}      & Filtering done.\\
+        \flag{avg\_done}       & \flag{intr/avg\_done}       & Averaging done.\\
+        \flag{trigd}           & \flag{intr/trigd}           & Triggered.\\
+        \flag{stream\_invalid} & \flag{intr/stream\_invalid} & Stream data invalid (\gls{adc} disconnected).\\
+        \flag{stream\_valid}   & \flag{intr/stream\_valid}   & Stream data valid (\gls{adc} connected).\\
+        \flag{rec(n)\_invalid} & \flag{intr/rec(n)\_invalid} & Receiver n data invalid (\gls{adc} disconnected).\\
+        \flag{rec(n)\_valid}   & \flag{intr/rec(n)\_valid}   & Receiver n data valid (\gls{adc} connected).\\
+        \bottomrule
+    \end{tabularx}
+    \caption{Interrupt Register (0x220)}
+\end{figure}
+
 \chapter{Build Instructions}
-\endgroup
 \section{Hardware}
 \label{sec:build:hw}
 
@@ -4666,14 +4722,31 @@ These commands build the complete image including all the necessary software. Th
 can be found in the directory {\ttfamily output/images/}. The kernel image called {\ttfamily simpleImage.virtex440-final.elf} needed for booting
 the processor is in the folder {\ttfamily output/build/linux-3.18.6/arch/powerpc/boot/}.
 
+\chapter{Used Equipment}
+\label{sec:instruments}
+
+\begin{longtable}{ll}
+    Directional Coupler \device{dir1} & Krytar Model 1850\\
+    Directional Coupler \device{dir2} & Krytar Model 1850\\
+    Attenuator \device{att1}          & \SI{10}{\deci\bel} Mini-Circuits VAT-10W2+\\
+    Frequency mixer \device{mix1}     & Hittite HMC208MS8E \\
+    Low pass filter \device{lp2}      & Mini-Circuits SLP-90+\\
+    \gls{adc} \device{adc1}           & Linear Technology 1151A-D Eval Board (LTC2274) \\
+    \gls{fpga}                        & Xilinx ML507 Eval Board (XC5VFX70T) \\
+    Vector signal generator           & Rhode \& Schwarz SMBV100a \\
+    \gls{lo} \device{lo1}             & Rhode \& Schwarz SMIQ 06B \\
+    \gls{lo} \device{lo2}             & Rhode \& Schwarz SMGU \\
+    Oscilloscope                      & Agilent Technologies MSO7104A \\
+    2. Oscilloscope                   & Agilent Technologies MSO7104A \\
+    Trigger                           & Hewlett Packard 33120A \\
+    Stub tuner                        & Maury Microwave 1819B \\
+    Calibration Kit                   & Rhode \& Schwarz ZV-Z132 (female) \\
+    \gls{vna} (\gls{dut})             & Agilent Technologies E8364A\\
+    \hspace{2em} calibrated with      & Agilent Technologies N4433A\\
+\end{longtable}
+
 \bibliographystyle{IEEEtran}
 \bibliography{main}
-
-\section*{Copyright}
-This work is licensed under the Creative Commons Attribution 4.0 International
-License. To view a copy of this license, visit
-\url{http://creativecommons.org/licenses/by/4.0/} or send a letter to Creative
-Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
 
 \begin{otherlanguage}{ngerman}
     \chapter*{Code of Conduct}
