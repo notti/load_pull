@@ -1311,7 +1311,7 @@ filter is used as alias filter \device{bp1}.
             \draw [thick,-latex,dashed] ($\x*(2,0) + 0.3*(2,0)$) -- ($\x*(2,0) + 0.3*(2,0) + (0,0.8)$);
         }
     \end{tikzpicture}
-    \caption{Down conversion frequency spectra ($\gls{fs} = \SI{100}{\mega\hertz}$).}
+    \caption{Down conversion frequency spectra ($\gls{fs} = \SI{100}{\mega\hertz}$)}
     \label{fig:downconversion}
 \end{figure}
 
@@ -1635,7 +1635,7 @@ subsequences of length \gls{L} (see \cref{fig:overlap_add}).
               (4,13em) -- (5,10.5em) -- (5,7.5em)
               (6,13em) -- (7,10.5em) -- (7,4.5em);
     \end{tikzpicture}
-    \caption{Overlap add algorithm (linear convolution, with circular in red). }
+    \caption{Overlap add algorithm (linear convolution, with circular in red)}
     \label{fig:overlap_add}
 \end{figure}
 Therefore $x\XN$ can
@@ -1691,7 +1691,8 @@ at the digital \gls{iq} port. A photo of the implemented pin header to digital \
 the fix can be seen in \cref{fig:iq_adapter_circ}.
 
 \begin{figure}[htb]
-    \begin{subfigure}[c]{.45\linewidth}
+    \centering
+    \begin{subfigure}[c]{.49\linewidth}
         \centering
         \begin{tikzpicture}
             \node[anchor=south west,inner sep=0pt] (image) at (0,0) {\includegraphics[width=\textwidth]{adc.jpg}};
@@ -1706,11 +1707,11 @@ the fix can be seen in \cref{fig:iq_adapter_circ}.
                 \draw (1,0.35) node[anchor=south east] {SATA};
             \end{scope}
         \end{tikzpicture}
-        \caption{\gls{adc} adapter circuit board with disconnected clock line, atop the LTC2274 demo board}
+        \caption{\gls{adc} adapter board with diconnected clock atop LTC2274 demo board}
         \label{fig:adc_adapter_circ}
     \end{subfigure}%
     ~
-    \begin{subfigure}[c]{.45\linewidth}
+    \begin{subfigure}[c]{.49\linewidth}
         \centering
         \begin{tikzpicture}
             \node[inner sep=0pt] (image) at (0,0) {\includegraphics[width=\textwidth]{digital_iq.jpg}};
@@ -1866,7 +1867,7 @@ and as a communication bridge to the \gls{pc}. The complete source codes can be 
         \caption{Digital signal processing chain}
         \label{fig:digital_chain}
     \end{subfigure}
-    \caption{\gls{fpga} design overview and digital signal processing chain with color coded modules.}
+    \caption{\gls{fpga} design overview and digital signal processing chain with color coded modules}
     \label{fig:fpga_overview}
 \end{figure}
 
@@ -2015,7 +2016,7 @@ in \cref{sec:auto}.
         \caption{Digital signal processing chain}
         \label{fig:digital_chain1}
     \end{subfigure}
-    \caption{\device{main} module overview and digital signal processing chain with color coded modules.}
+    \caption{\device{main} module overview and digital signal processing chain with color coded modules}
     \label{fig:main_overview}
 \end{figure}
 
@@ -3336,7 +3337,7 @@ A screen shot of the web interface can be seen in \cref{fig:webinterface}.
 \begin{figure}[htb]
     \centering
     \includegraphics[width=\textwidth]{webinterface}
-    \caption{Screen shot of the web interface.}
+    \caption{Screen shot of the web interface}
     \label{fig:webinterface}
 \end{figure}
 
@@ -3580,7 +3581,7 @@ The iterative target algorithm used in this work makes the following steps:
         \draw ($(compute-s-0)!.5!(set-s-0)$) -- ++(3,-1.5) node[draw,fill=Set2-4-3] {Set new $\glsdisp{GammaL}{\Gamma_{L,set}}$};
         \draw ($(set-s-0)!.5!(pause-s-0)$) -- ++(1,-0.5) node[draw,fill=Set2-4-4] {Pause};
     \end{tikzpicture}
-    \caption{Visualization of the different phases of the \gls{fpga} implementation and target algorithm over time (not to scale).}
+    \caption{Visualization of the different phases of the \gls{fpga} implementation and target algorithm over time (not to scale)}
     \label{fig:phases}
 \end{figure}
 
@@ -4146,7 +4147,7 @@ seen in \cref{fig:filter}.
             \addlegendentry{$0.5 \Angle \SI{135}{\degree}$}
         \end{axis}
     \end{tikzpicture}
-    \caption{Uncalibrated and calibrated filter transfer functions.}
+    \caption{Uncalibrated and calibrated filter transfer functions}
     \label{fig:filter}
 \end{figure}
 
@@ -4257,7 +4258,7 @@ precision of the filter implementation of \device{fir1} (see \cref{sec:overlap_a
         \end{tikzpicture}
         \caption{$mean(0.5 \Angle \SI{135}{\degree}, 0.5 \Angle \SI{-45}{\degree})$}
     \end{subfigure}
-    \caption{11 by 11 grid of reflection measurements over maximum range of $\glsdisp{GammaL}{\Gamma_{L,set}}$ values with calibrated filter at distinct calibration points.}
+    \caption{11 by 11 grid of reflection measurements over maximum range of $\glsdisp{GammaL}{\Gamma_{L,set}}$ values with calibrated filter at distinct calibration points}
     \label{fig:calibrated_filter}
 \end{figure}
 
@@ -4300,7 +4301,7 @@ it was left out of the plot.
             \addplot[blue] table {testdata/phase/single.data};
         \end{axis}
     \end{tikzpicture}
-    \caption{Phase drift of $\gls{GammaL}$ over time ($\glsdisp{GammaL}{\Gamma_{L,start}} = 1$).}
+    \caption{Phase drift of $\gls{GammaL}$ over time ($\glsdisp{GammaL}{\Gamma_{L,start}} = 1$)}
     \label{fig:phase_single}
 \end{figure}
 
@@ -4367,7 +4368,7 @@ for \SI{1000}{\minute}.
             \draw (upsource) -- ++(0,1.8) -| (oszi2.A2);
         }
     \end{tikzpicture}
-    \caption{Phase drift measurement setup.}
+    \caption{Phase drift measurement setup}
     \label{fig:setup_phase_single}
 \end{figure}
 
@@ -4406,7 +4407,7 @@ with the highest oscillator accuracy.
             \addlegendentry{\device{lo4}  \SI{900}{\mega\hertz} (ref)}
         \end{axis}
     \end{tikzpicture}
-    \caption{Phase drift of signal generators over time.}
+    \caption{Phase drift of signal generators over time}
     \label{fig:phase_overall}
 \end{figure}
 
