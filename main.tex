@@ -4437,6 +4437,62 @@ the different parts of the measurement setup.
 
 \chapter{Conclusions and Outlook}
 
+Within this thesis a load-pull measurement setup capable of synthesizing
+a constant reflection coefficient over a wide bandwidth was realized. This
+is required to be able to characterize \glspl{pa} used in modern
+communication systems. Furthermore, it allows using modulated signals which
+enables testing \glspl{pa} with modulated signals found in high speed
+communication applications. Additionally the presented load-pull measurement
+system is capable of providing highly reflective environments with
+reflection coefficients $\abs{\gls{GammaL}} > 1$ which is needed for
+e.g. class F \glspl{pa}.
+
+This was achieved by implementing the reflection generation digitally in
+baseband. Additionally the system uses digital \gls{iq} demodulation
+instead of a direct conversion approach which allows using the
+frequency band around \SI{0}{\hertz} and minimizes \gls{iq} imbalance.
+Performing the reflection generation digitally allowed the use of a
+digital filter with fully configurable frequency response which would
+be impossible in the analog domain. This filter allows compensating
+the group delay introduced by the cabling needed in the setup. As has been
+verified in \cref{sec:filter}, this filter allows synthesising constant
+\gls{GammaL} over wide bandwidths. Additionally, this filter helps mitigate
+oscillations at higher frequencies outside the band of interest.
+
+Since the components of the measurement setup cause additional reflections
+and highly non-linear \gls{dut} can experience load-dependent \glspl{sparam},
+an iterative target algorithm was developed. An additional one port \gls{vna}
+was integrated into the setup in order for the target algorithm to determine
+the current \gls{GammaL}. As has been verified in \cref{sec:iterative}, this
+algorithm is capable of reaching specific $\glsdisp{GammaL}{\Gamma_{L,target}}$
+within the possible accuracy of this measurement system. Furthermore, given
+a calibrated one port \gls{vna}, this target algorithm needs no calibration
+allowing for faster setup times.
+
+The implementation of the digital hardware used within this thesis provides
+easy to use communication interfaces. For automating purposes a text based
+interface operating via \gls{tcp} was developed. Accompanying Matlab classes
+allow controlling the complete digital part from within Matlab. Additionally
+a web based interface using a websocket based protocol was designed for
+manual control and status feedback.
+
+This work can be used as a base to build a harmonic load-pull setup capable
+of synthesising a constant reflection coefficient over a wide bandwidth. This
+could be achieved with triplexers for splitting and combining the signal into
+the frequency components and three modules each consisting of down-mixing, an
+\gls{adc}, an \gls{fpga}, and a vector signal generator. Since many components
+implementing the digital signal processing chain could be shared between those
+modules porting the implementation to a \gls{fpga} containing more memory could
+be a viable approach.
+
+Depending on the duration needed for reached \gls{GammaL} by the target
+algorithm further improvements to the setup can be achieved by using better
+\gls{lo}. For instance by using generators that are capable of using reference
+signals with a higher frequency. This would minimize the phase drift which
+has been observed during the verification measurements.
+
+% ===========================================================================
+
 \appendix
 \chapter{Sources and Documentation}
 \section{Source Codes}
