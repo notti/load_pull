@@ -659,7 +659,7 @@ used in modern applications during measurements.
             \draw [-latex] (lo) |- (downmix);
             \draw [-latex] (lo) |- (upmix);
         }
-        \draw [-latex] (gamma) -- (mul);
+        \draw [-latex,double] (gamma) -- (mul);
         { [start chain,every on chain/.style={join=by -latex}]
             \chainin (downmix);
             { [every on chain/.style={join=by {double,-latex}}]
@@ -759,7 +759,7 @@ carrier signal, it can't be filtered out \cite{hashmi_agile_2010}.
             \draw (downsource) -- (downmix);
             \draw (sample) -- (adc);
             \draw [double] (shiftsource) -- (shift);
-            \draw (gamma) -- (mul);
+            \draw[double] (gamma) -- (mul);
             \draw (upsource) -- (upmix);
         }
         { [latex-,dashed,every node/.style={font=\footnotesize}]
@@ -1388,7 +1388,7 @@ the same digital interface (see \cref{sec:digital}).
         }
         { [-latex]
             \draw [double] (shiftsource) -- (shift);
-            \draw (gamma) -- (mul);
+            \draw [double] (gamma) -- (mul);
         }
         { [latex-,dashed,every node/.style={font=\footnotesize}]
             \foreach \device in {shiftsource} {
@@ -1836,7 +1836,7 @@ and as a communication bridge to the \gls{pc}. The complete source codes can be 
             }
             { [-latex]
                 \draw [double,core] (shiftsource) -- (shift);
-                \draw [outbuf] (gamma) -- (mul);
+                \draw [outbuf,double] (gamma) -- (mul);
             }
             { [start chain,every on chain/.style={join=by -latex}]
                 \chainin (adc);
@@ -1986,7 +1986,7 @@ in \cref{sec:auto}.
             }
             { [-latex]
                 \draw [double,core] (shiftsource) -- (shift);
-                \draw [outbuf] (gamma) -- (mul);
+                \draw [outbuf,double] (gamma) -- (mul);
             }
             { [start chain,every on chain/.style={join=by -latex}]
                 \chainin (adc);
@@ -3727,7 +3727,7 @@ instruments can be seen in \cref{sec:instruments}.
             \draw (downsource) -- (downmix);
             \draw (sample) -- (adc);
             \draw [double] (shiftsource) -- (shift);
-            \draw (gamma) -- (mul);
+            \draw [double] (gamma) -- (mul);
             \draw (upsource) -- (upmix);
         }
         { [latex-,dashed,every node/.style={font=\footnotesize}]
