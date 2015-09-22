@@ -286,32 +286,34 @@ pdfpagelabels,
 \end{center}
 
 \begin{abstract}
-    Load-pull is a non-linear measurement system which operates by presenting
-    a specific impedance to a device under test. Active load-pull setups
-    achieve this tasks by presenting a modified wave received from the device
-    under test back to the device. This type of measurement system is
-    needed to characterize non-linear devices like power amplifiers and can
+    Load-pull is a non-linear measurement setup which operates by presenting
+    a specific impedance to a device under test. One type of such setups is active
+    load-pull which achieves these tasks by retransmitting a modified received wave
+    back to the device under test. Generally, a load-pull system is
+    intended to characterize non-linear devices like power amplifiers and can
     also be used to test devices under operating conditions. Traditional
     load-pull measurement systems are narrow band in nature.
 
-    During the course of this thesis an active load-pull measurement system
+    During the course of this thesis an active FPGA based load-pull measurement system
     capable of synthesizing reflections with a constant reflection coefficient
-    over a band width of \SI{20}{\mega\hertz} was developed and verified. This
-    was achieved by generating the reflection in baseband. Additionally instead
+    over a band width of \SI{20}{\mega\hertz} was developed and verified in measurements.
+    The goals were achieved by generating the reflection waveform in baseband. Additionally, instead
     of synthesizing a specific reflection coefficient in the analog domain, the
     digital domain was chosen. This allowed implementing a digital filter with
-    a configurable frequency response, which is needed to correct the group
-    delay introduced by cabling. Furthermore, an iterative target algorithm was
+    a configurable frequency response, which is needed to correct e.g. the group
+    delay introduced by cabling. Furthermore, an iterative target algorithm based on measurements
+    using an also realized 1-port vector network analyzer was
     developed to be able to achieve specific reflection coefficients even with
-    highly non-linear devices which can exhibit load dependent behaviour.
+    highly non-linear devices under test which can exhibit load dependent behaviour.
 
     The digital reflection generation was implemented in hardware on an FPGA.
-    In combination with an efficient pipelined design this allowed for fast
-    update rates. Additionally software running on a processor contained in
+    In combination with an efficient pipelined design this allows for fast
+    update rates. Additionally software running on a processor contained within
     the FPGA was developed to be able to control the digital hardware via
-    Ethernet.
+    Ethernet which is e.g. needed for automated test bench setups.
 
-    Finally the implementation was tested with a commercially available vector
+    Finally the implementation was verified by comparing the realized reflection
+    components to measurements carried out using a commercially available vector
     network analyzer connected to the load-pull setup as the device under
     test.
 \end{abstract}
@@ -328,25 +330,28 @@ pdfpagelabels,
     um ein Bauteil unter realen Bedingungen zu testen. Traditionelle load-pull
     Messsysteme können nur schmalbandige Signale verarbeiten.
 
-    Ziel dieser Diplomarbeit ist die Entwicklung und Verifizierung eines aktiven
+    Ziel dieser Diplomarbeit ist die Entwicklung eines aktiven
     load-pull Messsystems, das breitbandige Reflexionen mit einem konstanten
     Reflexionskoeffizienten, über eine Bandbreite von \SI{20}{\mega\hertz},
     erzeugen kann. Dies wurde mittels digitaler Reflexionserzeugung im Basisband
-    erzielt. Die digitale Implementierung erlaubt die Verwendung eines digitalen
+    erzielt. Die digitale Implementierung erlaubt die Verwendung eines
     Filters mit einem frei wählbaren Frequenzgang. Dieser Filter wird benötigt
-    um die Gruppenlaufzeit, welche von den Kabeln im Messaufbau verursacht wird,
-    auszugleichen. Zusätzlich wurde ein iterativer Algorithmus entworfen
-    um gewünschte Reflexionskoeffizienten erzeugen zu können, auch für
-    Prüfobjekte die lastabhängiges Verhalten zeigen.
+    um z.B. die Gruppenlaufzeit, welche von den Kabeln im Messaufbau verursacht wird,
+    auszugleichen. Zusätzlich wurde ein iterativer Algorithmus entworfen, der basierend
+    auf Messungen eines zusätzlich implementierten Netzwerkanalysators,
+    gewünschte Reflexionskoeffizienten erzeugen kann. Dies wird benötigt um Prüfobjekte
+    mit lastabhängigem Verhalten testen zu können.
 
     Die digitale Reflexionserzeugung ist in Hardware in einem FPGA implementiert.
     Diese effiziente pipeline-basierende Implementierung erlaubt hohe
     Aktualisierungsraten. Weiters wurde eine Kommunikationssoftware entwickelt, die
     auf dem in dem FPGA integrierten Prozessor läuft. Damit wird die Fernsteuerung
-    der digitalen Hardware mittels Ethernet ermöglicht.
+    der digitalen Hardware mittels Ethernet ermöglicht, was z.B. in automatisierten
+    Prüfstandsaufbauten benötigt wird.
 
-    Abschliessend wurde das Messsystem mit einem kommerziell verfügbaren vektoriellen
-    Netzwerkanalysator anstelle eines Prüfobjekts getestet.
+    Abschließend wurde das Messsystem verifiziert indem die erzeugten Reflexionskomponenten
+    mit Messungen eines kommerziell verfügbaren vektoriellen Netzwerkanalysator
+    verglichen wurden.
 \end{abstract}
 \end{otherlanguage}
 
