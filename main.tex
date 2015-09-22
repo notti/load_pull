@@ -285,24 +285,67 @@ pdfpagelabels,
 \end{center}
 
 \begin{abstract}
-    %TODO
-    \begin{itemize}
-        \item RFPA
-        \item load-pull
-        \item the one in this work
-        \item verification
-    \end{itemize}
+    Load-pull is a non-linear measurement system which operates by presenting
+    a specific impedance to a device under test. Active load-pull setups
+    achieve this tasks by presenting a modified wave received from the device
+    under test back to the device. This type of measurement system is
+    needed to characterize non-linear devices like power amplifiers and can
+    also be used to test devices under operating conditions. Traditional
+    load-pull measurement systems are narrow band in nature.
+
+    During the course of this thesis an active load-pull measurement system
+    capable of synthesizing reflections with a constant reflection coefficient
+    over a band width of \SI{20}{\mega\hertz} was developed and verified. This
+    was achieved by generating the reflection in baseband. Additionally instead
+    of synthesizing a specific reflection coefficient in the analog domain, the
+    digital domain was chosen. This allowed implementing a digital filter with
+    a configurable frequency response, which is needed to correct the group
+    delay introduced by cabling. Furthermore, an iterative target algorithm was
+    developed to be able to achieve specific reflection coefficients even with
+    highly non-linear devices which can exhibit load dependent behaviour.
+
+    The digital reflection generation was implemented in hardware on an FPGA.
+    In combination with an efficient pipelined design this allowed for fast
+    update rates. Additionally software running on a processor contained in
+    the FPGA was developed to be able to control the digital hardware via
+    Ethernet.
+
+    Finally the implementation was tested with a commercially available vector
+    network analyzer connected to the load-pull setup as the device under
+    test.
 \end{abstract}
 
 \begin{otherlanguage}{ngerman}
+\renewcommand{\abstractname}{Kurzfassung}
 \begin{abstract}
-    %TODO
-    \begin{itemize}
-        \item RFPA
-        \item load-pull
-        \item the one in this work
-        \item verification
-    \end{itemize}
+    Load-pull ist ein nicht lineares Messsystem, bei dem Messungen durchgeführt
+    werden, indem verschiedene spezifische Impedanzen an ein zu prüfendes Objekt
+    angelegt werden. Aktive load-pull Systeme lösen diese Aufgabe, indem sie
+    eine modifizierte Version das Ausgangssignals des Prüfobjekts an dieses
+    zurück schicken. Diese Art Messung wird benötigt, um nicht lineare Bauteile,
+    wie z.B. Verstärker, zu charakterisieren, und kann auch verwendet werden
+    um ein Bauteil unter realen Bedingungen zu testen. Traditionelle load-pull
+    Messsysteme können nur schmalbandige Signale verarbeiten.
+
+    Ziel dieser Diplomarbeit ist die Entwicklung und Verifizierung eines aktiven
+    load-pull Messsystems, das breitbandige Reflexionen mit einem konstanten
+    Reflexionskoeffizienten, über eine Bandbreite von \SI{20}{\mega\hertz},
+    erzeugen kann. Dies wurde mittels digitaler Reflexionserzeugung im Basisband
+    erzielt. Die digitale Implementierung erlaubt die Verwendung eines digitalen
+    Filters mit einem frei wählbaren Frequenzgang. Diese Filter wird benötigt
+    um die Gruppenlaufzeit, welche von den Kabeln im Messaufbau verursacht wird,
+    auszugleichen. Zusätzlich wurde ein iterativer Algorithmus entworfen
+    um gewünschte Reflexionskoeffizienten erzeugen zu können, auch wenn das
+    Prüfobjekt lastabhängiges Verhalten zeigt.
+
+    Die digitale Reflexionserzeugung ist in Hardware in einem FPGA implementiert.
+    Diese effiziente pipelinebasierende Implementierung erlaubt hohe
+    Aktualisierungsraten. Weiters wurde eine Kommunikationssoftware entwickelt, die
+    auf dem in dem FPGA integrierten Prozessor läuft. Diese erlaubt die Fernsteuerung
+    der digitalen Hardware mittels Ethernet.
+
+    Abschliessend wurde das Messsystem mit einem kommerziell verfügbaren Vektor
+    Network Analyzer anstelle des Prüfobjekts getestet.
 \end{abstract}
 \end{otherlanguage}
 
