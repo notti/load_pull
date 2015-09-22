@@ -318,12 +318,12 @@ pdfpagelabels,
 \begin{otherlanguage}{ngerman}
 \renewcommand{\abstractname}{Kurzfassung}
 \begin{abstract}
-    Load-pull ist ein nicht lineares Messsystem, bei dem Messungen durchgeführt
-    werden, indem verschiedene spezifische Impedanzen an ein zu prüfendes Objekt
-    angelegt werden. Aktive load-pull Systeme lösen diese Aufgabe, indem sie
-    eine modifizierte Version das Ausgangssignals des Prüfobjekts an dieses
-    zurück schicken. Diese Art Messung wird benötigt, um nicht lineare Bauteile,
-    wie z.B. Verstärker, zu charakterisieren, und kann auch verwendet werden
+    Load-pull ist ein nicht lineares Messsystem bei dem Messungen durchgeführt
+    werden indem verschiedene spezifische Impedanzen an ein zu prüfendes Objekt
+    angelegt werden. Aktive load-pull Systeme lösen diese Aufgabe indem sie
+    eine modifizierte Version des Ausgangssignals des Prüfobjekts an dieses
+    zurück schicken. Diese Art Messung wird benötigt um nicht lineare Bauteile,
+    wie z.B. Verstärker, zu charakterisieren und kann auch verwendet werden
     um ein Bauteil unter realen Bedingungen zu testen. Traditionelle load-pull
     Messsysteme können nur schmalbandige Signale verarbeiten.
 
@@ -332,20 +332,20 @@ pdfpagelabels,
     Reflexionskoeffizienten, über eine Bandbreite von \SI{20}{\mega\hertz},
     erzeugen kann. Dies wurde mittels digitaler Reflexionserzeugung im Basisband
     erzielt. Die digitale Implementierung erlaubt die Verwendung eines digitalen
-    Filters mit einem frei wählbaren Frequenzgang. Diese Filter wird benötigt
+    Filters mit einem frei wählbaren Frequenzgang. Dieser Filter wird benötigt
     um die Gruppenlaufzeit, welche von den Kabeln im Messaufbau verursacht wird,
     auszugleichen. Zusätzlich wurde ein iterativer Algorithmus entworfen
-    um gewünschte Reflexionskoeffizienten erzeugen zu können, auch wenn das
-    Prüfobjekt lastabhängiges Verhalten zeigt.
+    um gewünschte Reflexionskoeffizienten erzeugen zu können, auch für
+    Prüfobjekte die lastabhängiges Verhalten zeigen.
 
     Die digitale Reflexionserzeugung ist in Hardware in einem FPGA implementiert.
-    Diese effiziente pipelinebasierende Implementierung erlaubt hohe
+    Diese effiziente pipeline-basierende Implementierung erlaubt hohe
     Aktualisierungsraten. Weiters wurde eine Kommunikationssoftware entwickelt, die
-    auf dem in dem FPGA integrierten Prozessor läuft. Diese erlaubt die Fernsteuerung
-    der digitalen Hardware mittels Ethernet.
+    auf dem in dem FPGA integrierten Prozessor läuft. Damit wird die Fernsteuerung
+    der digitalen Hardware mittels Ethernet ermöglicht.
 
-    Abschliessend wurde das Messsystem mit einem kommerziell verfügbaren Vektor
-    Network Analyzer anstelle des Prüfobjekts getestet.
+    Abschliessend wurde das Messsystem mit einem kommerziell verfügbaren vektoriellen
+    Netzwerkanalysator anstelle eines Prüfobjekts getestet.
 \end{abstract}
 \end{otherlanguage}
 
