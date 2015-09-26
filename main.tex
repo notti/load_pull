@@ -571,7 +571,7 @@ Those have to be calibrated before use and typically synthesize around \num{1000
 If higher $\abs{\gls{GammaL}}$-levels  are needed (even levels \num{> 1}), active \gls{lp} setups
 have to be used. There are two categories: Closed- and open-loop.
 
-Active closed loop \gls{lp} setups generate a modified reflected wave $\gls{a}[_2]$ by
+Active closed loop \gls{lp} setups synthesize a modified reflected wave $\gls{a}[_2]$ by
 modifying the phase and magnitude of $\gls{b}[_2]$ and feeding it back to the \gls{dut}.
 The functional block diagram, which can be seen in \Cref{fig:active_closed_loop},
 is an example of such an active closed loop \gls{lp} setup. With the circulator
@@ -612,13 +612,13 @@ is to introduce a bandpass filter into the loop.
     \label{fig:active_closed_loop}
 \end{figure}
 
-Active open loop \gls{lp} setups work by generating a phase coherent wave with
+Active open loop \gls{lp} setups work by synthesizing a phase coherent wave with
 an external signal generator (see \cref{fig:active_open_loop}). The open loop
 approach has the advantage, that no loop oscillations are possible, since there is no closed loop.
-It works by generating a signal with a source that is locked to the generator driving the
+It works by synthesizing a signal with a source that is locked to the generator driving the
 source port of the \gls{dut}. Phase and magnitude can be adjusted with the attenuator and
 phase shifter. Additionally the amplifier has to be protected from possibly damaging input signals
-with an isolator. A disadvantage of the open loop system is that the generated waves $\gls{a}[_2]$ are
+with an isolator. A disadvantage of the open loop system is that the synthesized waves $\gls{a}[_2]$ are
 not derived from $\gls{b}[_2]$. This implies that the reflection coefficient $\gls{GammaL}$ not only
 depends on the phase shifter and attenuator settings, but also on the \gls{dut} itself.
 Therefore, an iterative approach is needed to be able to achieve a specific $\gls{GammaL}$ \cite{muller_comparison_1994}.
