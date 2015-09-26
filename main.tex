@@ -51,6 +51,7 @@
     ]{siunitx}
 \DeclareSIUnit \belm {Bm}
 \DeclareSIUnit \belfs {BFS}
+\DeclareSIUnit \vrms {\volt{}_{RMS}}
 \DeclareSIUnit \samples {S}
 
 %plots
@@ -228,7 +229,7 @@ pdfpagelabels,
 \newMsymbol{nfft}{n_{\textnormal{fft}}}{fast Fourier transform size}{nfft}
 \newMsymbol{DFT}{\mathcal{DFT}}{discrete Fourier transform}{dft}
 \newMsymbol{FFT}{\mathcal{FFT}}{fast Fourier transform}{fft}
-\newMsymbol{xn}{x[n]}{sampled signal of length $n$ or at sample position $n$}{xn}
+\newMsymbol{xn}{x[n]}{sampled signal $x$ at sample position $n$}{xn}
 
 \newcommand{\XN}{\glsdisp{xn}{[n]}}
 
@@ -656,13 +657,13 @@ variation of the reflection coefficient \gls{GammaL} should be minimized at
 the load reference plane. Because of phase variations caused by cable connections
 needed to reach the \gls{dut}, all of the above mentioned setups are only capable
 of synthesizing narrowband reflections. Therefore, a phase correction is
-needed for broadband measurements which are needed for modulated signals used
+needed for wideband measurements which are needed for modulated signals used
 in modern communication systems.
 
 During the course of this thesis an active closed loop \gls{lp} system that uses a digital
 filter for phase correction is presented. With this filter reflections with minimal
 \gls{GammaL} variation at the load reference plane over a bandwidth of
-\SI{20}{\mega\hertz} can be synthesized. This broadband system works by modifying
+\SI{20}{\mega\hertz} can be synthesized. This wideband system works by modifying
 the incoming wave $\gls{b}[_2]$ according to the desired \gls{GammaL}, applying
 a negative phase correction by filtering the signal, and sending the modified wave
 back to the device. Because of the negative phase correction this is only possible
@@ -673,14 +674,14 @@ for a later repetition of the signal. Therefore, only cyclic signals can be used
 \chapter{\glsentryshort{fpga}-based Load-Pull Measurement System}
 \label{chap:measurement_system}
 
-The aim of this thesis was to setup a broadband active \gls{lp} measurement system, capable of providing a bandwidth of \SI{20}{\mega\hertz}.
+The aim of this thesis was to setup a wideband active \gls{lp} measurement system, capable of providing a bandwidth of \SI{20}{\mega\hertz}.
 As mentioned in \cref{chap:introduction} these traditional classic systems can only synthesize
-narrow band reflections. To overcome these limitations an \gls{elp} measurement system, which
-synthesizes the reflections in the digital domain, was chosen as the base for this work. This approach solves the stability problem
+narrowband reflections. To overcome these limitations an \gls{elp} measurement system, which
+synthesizes the reflections in the digital domain, was chosen as the base for this work. This approach solves part of the stability problem
 and the problem of the \gls{if} calibration with a fully configurable digital \gls{fir} filter. Furthermore,
 this filter is capable of compensating the group delay caused by the measurement setup and
 the cabling needed to reach the \gls{dut}. This allows synthesizing constant reflection
-coefficients over a broad bandwidth, which in turn allows the use of modulated signals
+coefficients over a wide bandwidth, which in turn allows the use of modulated signals
 used in modern applications during measurements.
 
 \begin{figure}[htb]
@@ -694,13 +695,13 @@ used in modern applications during measurements.
               node[coordinate,right=of circ,yshift=1.5cm] (uppernode) {}
               node[coordinate,right=of circ,yshift=-1.5cm] (lowernode) {}
 
-              node[amplifier,right=0.5 of lowernode,label=above:amp] (amp) {}
+              node[amplifier,right=0.5 of lowernode,label=below:amp] (amp) {}
               node[mixer,right=of amp,label=below:mix2] (upmix) {}
 
               (uppernode -| upmix) node[mixer,label=above:mix1] (downmix) {}
 
               ($(upmix)!.5!(downmix)$) node[mixer] (mul) {}
-              node[rotate=90,anchor=south] at (mul.west) {mul}
+              node[anchor=east] at (mul.west) {mul}
 
               node[right=0.5 of mul] (gamma) {$\glsdisp{GammaL}{\Gamma_{L,set}} = X + \gls{j} Y$}
               node[source,right=0.5 of gamma,scale=0.7,label=right:\gls{f0}] (lo) {};
@@ -739,21 +740,35 @@ used in modern applications during measurements.
     \label{fig:elp}
 \end{figure}
 
-Instead of traditional active closed loop \gls{lp}, this system generates the
+Instead of traditional active closed loop \gls{lp}, this system synthesizes the
 load coefficient at baseband or \gls{if}. The basic principle of this \gls{elp} system
 can be seen in \cref{fig:elp}. A circulator is used to split the incident and
 reflected wave. The mixer \device{mix1} is used for shifting the spectrum to
 the baseband and for \gls{iq} demodulation. This \gls{iq} signal is then
 multiplied by the complex valued $\glsdisp{GammaL}{\Gamma_{L,set}}$ (\device{mul1}), thus creating a specific
 reflection coefficient $\gls{GammaL}$. Mixer \device{mix2} is used for modulating
-the \gls{iq} signal and upconverting the signal back to the desired \gls{rf} \cite{williams_experimental_2005}.
+the \gls{iq} signal and upconverting the signal back to the desired frequency \cite{williams_experimental_2005}.
 
 The multiplication can be done in the analog domain, as has been described
 by \cite{williams_experimental_2005}. But this has the disadvantage that
-an additional image will be generated by the multiplicator \device{mul1},
+an additional image will be generated by the multiplicator \device{mul1} (\cref{fig:elp}),
 if there are amplitude imbalances in the output
 of the demodulator \device{mix1}. Since this image is very close to the
 carrier signal, it can't be filtered out \cite{hashmi_agile_2010}.
+
+Phase variation with the frequency at the reference plane caused by the
+cabling needed to reach the \gls{dut} prevents the \gls{elp} measurement
+system from synthesizing realistic terminations. Additionally, the frequency
+responses of the components used to build the measurement setup cause variations
+in the magnitude of \gls{GammaL} with the frequency. Therefore, a negative
+phase correction and a magnitude correction is needed. The design in \cite{hashim_active_2008} solves
+this problem with a configurable digital delay line which is able to compensate
+the phase for cyclic signals. However, the design in
+\cite{hashim_active_2008} uses direct conversion, which creates additional
+\gls{dc} components in the \gls{iq} signals. Since these have to be removed
+by filters, the band around \SI{0}{\hertz} is not usable for reflection
+synthesis. Furthermore, the delay line approach can only compensate
+phase differences and has a limited resolution.
 
 \begin{figure}[htb]
     \centering
@@ -877,21 +892,14 @@ carrier signal, it can't be filtered out \cite{hashmi_agile_2010}.
     \label{fig:overall_hf}
 \end{figure}
 
-To overcome these limitations, a digital \gls{elp} similar to the one in
-\cite{hashim_active_2008} was realized within this thesis. The design in \cite{hashim_active_2008}
-uses direct conversion, which creates additional \gls{dc} components in the \gls{iq}
-signals. Since these have to be removed by filters, the band around \SI{0}{\hertz} is
-not usable for reflection generation. Additionally it uses a variable delay line in
-the \gls{fpga}, to compensate the phase difference of multiple carriers. The design presented in
-\cref{fig:overall_hf} was designed within this thesis keeping these limitations in mind. Instead of direct
-conversion a superheterodyne design was used. Furthermore the delay line was replaced by
-a fully configurable filter \device{fir1}. This filter allows synthesizing reflections with the required bandwidth
-of \SI{20}{\mega\hertz}. It is needed to compensate the frequency response of the rest of the setup.
-Without this filter the reflection coefficient $\gls{GammaL}$ would not be constant over the bandwidth. This
-is caused by the frequency responses of the different components. Furthermore the different frequencies
-equal different wavelengths which in turn experience different phase shifts. Those phase shifts are caused by the geometric
-dimensions of the setup and delays introduced by buffering.
-The setup consists of three distinct parts:
+Instead of direct conversion a superheterodyne design with digital \gls{if} processing
+was used. With this design the band around \SI{0}{\hertz} is usable and the
+measurement system can't exhibit \gls{iq} imbalances. Furthermore, the delay line was replaced by
+a fully configurable filter \device{fir1}. This filter is able to provide a
+negative phase correction for a later repetition of the measured signal $\gls{b}[_2]$.
+Therefore, this filter allows synthesizing reflections with a nearly frequency
+independent \gls{GammaL} over the required bandwidth of \SI{20}{\mega\hertz} for
+cyclic signals. The setup consists of three distinct parts:
 
 \begin{enumerate}
     \item A one port \gls{vna}, to be able to measure the current $\gls{GammaL}$. This part is
@@ -914,8 +922,8 @@ code, in \cref{chap:software}.
 
 The one port \gls{vna} in \cref{fig:vna_part} consists of a directional coupler
 \device{dir1} and an oscilloscope. The directional coupler is needed to split up
-the signal into the incident power wave $\gls{b}[_{2}]$ and the reflected power
-wave $\gls{a}[_{2}]$. With the help of oscilloscope both signals can be measured in the
+the signal into the incident power wave $\gls{b}['_{2}]$ and the reflected power
+wave $\gls{a}['_{2}]$. With the help of oscilloscope both signals can be measured in the
 time domain. Additionally a \gls{pc} connected to the oscilloscope is needed
 for extracting the wave parameters from the measured samples and the necessary
 error correction calculations, which are explained in the rest of this section.
@@ -952,11 +960,11 @@ error correction calculations, which are explained in the rest of this section.
         \draw (leftsplit) node[anchor=base east] {One Port \gls{vna}}
               (leftsplit) node[anchor=base west] {Analog};
 
-        \draw [-latex] ($(dirvna.A2) + (-0.2,0.1)$) -- node[base left] {$\gls{b}[_1]$} ($(oszivna.A1 |- oszimiddle) - (0.2,0.1)$);
+        \draw [-latex] ($(dirvna.A2) + (-0.2,0.1)$) -- node[base left] {$\gls{b}['_2]$} ($(oszivna.A1 |- oszimiddle) - (0.2,0.1)$);
         \begin{pgfonlayer}{foreground}
             \draw [-latex] ($(dirvna.B2) + (0.2,0.1)$) -- node[coordinate] (a1) {} ($(oszimiddle -| dirvna.B2) + (0.2,-0.1)$);
         \end{pgfonlayer}
-        \draw (a1) node[base right,fill=white] {$\gls{a}[_1]$};
+        \draw (a1) node[base right,fill=white] {$\gls{a}['_2]$};
 
         \draw [dashed] ($(plane) + (0,4)$) node[anchor=south] {Load Reference Plane} -- ($(plane) - (0,3)$);
 
@@ -974,33 +982,33 @@ error correction calculations, which are explained in the rest of this section.
     \label{fig:vna_part}
 \end{figure}
 
-As seen in \cref{eq:gl_phase} only $\frac{\gls{a}[_2]}{\gls{b}[_2]}$ is
-of interest for calculating $\gls{Gamma}$. Since only the fraction of the magnitudes
-and the phase difference is needed, the exact point in time, when the signals are
-taken does not matter, as long as both are measured at the same time, which is guaranteed
-by the use of the oscilloscope. Therefore no special triggering or synchronization is necessary.
-
+According to
 \begin{equation}\label{eq:gl_phase}
     \begin{split}
-        \gls{GammaL} & = \frac{\gls{a}[_2]}{\gls{b}[_2]} \\
-                     & = \frac{\abs{\gls{a}[_2]}}{\abs{\gls{b}[_2]}} e^{\gls{j}(\arg{\gls{a}[_2]}-\arg{\gls{b}[_2]})}
+        \glsdisp{GammaL}{\Gamma'_L} & = \frac{\gls{a}['_2]}{\gls{b}['_2]} \\
+                     & = \frac{\abs{\gls{a}['_2]}}{\abs{\gls{b}['_2]}} e^{\gls{j}(\arg{\gls{a}['_2]}-\arg{\gls{b}['_2]})}
     \end{split}
 \end{equation}
+only $\frac{\gls{a}['_2]}{\gls{b}['_2]}$ is
+of interest for calculating $\glsdisp{GammaL}{\Gamma'_L}$. Since only the ratio of the magnitudes
+and the phase difference is needed, the exact point in time, when the signals are
+taken does not matter, as long as both are measured at the same time which is guaranteed
+by the use of the oscilloscope. Therefore, no special triggering or synchronization is necessary.
 
-Magnitude and Phase of the measured waves can be calculated by using
+Magnitude and phase of the measured waves can be calculated by using
 the \gls{dft}. If multiple frequency components are of interest, the computational
 power needed can be lowered by using the \gls{fft}. With both methods
 spectral leakage will occur, which caused by the windowing since only a limited number of samples is used \cite{harris_use_1978}.
 Another problem is that the frequency resolution $\Delta{}\gls{f}$ is limited by the sampling
-frequency and the number of recorded samples (see \cref{eq:fres}). Higher resolutions
+frequency and the number of recorded samples:
+\begin{equation}
+    \label{eq:fres} \Delta{}\gls{f} = \frac{\gls{fs}}{\gls{N}}
+\end{equation}
+Higher resolutions
 can be achieved with a higher sample rate \gls{fs} and/or more samples \gls{N}. Both are oscilloscope and setup
 dependent parameters and potentially increase the time needed for transferring the data to the
 \gls{pc}. A preferably way to improve the results is applying a window function to the
 measured samples.
-
-\begin{equation}
-    \label{eq:fres} \Delta{}\gls{f} = \frac{\gls{fs}}{\gls{N}}
-\end{equation}
 
 The window function used in this work (see \cref{sec:matlab}) is the flat top window.
 This window function has a very high amplitude accuracy \cite{heinzel_spectrum_2002}.
@@ -1011,28 +1019,20 @@ was used (see \cref{sec:matlab} and \cite{matlab_flattop}).
 
 \begin{align}
     \label{eq:k} k & = \left\lfloor \frac{\gls{f}}{\Delta{}\gls{f}} \right\rfloor\\
-    \label{eq:win} w & = \lstinline|flattopwin(|\gls{N}\lstinline|, 'periodic')| \\
-    \label{eq:A} A\XN & = \gls{DFT}(\gls{a}\XN\,w) \\
-    \label{eq:B} B\XN & = \gls{DFT}(\gls{b}\XN\,w) \\
-    \label{eq:gamma_lf} \glsdisp{GammaL}{\Gamma_{L,f}} & = \frac{A\glsdisp{xn}{[k]}}{B\glsdisp{xn}{[k]}}
+    \label{eq:win} w\XN & = \lstinline|flattopwin(|\gls{N}\lstinline|, 'periodic')| \\
+    \label{eq:A} A'\XN & = \gls{DFT}(\gls{a}[']\XN\,w\XN) \\
+    \label{eq:B} B'\XN & = \gls{DFT}(\gls{b}[']\XN\,w\XN) \\
+    \label{eq:gamma_lf} \glsdisp{GammaL}{\Gamma'_{L,k}} & = \frac{A'\glsdisp{xn}{[k]}}{B'\glsdisp{xn}{[k]}}
 \end{align}
 
 Using \cref{eq:fres,eq:k,eq:win,eq:A,eq:B,eq:gamma_lf} the reflection coefficient $\gls{GammaL}$ at
-frequency \gls{f}, with the measured \gls{N} samples $\gls{a}\XN$ of wave $\gls{a}[_2]$ and $\gls{b}\XN$ of wave $\gls{b}[_2]$, can be calculated.
+frequency \gls{f} (frequency bin $k$), with the measured \gls{N} samples $\gls{a}[']\XN$ of wave $\gls{a}['_2]$ and $\gls{b}[']\XN$ of wave $\gls{b}['_2]$, can be calculated.
 First, the frequency resolution $\Delta{}\gls{f}$ is needed, to be able
 to calculate the index $k$ of the frequency bin, which contains the frequency \gls{f}. Next, the window function $w$ with
-length \gls{N} is obtained with the Matlab function \lstinline$flattopwin$ as mentioned earlier. The spectrum of the window function has to be convoluted with the
-spectrum of the samples. This is done with element-wise multiplication in \Cref{eq:A,eq:B} before applying
-the \gls{dft}. After the transformation $A\XN$ and $B\XN$ contain the signals in the frequency domain. Because of the linearity of the \gls{dft}
-\cite{pearson_discrete}, the value at index $k$ can be directly used in \Cref{eq:gl_phase} leading to \cref{eq:gamma_lf}.
-
-The measurements acquired using this type of setup contain systematic errors. These are caused by mismatches and
-imperfections in the equipment, which are the limited directivity of the coupler and imperfect connectors and distort the measurements. Furthermore, the
-needed cabling causes the reference plane to be shifted to another place, than depicted in \cref{fig:vna_part}.
-Those errors can be corrected using vector error correction. By measuring the systematic
-errors with known calibration standards it is possible to calculate the error model and
-use this model to remove the systematic errors from the subsequent measurements
-\cite{agilent_an_1287-3}.
+length \gls{N} is obtained with the Matlab function \lstinline$flattopwin$ as mentioned earlier. This window function is
+element-wise multiplied with the input signal in \Cref{eq:A,eq:B} before applying
+the \gls{dft}. After the transformation $A'\XN$ and $B'\XN$ contain the signals in the frequency domain. Because of the linearity of the \gls{dft}
+\cite{pearson_discrete}, the value at index $k$ can be directly used in \cref{eq:gl_phase} leading to \cref{eq:gamma_lf}.
 
 \begin{figure}[htb]
     \centering
@@ -1044,16 +1044,16 @@ use this model to remove the systematic errors from the subsequent measurements
          column sep=1cm,
          row sep=2cm]
         {
-            |[coordinate]| & &[4cm] & & |[coordinate]| \\
+            |[coordinate]| & &[4cm] &[2cm] & |[coordinate]| \\
             |[coordinate]| & & & & |[coordinate]| \\
         };
-        \draw[-latex] (box-1-1) node[anchor=east] {$\gls{a}[_{1}]$} -- (box-1-2);
+        \draw[-latex] (box-1-1) node[anchor=east] {$\gls{a}[_{1,e}] = \gls{a}['_{2}]$} -- (box-1-2);
         \draw[-latex] (box-1-2) -- node[above] {$1$} (box-1-3);
-        \draw[-latex] (box-1-3) -- node[above] {$\gls{b}[_{2}]$} (box-1-4);
+        \draw[-latex] (box-1-3) -- node[above] {$\gls{b}[_{2,e}] = \gls{a}[_{2,\text{dut}}]$} (box-1-4);
 
-        \draw[latex-] (box-2-1) node[anchor=east] {$\gls{b}[_{1}]$} -- (box-2-2);
+        \draw[latex-] (box-2-1) node[anchor=east] {$\gls{b}[_{1,e}] = \gls{b}['_2]$} -- (box-2-2);
         \draw[latex-] (box-2-2) -- node[above] {$\gls{S}[_{12}]$} (box-2-3);
-        \draw[latex-] (box-2-3) -- node[above] {$\gls{a}[_{2}]$} (box-2-4);
+        \draw[latex-] (box-2-3) -- node[above] {$\gls{a}[_{2}] = \gls{b}[_{2,\text{dut}}]$} (box-2-4);
 
         \draw[-latex] (box-1-2) to[bend left=30] node[right] {$\gls{S}[_{11}]$} (box-2-2);
         \draw[latex-] (box-1-3) to[bend right=30] node[left] {$\gls{S}[_{22}]$} (box-2-3);
@@ -1076,13 +1076,20 @@ use this model to remove the systematic errors from the subsequent measurements
     \label{fig:errorbox}
 \end{figure}
 
+The measurements acquired using this type of setup contain systematic errors. These are caused by mismatches and
+imperfections in the equipment, which are the limited directivity of the coupler and imperfect connectors and distort the measurements. Furthermore, the
+needed cabling causes the reference plane to be shifted to another place, than depicted in \cref{fig:vna_part}.
+Those errors can be corrected using vector error correction. By measuring the systematic
+errors with known calibration standards it is possible to calculate the error model and
+use this model to remove the systematic errors from the subsequent measurements
+\cite{agilent_an_1287-3}.
+
 \Cref{fig:errorbox} depicts the error model for the measurement system in \cref{fig:vna_part}. It
 consists of the \gls{dut} and an error box, containing all the systematic errors of the measurement
 system. This error model can cancel out three different errors:
 \begin{enumerate}
     \item Source match $\gls{S}[_{22}]$, the mismatch between the measurement system and the \gls{dut}.
-    \item Directivity $\gls{S}[_{11}]$, caused by reflections received by the oscilloscope that are
-        not caused by the \gls{dut}.
+    \item Directivity $\gls{S}[_{11}]$, which characterizes signal leakage and imperfections in the coupler.
     \item Reflection tracking $\gls{S}[_{12}]$, which characterizes the difference in the frequency response
         between the two oscilloscope ports, including loss in the couplers, transmission lines, and
         other components.
@@ -1090,20 +1097,20 @@ system. This error model can cancel out three different errors:
 
 From the error model in \cref{fig:errorbox} the following equations can be derived:
 \begin{align}
-    \label{eq:b2} \gls{b}[_{2}] & = \gls{a}[_{1}] + \gls{S}[_{22}] \gls{a}[_{2}]\\
-    \label{eq:b1} \gls{b}[_{1}] & = \gls{S}[_{11}] \gls{a}[_{1}] + \gls{S}[_{12}] \gls{a}[_{2}] \\
-    \label{eq:a2} \gls{a}[_{2}] & = \gls{GammaL} \gls{b}[_{2}]
+    \label{eq:b2} \gls{b}[_{2,e}] & = \gls{a}[_{1,e}] + \gls{S}[_{22}] \gls{a}[_{2,e}]\\
+    \label{eq:b1} \gls{b}[_{1,e}] & = \gls{S}[_{11}] \gls{a}[_{1,e}] + \gls{S}[_{12}] \gls{a}[_{2,e}] \\
+    \label{eq:a2} \gls{a}[_{2,e}] & = \gls{GammaL} \gls{b}[_{2,e}]
 \end{align}
-\Cref{eq:b2,eq:b1,eq:a2,eq:gamma_lf} can be combined into the single \cref{eq:gamma_err}.
-With the help of this equation the corrected reflection coefficient $\gls{GammaL}$ can be calculated.
-$\glsdisp{GammaL}{\Gamma_{L,f}}$ is the measured value from the oscilloscope (see \cref{eq:gamma_lf}) and $\gls{S}[_{22}]$, $\gls{S}[_{11}]$, and $\gls{S}[_{12}]$ denote the different
-error terms mentioned above, that have to be measured and calculated, which is discussed in the following paragraphs.
+\Cref{eq:b2,eq:b1,eq:a2,eq:gamma_lf} can be combined into
 \begin{equation}\label{eq:gamma_err}
     \begin{split}
-        \glsdisp{GammaL}{\Gamma_{L,corr}} & = \frac{\gls{S}[_{22}] - \frac{\gls{b}[_1]}{\gls{a}[_1]}}{\gls{S}[_{11}] \gls{S}[_{22}] - \gls{S}[_{11}]\frac{\gls{b}[_1]}{\gls{a}[_1]} - \gls{S}[_{12}]} \\
-        & = \frac{\gls{S}[_{22}] - \glsdisp{GammaL}{\Gamma_{L,f}^{-1}}}{\gls{S}[_{11}] \gls{S}[_{22}] - \glsdisp{GammaL}{\Gamma_{L,f}^{-1}}\gls{S}[_{11}] - \gls{S}[_{12}]}
+        \glsdisp{GammaL}{\Gamma_{L,\text{corr}}} & = \frac{\gls{S}[_{22}] - \frac{\gls{b}[_{1,e}]}{\gls{a}[_{1,e}]}}{\gls{S}[_{11}] \gls{S}[_{22}] - \gls{S}[_{11}]\frac{\gls{b}[_{1,e}]}{\gls{a}[_{1,e}]} - \gls{S}[_{12}]} \\
+        & = \frac{\gls{S}[_{22}] - \glsdisp{GammaL}{\Gamma_{L,k}^{-1}}}{\gls{S}[_{11}] \gls{S}[_{22}] - \glsdisp{GammaL}{\Gamma_{L,k}^{-1}}\gls{S}[_{11}] - \gls{S}[_{12}]}
     \end{split}
 \end{equation}
+With the help of this equation the corrected reflection coefficient $\gls{GammaL}$ can be calculated.
+$\glsdisp{GammaL}{\Gamma_{L,k}}$ is the measured value from the oscilloscope (see \cref{eq:gamma_lf}) and $\gls{S}[_{22}]$, $\gls{S}[_{11}]$, and $\gls{S}[_{12}]$ denote the different
+error terms mentioned above, that have to be measured and calculated, which is discussed in the following paragraphs.
 
 Since there are three error terms, at least three different measurements have
 to be taken. These measurements are usually conducted using short, open, and load reflection standards from commercially available calibration kits,
@@ -1139,18 +1146,18 @@ be calculated using the values from the data sheet of the used calibration kit.
     \label{eq:move} \gls{Z}[_{in}] & = \gls{Z0} \frac{\gls{ZL} + \gls{j} \gls{Z0} \tan(\beta l)}{\gls{Z0} + \gls{j} \gls{ZL} \tan(\beta l)}
 \end{align}
 
-These values don't incorporated eventual adapters needed for the measurements.
+These values don't incorporate eventual adapters needed for the measurements.
 Hence it is important to use the calibration kit with the correct (the same as the \gls{dut}) gendered connectors, or
 the connectors have to be additionally accounted for in the error corrections.
 
-By using three different $\glsdisp{GammaL}{\Gamma_{L,f}}$ measurements, acquired with each of the three different calibration standards in place of the \gls{dut} in \cref{fig:vna_part},
+By using three different $\glsdisp{GammaL}{\Gamma_{L,k}}$ measurements, acquired with each of the three different calibration standards in place of the \gls{dut} in \cref{fig:vna_part},
 a system of three \cref{eq:gls,eq:glo,eq:glm} can be set up from \cref{eq:gamma_err}. The
-three different $\gls{GammaL}$ and $\glsdisp{GammaL}{\Gamma_{L,f}}$ represent the short ($\gls{Gamma}[_S]$),
+three different $\gls{GammaL}$ and $\glsdisp{GammaL}{\Gamma_{L,k}}$ represent the short ($\gls{Gamma}[_S]$),
 the open ($\gls{Gamma}[_O]$) and the match ($\gls{Gamma}[_M]$) calibration standard.
 \begin{align}
-    \label{eq:gls} \glsdisp{GammaL}{\Gamma_{L_S}} & = \frac{\gls{S}[_{22}] - \glsdisp{GammaL}{\Gamma_{L,f_S}^{-1}}}{\gls{S}[_{11}] \gls{S}[_{22}] - \glsdisp{GammaL}{\Gamma_{L,f_S}^{-1}}\gls{S}[_{11}] - \gls{S}[_{12}]} \\
-    \label{eq:glo} \glsdisp{GammaL}{\Gamma_{L_O}} & = \frac{\gls{S}[_{22}] - \glsdisp{GammaL}{\Gamma_{L,f_O}^{-1}}}{\gls{S}[_{11}] \gls{S}[_{22}] - \glsdisp{GammaL}{\Gamma_{L,f_O}^{-1}}\gls{S}[_{11}] - \gls{S}[_{12}]} \\
-    \label{eq:glm} \glsdisp{GammaL}{\Gamma_{L_M}} & = \frac{\gls{S}[_{22}] - \glsdisp{GammaL}{\Gamma_{L,f_M}^{-1}}}{\gls{S}[_{11}] \gls{S}[_{22}] - \glsdisp{GammaL}{\Gamma_{L,f_M}^{-1}}\gls{S}[_{11}] - \gls{S}[_{12}]}
+    \label{eq:gls} \glsdisp{GammaL}{\Gamma_{L_S}} & = \frac{\gls{S}[_{22}] - \glsdisp{GammaL}{\Gamma_{L,k_S}^{-1}}}{\gls{S}[_{11}] \gls{S}[_{22}] - \glsdisp{GammaL}{\Gamma_{L,k_S}^{-1}}\gls{S}[_{11}] - \gls{S}[_{12}]} \\
+    \label{eq:glo} \glsdisp{GammaL}{\Gamma_{L_O}} & = \frac{\gls{S}[_{22}] - \glsdisp{GammaL}{\Gamma_{L,k_O}^{-1}}}{\gls{S}[_{11}] \gls{S}[_{22}] - \glsdisp{GammaL}{\Gamma_{L,k_O}^{-1}}\gls{S}[_{11}] - \gls{S}[_{12}]} \\
+    \label{eq:glm} \glsdisp{GammaL}{\Gamma_{L_M}} & = \frac{\gls{S}[_{22}] - \glsdisp{GammaL}{\Gamma_{L,k_M}^{-1}}}{\gls{S}[_{11}] \gls{S}[_{22}] - \glsdisp{GammaL}{\Gamma_{L,k_M}^{-1}}\gls{S}[_{11}] - \gls{S}[_{12}]}
 \end{align}
 
 Solving these equations for the error terms $\gls{S}[_{11}]$, $\gls{S}[_{12}]$ and $\gls{S}[_{22}]$
@@ -1161,7 +1168,7 @@ derived using Wolfram Mathematica and are implemented in a Wolfram Mathematica g
 Mathworks Matlab module (see \cref{sec:matlab}).
 
 \begin{align}
-    \label{eq:gamma_replace} \gls{Gamma}[_1] & = \frac{\gls{a}[_1]}{\gls{b}[_1]} = \glsdisp{GammaL}{\Gamma_{L,f}} \\
+    \label{eq:gamma_replace} \gls{Gamma}[_1] & = \frac{\gls{a}[_{1,e}]}{\gls{b}[_{1,e}]} = \glsdisp{GammaL}{\Gamma_{L,k}} \\
     \begin{split}
     \label{eq:g_replace} g & = (\gls{Gamma}[_{1_O}] - \gls{Gamma}[_{1_S}]) \gls{Gamma}[_{1_M}] \glsdisp{GammaL}{\Gamma_{L_O}} \glsdisp{GammaL}{\Gamma_{L_S}} + \glsdisp{GammaL}{\Gamma_{L_M}} ((\gls{Gamma}[_{1_M}] - \gls{Gamma}[_{1_O}]) \gls{Gamma}[_{1_S}] \glsdisp{GammaL}{\Gamma_{L_O}} + (\gls{Gamma}[_{1_S}] - \gls{Gamma}[_{1_M}]) \gls{Gamma}[_{1_O}] \glsdisp{GammaL}{\Gamma_{L_S}})
     \end{split}\\
@@ -1174,6 +1181,14 @@ Mathworks Matlab module (see \cref{sec:matlab}).
 
 \section{Analog Part}
 \label{sec:analog}
+
+The analog part, which was designed for the \gls{elp} system can be seen in
+\cref{fig:analog}. It consists of everything needed to prepare the signal
+for analog-to-digital conversion and back. Furthermore it contains a
+circulator (\device{circ1}), which is needed for splitting the
+incident power wave $\gls{b}[_2]$ and the reflected power wave $\gls{a}[_2]$. Instead of a
+circulator a directional coupler could be used (see
+\cref{chap:verification} for an example) \cite{ghannouchi_load-pull_2013}.
 
 \begin{figure}[htb]
     \centering
@@ -1267,19 +1282,11 @@ Mathworks Matlab module (see \cref{sec:matlab}).
     \label{fig:analog}
 \end{figure}
 
-The analog part, which was designed for the \gls{elp} system can be seen in
-\cref{fig:analog}. It consists of everything needed to prepare the signal
-for analog-to-digital conversion and back. Furthermore it contains a
-circulator (\device{circ1}), which is needed for uncoupling the
-incident power wave $\gls{b}[_2]$ and the reflected power wave $\gls{a}[_2]$. Instead of a
-circulator a directional coupler could be used (see
-\cref{chap:verification} for an example) \cite{ghannouchi_load-pull_2013}.
-
 The upper analog processing chain in \cref{fig:analog} handles the
 incident power wave $\gls{b}[_2]$. It is responsible for shifting the frequency spectrum
 of the power wave from \gls{rf} to an \gls{if} of \SI{70}{\mega\hertz}. This
-superheterodyn design, with baseband mixing implemented in the digital
-part (see \cref{sec:digital}), was chosen, because it exhibits no amplitude
+superheterodyne design, with baseband mixing implemented in the digital
+part (see \cref{sec:digital}), was chosen because it exhibits no amplitude
 imbalances between I and Q. This setup has the additional feature, that
 the \gls{dc}-component caused by the analog mixer \device{mix1} is outside the
 band of interest at \gls{if}. Therefore there is no gap around \SI{0}{\hertz}
@@ -1381,24 +1388,30 @@ which is caused by the analog mixer. Because of this, even if only single tones
 within the determined bandwith around $\gls{f0}$ are generated, at least a low pass
 has to be used as filter \device{bp1}. As mentioned earlier, the mixer also generates a \gls{dc} component, which is depicted as vertical dashed arrow. During sampling spectral aliases occur. These
 are located at $(k \SI{100}{\mega\hertz} + \SI{70}{\mega\hertz})$ and in mirrored form at
-$(k \SI{100}{\mega\hertz} + \SI{30}{\mega\hertz})$. This mirroring would cause mixing
+$(k \SI{100}{\mega\hertz} - \SI{70}{\mega\hertz})$. This mirroring would cause mixing
 of frequency components around $(\gls{f0} - \SI{40}{\mega\hertz})$ into the band of interest,
 if no bandpass filter is used. The last step is the digital mixer, which shifts
-the spectrum $\SI{30}{\mega\hertz}$ to the right. After that the band of interest lies around
+the spectrum by $\SI{-70}{\mega\hertz}$ which is equivalent to $\SI{+30}{\mega\hertz}$ caused by the \SI{100}{\mega\hertz} sampling. After that the band of interest lies around
 \SI{0}{\hertz} (see \cref{sec:digital}).
 
 The \gls{adc} chosen for this work was an LTC2274. This \SI{16}{\bit} \gls{adc}
 has an input bandwidth of \SI{700}{\mega\hertz} and is capable of
 \SI{105}{\mega\samples\per\second} \cite{ltc2274}. With these specifications and above discussed filtering techniques for limitation of the signal bandwidth it
 is suited for sampling the \gls{if} of \SI{70}{\mega\hertz} with the sample rate
-of \SI{100}{\mega\samples\per\second}. Any other \gls{adc} capable of handling
-these requirements and a similar digital interface (see \cref{sec:digital}) can be used as a drop in
+of \SI{100}{\mega\samples\per\second}. This \gls{adc} has a
+JESD204 compliant high speed serial interface \cite{ltc2274}. This interface uses 8b/10b
+line coding over a \gls{lvds} connection \cite{jesd205B.01}. The line coding
+is responsible for keeping a balanced number of ones and zeros on the line, therefore keeping a long term
+\gls{dc} balance on the line. This allows transmitting the data stream through a high pass
+channel. Clock recovery is also possible, since this protocol ensures frequent transitions
+in the bit stream. Any other \gls{adc} capable of handling
+these requirements and a similar digital interface can be used as a drop in
 replacement for this \gls{elp} system.
 
 Digital to analog conversion and up conversion is handled by the lower analog
 processing chain in \cref{fig:analog}. In this work a signal vector generator
 SMBV100A from Rohde \& Schwarz with digital \gls{iq} input support (R\&S SMBV-K18
-\cite{smbv_100a}) was used for these tasks. Like the \gls{adc} a different
+\cite{smbv_100a}) was used for these tasks. Like for the \gls{adc} a different
 signal vector generator can be used as a drop in replacement, if it uses
 the same digital interface (see \cref{sec:digital}).
 
@@ -1497,13 +1510,20 @@ included into the signal processing chain.
 
 As can be seen in \cref{fig:digital}, a digital representation of the \gls{if}
 signal $\gls{b}[_2]$ is provided by the analog part. As mentioned in \cref{sec:analog}
-a LTC2274 was chosen as \gls{adc}. This \gls{adc} has a
-JESD204 compliant high speed serial interface \cite{ltc2274}. This interface uses 8b/10b
-line coding over a \gls{lvds} connection \cite{jesd205B.01}. The line coding
-is responsible for keeping a balanced number of ones and zeros on the line, therefore keeping a long term
-\gls{dc} balance on the line. This allows transmitting the data stream through a high pass
-channel. Clock recovery is also possible, since this protocol ensures frequent transitions
-in the bit stream.
+the LTC2274 with a JESD204 compatible high speed serial interface was chosen as \gls{adc}.
+Instead of special sequences marking word and byte boundaries during communication the receiver interface has
+to be synchronized before data can be received. During this synchronization mode a JESD204
+compatible serial interface sends a specific code sequence instead of data. This code sequence
+can be used to detect word boundaries and byte ordering. This synchronization mode has to be requested explicitly via dedicated
+pins of the \gls{adc}. In order to minimize needed cabling a communication scheme was
+developed that initiates synchronization mode by briefly stopping the clock signal.
+
+To minimize the hardware development time, a Linear Technology DC1151A-D evaluation board was used
+in this work. This board consists of a \gls{sma} connector for the analog input, two \gls{sma}
+connectors for data+ and data-- of the \gls{lvds} connection, an \gls{sma} connector for clock input
+and two pins to enable the synchronization mode. For easier wiring an adapter circuit
+board was designed to be able to use a \gls{sata} cable for clock and data. Furthermore, a synchronization
+circuit which implements the above mentioned synchronization method was developed.
 
 \begin{figure}[htb]
     \centering
@@ -1512,7 +1532,7 @@ in the bit stream.
         \tikzpicturedependsonfile{rfsymbols.tex}
         \draw (0,0) node[coordinate] (down) {}
             (0,8) node[coordinate] (up) {}
-            (0,4) node[left] {RFIN}
+            (0,4) node[left] {CLK IN}
             to[short,o-] (0.8,4) -- ++(0.4,0) node[contact] (innode) {}
             to[capacitor={info=$C_5$,farad'=10n}] ++(1.8,0) node[draw,right,text width=6em,minimum height=11em] (ad8361) {}
             node[right,font=\tiny] {RFIN} node[above left] {3}
@@ -1571,49 +1591,48 @@ in the bit stream.
     \label{fig:adc_adapter}
 \end{figure}
 
-To minimize the hardware development time, a Linear Technology DC1151A-D evaluation board was used
-in this work. This board consists of a \gls{sma} connector for the analog input, two \gls{sma}
-connectors for data+ and data-- of the \gls{lvds} connection, an \gls{sma} connector for clock input
-and two pins to enable the synchronization mode. For easier wiring an adapter circuit
-board was designed to be able to use a \gls{sata} cable for clock and data. Furthermore the synchronization
-circuit in \cref{fig:adc_adapter} was developed, to start a synchronization cycle by shortly suspending the clock
-signal. The synchronization circuit consists of three parts. The first part is the power detector \device{IC1}
+The synchronization circuit in \cref{fig:adc_adapter} consists of three parts. The first part is the power detector \device{IC1}
 which is connected via \device{$C_5$} to the TX+ pin of the \gls{sata} connector. The TX-- pin of the
 \gls{sata} connector is directly connected to an \gls{sma} connector.
 This enables clocking the \gls{adc} board using a clock signal delivered by the \gls{fpga}. The second part
-is the comparator \device{IC1a}. It is used to define a minimum threshold of \SI{194}{\milli\volt}
-for valid clock signals. The last part is a time delay element. This time delay starts after a valid clock
-signal is detected and lasts for about \SI{25.7}{\milli\second}. During
+is the comparator \device{IC2A}. It is used to define a minimum threshold of about \SI{15}{\milli\vrms}
+for valid clock signals which is determined by \device{$R1$}, \device{$R2$}, and the power detector \device{IC1}. The last part is a time delay element. This time delay starts after a valid clock
+signal is detected and lasts for about \SI{30}{\milli\second}. During
 this time the pins \device{SYNC1} and \device{SYNC2} are connected via the optocoupler \device{OK1}, which
 enables the synchronization mode of the \gls{adc}. The implemented adapter circuit board atop the
 \gls{adc} evaluation board can be seen in \cref{fig:adc_adapter_circ}.
 
 Samples provided via this connection by the \gls{adc} are stored in the sample buffer
-\device{buffer1}. To be able to improve the \gls{snr} of the \gls{adc} this buffer
-was designed with an averaging capability\cite{ad_mt004}. This averaging was implemented by increasing
+\device{buffer1}. As mentioned earlier this \gls{lp} system needs a cyclic signal for
+reflection synthesis. Therefore, the buffer needs to be able to store one or multiple
+periods of the signal. The signal periodicity additionally allows averaging the signal which helps
+improving the \gls{snr} of the \gls{adc} \cite{ad_mt004}. This averaging was implemented by increasing
 the sample size of this buffer to \SI{19}{\bit}. Furthermore, samples can be accumulated
 from up to eight consecutive signal cycles. Averaged samples can then be read by dividing the
 accumulated samples by the number of cycles.
 
 After this buffer, the \gls{if} sampled data is \gls{iq}-demodulated into baseband
-with mixer $mix2$. The \gls{lo} \device{lo3} generates the needed
-\SI{30}{\mega\hertz} sine and cosine waveforms using a fixed lookup table. This
+with mixer \device{mix2}. The \gls{lo} \device{lo3} synthesizes the needed
+\SI{-70}{\mega\hertz} ($\equiv \SI{+30}{\mega\hertz}$ with \SI{100}{\mega\hertz} sampling) sine and cosine waveforms using a fixed lookup table. This
 approach has the advantage of a highly accurate
-\gls{iq}-demodulation without any amplitude or phase imbalances. After base band
+\gls{iq}-demodulation without any amplitude or phase imbalances. After baseband
 conversion, a low pass filter would be needed to
 suppress the aliases generated from the sampling process, as can be seen in
 \cref{fig:downconversion}. This task can also be achieved with the configurable
-filter \device{fir1} in the next processing step. Therefore the aliasing filter
+filter \device{fir1} in the next processing step. Therefore, the aliasing filter
 was left out of the design to keep resource usage at a minimum.
 
 Next in the signal processing chain is the \gls{fir} filter \device{fir1}. As mentioned earlier
 this filter is needed to compensate the group delay and frequency responses caused by the
-measurement setup. Implementing \gls{fir} filters consisting of a high number of filter
+measurement setup. In combination with a cyclic signal this filter is capable of synthesizing
+negative phase shifts which is needed to compensate the group delay introduced by cabling
+needed between the \gls{dut} and the measurement setup.
+Implementing \gls{fir} filters consisting of a high number of filter
 coefficients uses significantly more resources with a tapped delay line than with
-the \gls{fft}. Therfore, the filter \device{fir1} was implemented with linear convolution:
+the \gls{fft}. Therefore, the filter \device{fir1} was implemented with linear convolution:
 \begin{equation}
     \begin{split}
-    \label{eq:circ} y\XN = h\XN * x\XN & = \sum_{k=0}^{\gls{nfft}-1} h\XN{}x\glsdisp{xn}{[n-k]}\\
+    \label{eq:circ} y\XN = h\XN * x\XN & = \sum_{m=0}^{\gls{nfft}-1} h\XN{}x\glsdisp{xn}{[n-m]}\\
          & = \gls{DFT}^{-1}\left\{\gls{DFT}(x\XN)\,H\XN\right\}
     \end{split}
 \end{equation}
@@ -1696,7 +1715,7 @@ subsequences of length \gls{L} (see \cref{fig:overlap_add}).
     \caption[Overlap add algorithm]{Overlap add algorithm (linear convolution, with circular in red)}
     \label{fig:overlap_add}
 \end{figure}
-Therefore $x\XN$ can
+Therefore, $x\XN$ can
 be expressed by a sum of shifted finite-length sequences:
 \begin{equation}
     \label{eq:sum_seq} x\XN = \sum_{i=0}^{\infty} x_i\glsdisp{xn}{[n-i\gls{L}]} \qquad x_i\XN =\begin{cases}
@@ -1717,10 +1736,10 @@ add. A visualisation can be seen in \cref{fig:overlap_add}. The red part in the 
 is the circular extension of the linear convolution, which is done by adding the
 $\gls{nfft} - \gls{L}$ points after the sequence $y\XN$ to the beginning of $y\XN$.
 
-As mentioned earlier the filter \device{fir1} needs a static image of the samples.
-Another requirement is, that samples are continously output to the \gls{dac}. This
-is needed to ensure that the \gls{dut} does not leave eventual bias points during
-measurements. Therefor the buffer \device{buffer2} after the filter was implemented
+The filter \device{fir1} needs exclusive access to the output samples during computation.
+Another requirement is, that samples are continuously output to the \gls{dac}. This
+is needed to ensure that the \gls{dut} does not leave eventual operating points during
+measurements. Therefore, the buffer \device{buffer2} after the filter was implemented
 with double buffering. This means that this sample buffer consists of an active
 and an inactive buffer. The active buffer is used to continuously play back the output
 signal, while the inactive buffer can be used during the filter calculations. After
@@ -2671,7 +2690,7 @@ clock edges resulting in a total of \SI{48}{\bit} per clock cycle \cite{ds90cr48
 As specified by \cite{fsq_b17} \SI{20}{\bit} I data, \SI{20}{\bit} Q data, enable,
 valid, marker bits, and trigger bits need to be encoded in these \SI{48}{\bit}. Enable
 and valid are connected to high in this implementation. The marker and trigger
-bits are not supported by the Rohde \& Schwarz SMBV100a vector signal generator
+bits are not supported by the Rohde \& Schwarz SMBV100A vector signal generator
 in digital \gls{iq} input mode. Therefore these were permanently disabled in this
 work. The \gls{fpga} internal \SI{16}{\bit} \gls{iq} implementation was mapped
 onto the \SI{20}{\bit} link by left shifting the data by \SI{4}{\bit}.
@@ -4852,7 +4871,7 @@ the processor is in the folder {\ttfamily output/build/linux-3.18.6/arch/powerpc
     Low pass filter \device{lp2}      & Mini-Circuits SLP-90+\\
     \gls{adc} \device{adc1}           & Linear Technology 1151A-D Eval Board (LTC2274) \\
     \gls{fpga}                        & Xilinx ML507 Eval Board (XC5VFX70T) \\
-    Vector signal generator           & Rohde \& Schwarz SMBV100a \\
+    Vector signal generator           & Rohde \& Schwarz SMBV100A \\
     \gls{lo} \device{lo1}             & Rohde \& Schwarz SMIQ 06B \\
     \gls{lo} \device{lo2}             & Rohde \& Schwarz SMGU \\
     Oscilloscope                      & Agilent Technologies MSO7104A \\
