@@ -455,7 +455,7 @@ can be seen.
 \end{equation}
 
 One way to evaluate the \glspl{sparam} at a specific frequency would be connecting
-the reference impedance \gls{Z0} to the other ports. To measure e.g. $\gls{S}[_{11}]$ a matching impedance, equal to the ports reference impedance, has to
+the reference impedance \gls{Z0} to the ports which are not under test. For example, to measure $\gls{S}[_{11}]$ of a 2-port, a matching impedance equal to the ports reference impedance has to
 be connected to port 2. According to \cref{eq:s11ref} the reflected wave $\gls{a}[_2]$
 at port 2 is zero in this case. This means that measurements at port 1 can only see the
 reflections caused by $\gls{S}[_{11}]$. Consequently $\gls{S}[_{11}]$ can now be calculated by measuring the incident
@@ -464,7 +464,7 @@ and reflected wave at port 1 (see \cref{eq:s11}) \cite{agilent_an_154}.
     \label{eq:s11} \gls{S}[_{11}] & = \left.\frac{\gls{b}[_1]}{\gls{a}[_1]} \right\rvert_{\gls{a}[_2] = 0}\\
     \label{eq:s21} \gls{S}[_{21}] & = \left.\frac{\gls{b}[_2]}{\gls{a}[_1]} \right\rvert_{\gls{a}[_2] = 0}
 \end{align}
-Because of connectors and cabling it is often impossible to connect exact matches. Therefor
+Because of connectors and cabling it is often impossible to connect exact matches. Therefore,
 \glspl{sparam} are measured by sending a power wave into port 1 of the \gls{dut}, measuring
 $\gls{a}[_k]$ and $\gls{b}[_k]$. After that the measurement is repeated with port 2. With measurements from
 both ports and calibration measurements, which are necessary to account for systematic errors in the measurement setup,
@@ -472,13 +472,13 @@ it is possible to determine every \gls{sparam}. \Glspl{vna} use this method
 and can make automated measurements at various frequencies.
 
 As long as a network behaves linearly, what is typical for small incident signals, the \glspl{sparam}
-fully describe this network at a specific frequency. Thus they can also be used
-to model amplifiers, as long as they exhibit controlled and linear behaviour. Since
-class-A \glspl{pa} are nearly linear, \glspl{sparam} can be used to describe the small
+fully describe this network at a specific frequency. Thus \glspl{sparam} can also be used
+to model transistors, as long as those exhibit controlled and linear behaviour. For example,
+transistors used in class-A \glspl{pa} behave nearly linear and \glspl{sparam} can therefore be used to describe the small
 signal behaviour. But those \glspl{pa} exhibit a very low efficiency of around \SI{50}{\percent}.
 In modern \gls{rf} and \gls{mw} applications the efficiency is increased with specially designed input and
 output matching networks, that improve the performance. This comes at the cost of non-linear
-behaviour of the \gls{pa} \cite{ghannouchi_load-pull_2013}.
+behaviour of the transistor in use \cite{ghannouchi_load-pull_2013}.
 
 Because of these non-linearities more complex models and verification systems are
 needed. One way to measure the characteristics of a non-linear system is the so called
@@ -493,9 +493,9 @@ allows to test the \gls{dut} under realistic operational conditions.
     \begin{tikzpicture}
         \tikzpicturedependsonfile{rfsymbols.tex}
         \draw node[source] (source) {}
-              node[tuner,right=of source,label=above:{fixed input tuner}] (ituner) {}
+              node[tuner,right=of source,label=above:{Fixed Input Tuner}] (ituner) {}
               node[dut,right=of ituner] (dut) {}
-              node[tuner,right=2 of dut,label=above:{output tuner}] (otuner) {}
+              node[tuner,right=2 of dut,label=above:{Output Tuner}] (otuner) {}
               node[match,right=of otuner,label=above:{\gls{Z0}}] (match) {}
               node[rground,right=0.3 of match,rotate=90,anchor=center] (ground) {};
         \draw ($(dut)!.5!(otuner)$) node[coordinate] (plane) {};
@@ -518,12 +518,12 @@ allows to test the \gls{dut} under realistic operational conditions.
 The \cref{eq:gl,eq:zl} show the relations between the load reflection coefficient $\gls{GammaL}$,
 the incident wave $\gls{a}[_2]$, the reflected
 wave $\gls{b}[_2]$, and the load impedance $\gls{ZL}$ at port 2 of \cref{fig:sparam,fig:load_coeff}. \gls{Z0}
-is the characteristic impedance of the system \cite{hashmi_highly_2011}.
+is the reference impedance of the system where the \gls{dut} is going to be used \cite{hashmi_highly_2011}.
 \begin{align}
     \label{eq:gl} \gls{GammaL} & = \frac{\gls{a}[_2]}{\gls{b}[_2]} \\
     \label{eq:zl} \gls{GammaL} & = \frac{\gls{ZL}-\gls{Z0}}{\gls{ZL}+\gls{Z0}}
 \end{align}
-The output tuner in \cref{fig:load_coeff} synthesizes an appropriate $\gls{GammaL}$
+The output tuner in \cref{fig:load_coeff} synthesizes a desired $\gls{GammaL}$
 either by varying the phase and magnitude of the reflected wave $\gls{a}[_2]$ or by varying
 the load impedance $\gls{ZL}$. This means, that it is possible to build a \gls{lp}
 setup by either using a passive tuner, or feeding a modified wave back to the
@@ -536,56 +536,51 @@ specific device models. Another important factor is the tuning range, which
 depicts the maximal achievable range of the reflection coefficient $\abs{\gls{GammaL}}$
 (e.g. \cref{fig:range_passive}). Usually passive \gls{lp}
 systems have a more limited tuning range than active ones, but provide a
-better repeatability \cite{ghannouchi_load-pull_2013}. Tuner speed and tuner
-resolution is an additional trade off. High resolution is needed since \glspl{pa} are often
-highly sensitive to impedance variations. However a high resolution incurs
-a slow tuner speed. An exemplary resolution can be seen in \cref{fig:generic_emt}.
-Power handling capability is another extremely important factor. The \gls{lp}
+better repeatability \cite{ghannouchi_load-pull_2013}. Tuner resolution is an additional performance characteristic
+of \gls{lp} measurement systems. High resolution is needed since \glspl{pa} are often
+highly sensitive to impedance variations. However a high resolution incurs a high number of measurement points
+which increases the overall measurement time. Power handling capability is another extremely important factor. The \gls{lp}
 setup has to be capable to sustain the power presented to the tuner without
 damage. Which \gls{lp} setup to choose for a specific \gls{dut} depends on
 these requirements.
 
 \begin{figure}[htb]
-    \begin{subfigure}[b]{.5\linewidth}
-        \centering
-        \begin{tikzpicture}
-            \begin{smithchart}[width=.9\linewidth]
-                \addplot[blue,is smithchart cs,mark=o,only marks] file {testdata/generic_emt.data};
-            \end{smithchart}
-        \end{tikzpicture}
-        \caption{\Glsentryshort{emt}}
-        \label{fig:generic_emt}
-    \end{subfigure}%
-    \begin{subfigure}[b]{.5\linewidth}
-        \centering
-        \begin{tikzpicture}
-            \begin{smithchart}[width=.9\linewidth]
-                \filldraw[draw=blue,fill=blue,fill opacity=0.2] (cartesian cs:0,0) let \p1 = (cartesian cs:0.75,0) in circle ({\x1});
-            \end{smithchart}
-        \end{tikzpicture}
-        \caption{Passive \glsentryshort{lp} system}
-        \label{fig:range_passive}
-    \end{subfigure}
-    \caption{Generic representation of achievable tuning range/points passive \glsentryshort{lp}}
+    \centering
+    \begin{tikzpicture}
+        \begin{smithchart}[width=.4\linewidth]
+            \filldraw[draw=blue,fill=blue,fill opacity=0.2] (cartesian cs:0,0) let \p1 = (cartesian cs:0.75,0) in circle ({\x1});
+        \end{smithchart}
+    \end{tikzpicture}
+    \caption{Achievable tuning range passive \glsentryshort{lp} system}
+    \label{fig:range_passive}
 \end{figure}
 
 Passive \gls{lp} systems are based on the block diagram in \cref{fig:load_coeff}. Depending on
 the desired measurements, additional circuit elements like directional couplers,
 power meters, and oscilloscopes are needed. For higher power measurements additional
-amplifiers, and attenuators to reduce the output power to acceptable levels might also
-be needed. These additional components, the cabling, and connectors add additional loss
+amplifiers might also be needed. These additional components, the cabling, and connectors add additional loss
 on the reflection path, leading to achievable reflection levels $\abs{\gls{GammaL}} < 1$ with
-a maximum usually around 0.75 \cite{de_groote_introduction_2008} (see \cref{fig:range_passive}).
+a maximum usually around \num{0.75} at the load reference plane \cite{de_groote_introduction_2008} (see \cref{fig:range_passive}).
 
-Typically used tuners, consist of a transmission line and a probe that introduces a mismatch
+Typically used tuners consist of a transmission line and a probe that introduces a mismatch
 by adding a parallel susceptance. Varying the position of the probe along the transmission
 line changes the phase of the impedance mismatch and the distance the magnitude \cite{hashmi_highly_2011}.
 Automated positioning can be achieved by adding motors. These tuners are called \glspl{emt}.
-Those have to be calibrated before use and achieve reflection levels like shown in
-\cref{fig:generic_emt} with up to 10000 points \cite{ghannouchi_load-pull_2013}.
+Those have to be calibrated before use and typically synthesize around \num{10000} points \cite{ghannouchi_load-pull_2013}.
 
 If higher $\abs{\gls{GammaL}}$-levels  are needed (even levels \num{> 1}), active \gls{lp} setups
-have to be used. There are two categories: closed- and open loop.
+have to be used. There are two categories: Closed- and open-loop.
+
+Active closed loop \gls{lp} setups generate a modified reflected wave $\gls{a}[_2]$ by
+modifying the phase and magnitude of $\gls{b}[_2]$ and feeding it back to the \gls{dut}.
+The functional block diagram, which can be seen in \Cref{fig:active_closed_loop},
+is an example of such an active closed loop \gls{lp} setup. With the circulator
+the power wave $\gls{b}[_2]$ is fed to a variable attenuator, a phase shifter and an
+amplifier. These elements modify the phase and the magnitude of $\gls{b}[_2]$,
+which is again fed back to the \gls{dut} with the circulator. Because of limited
+isolation provided by real world circulators the loop will oscillate if the loop gain
+exceeds the isolation \cite{ghannouchi_load-pull_2013}. Another way to improve the stability of the system
+is to introduce a bandpass filter into the loop.
 
 \begin{figure}[htb]
     \centering
@@ -594,7 +589,7 @@ have to be used. There are two categories: closed- and open loop.
         \draw node[dut] (dut) {}
               node[circulator,right=2 of dut] (circ) {}
               node[vmatch,right=of circ,label=above:{Attenuator},yshift=1cm] (att) {}
-              node[vphase,right=1.5 of att,label=above:{Phase shift}] (phase) {}
+              node[vphase,right=1.5 of att,label=above:{Phase Shifter}] (phase) {}
               node[amplifier,right=of circ,label=above:{Amplifier},yshift=-1cm] (amp) {};
 
         \draw ($(dut)!.5!(circ)$) node[coordinate] (plane) {};
@@ -617,17 +612,16 @@ have to be used. There are two categories: closed- and open loop.
     \label{fig:active_closed_loop}
 \end{figure}
 
-Active closed loop \gls{lp} setups generate a modified reflected wave $\gls{a}[_2]$ by
-modifying the phase and magnitude of $\gls{b}[_2]$ and feeding it back to the \gls{dut}.
-The functional block diagram, which can be seen in \Cref{fig:active_closed_loop},
-is an example of such an active closed loop \gls{lp} setup. With the circulator
-the power wave $\gls{b}[_2]$ is fed to a variable attenuator, a phase shifter and an
-amplifier. These elements enable modifying the phase and the magnitude of $\gls{b}[_2]$,
-which is again fed back to the \gls{dut} with the circulator. Because of limited
-isolation provided by real world circulators this system will oscillate if the loop gain
-exceeds the isolation \cite{ghannouchi_load-pull_2013}. This can be circumvented with
-an isolator after the amplifier. Another way to improve the stability of the system
-is to introduce a bandpass filter into the loop.
+Active open loop \gls{lp} setups work by generating a phase coherent wave with
+an external signal generator (see \cref{fig:active_open_loop}). The open loop
+approach has the advantage, that no loop oscillations are possible, since there is no closed loop.
+It works by generating a signal with a source that is locked to the generator driving the
+source port of the \gls{dut}. Phase and magnitude can be adjusted with the attenuator and
+phase shifter. Additionally the amplifier has to be protected from possibly damaging input signals
+with an isolator. A disadvantage of the open loop system is that the generated waves $\gls{a}[_2]$ are
+not derived from $\gls{b}[_2]$. This implies that the reflection coefficient $\gls{GammaL}$ not only
+depends on the phase shifter and attenuator settings, but also on the \gls{dut} itself.
+Therefore, an iterative approach is needed to be able to achieve a specific $\gls{GammaL}$ \cite{muller_comparison_1994}.
 
 \begin{figure}[htb]
     \centering
@@ -636,7 +630,7 @@ is to introduce a bandpass filter into the loop.
         \draw node[dut] (dut) {}
               node[isolator,right=2 of dut,rotate=180,anchor=east] (iso) {}
               node[amplifier,right=of iso.west,label=above:Amplifier] (amp) {}
-              node[vphase,right=of amp,label=below:{Phase Shift}] (shift) {}
+              node[vphase,right=of amp,label=below:{Phase Shifter}] (shift) {}
               node[vmatch,right=of shift,label=above:{Attenuator}] (att) {}
               node[source,right=of att,label=below:{Phase Locked Source}] (source) {};
 
@@ -657,23 +651,22 @@ is to introduce a bandpass filter into the loop.
     \label{fig:active_open_loop}
 \end{figure}
 
-Active open loop \gls{lp} setups work by generating a phase coherent wave with
-an external signal generator (see \cref{fig:active_open_loop}). The open loop
-approach has the advantage, that it can't oscillate, since there is no closed loop.
-It works by generating a signal with a source, that is locked to the generator driving the
-source port of the \gls{dut}. Phase and magnitude can be adjusted with the attenuator and
-phase shifter. A disadvantage of the open loop system is that the generated waves $\gls{a}[_2]$ are
-not derived from $\gls{b}[_2]$. This implies that the reflection coefficient $\gls{GammaL}$ not only
-depends on the phase shifter and attenuator settings, but also on the \gls{dut} itself.
-Therefore, an iterative approach is needed to be able to achieve a specific $\gls{GammaL}$ \cite{muller_comparison_1994}.
+In order to provide a realistic termination with an \gls{lp} setup the
+variation of the reflection coefficient \gls{GammaL} should be minimized at
+the load reference plane. Because of phase variations caused by cable connections
+needed to reach the \gls{dut}, all of the above mentioned setups are only capable
+of synthesizing narrowband reflections. Therefore, a phase correction is
+needed for broadband measurements which are needed for modulated signals used
+in modern communication systems.
 
-Keeping in mind above discussions, in the course of the presented thesis the following chapters introduce an active closed loop \gls{lp} system, which
-is built with a digital attenuator, phase shifter, and loop filter implemented
-in a \gls{fpga}. Possible uses include high throughput or drive- and bias-level
-independent \gls{rf} and microwave \gls{lp} measurement applications. Furthermore
-it is possible to synthesize broadband reflections, therefore enabling the use
-of modulated signals during characterization, which enables a wider range of
-operational conditions.
+During the course of this thesis an active closed loop \gls{lp} system that uses a digital
+filter for phase correction is presented. With this filter reflections with minimal
+\gls{GammaL} variation at the load reference plane over a bandwidth of
+\SI{20}{\mega\hertz} can be synthesized. This broadband system works by modifying
+the incoming wave $\gls{b}[_2]$ according to the desired \gls{GammaL}, applying
+a negative phase correction by filtering the signal, and sending the modified wave
+back to the device. Because of the negative phase correction this is only possible
+for a later repetition of the signal. Therefore, only cyclic signals can be used.
 
 % ===========================================================================
 
@@ -1798,7 +1791,7 @@ be seen in \cref{chap:fpga}.
 \label{chap:fpga}
 
 The digital part, as described in \cref{sec:digital}, was realized in \gls{vhdl}.
-It was specifically tailored to a Xilinx Virtex-5 FXT on a ML507 evaluation board.
+It was specifically tailored to a Xilinx \mbox{Virtex-5} FXT on a ML507 evaluation board.
 The \gls{fpga} model XC5VFX70T on this evaluation board provides the necessary
 high speed transceivers, sufficient block \glspl{ram}, and dedicated digital
 signal processing hardware \cite{virtex5ds}. Furthermore the ML507 board contains
@@ -1972,7 +1965,7 @@ be found in \cref{sec:sources}.
 
 % ---------------------------------------------------------------------------
 
-\section[Digital Signal Processing Chain]{Digital Signal Processing Chain -- main}
+\section[Digital Signal Processing Chain]{Digital Signal Processing Chain --- main}
 \label{sec:digital_processing}
 
 The \device{main} module contains the digital signal processing chain. As can be seen
@@ -2094,7 +2087,7 @@ used where applicable.
 
 The sample buffer size was chosen according to the available block
 \gls{ram} in the \gls{fpga}. A maximum number of 148 \SI{36}{\kilo\bit} block
-\glspl{ram} is available in the Virtex-5 (part XC5VFX70T) on the ML507 board\cite{virtex5ds}. Those block \glspl{ram}
+\glspl{ram} is available in the \mbox{Virtex-5} (part XC5VFX70T) on the ML507 board\cite{virtex5ds}. Those block \glspl{ram}
 can also be used as two independent \SI{18}{\kilo\bit} block \glspl{ram}. As
 mentioned in \cref{sec:digital}, this design needs to support a sample width
 of \SI{16}{\bit}. Input averaging was chosen to support a maximum of 8 samples,
@@ -2126,7 +2119,7 @@ in \cref{sec:processor_interface} for controlling the whole signal processing ch
 
 % ---------------------------------------------------------------------------
 
-\subsection[Data Acquisition]{Data Acquisition -- inbuf}
+\subsection[Data Acquisition]{Data Acquisition --- inbuf}
 \label{sec:acquisition}
 
 The \device{inbuf} module is responsible for serial to parallel conversion
@@ -2297,7 +2290,7 @@ at addresses \num{>= 49152} result in undefined behaviour.
 
 % ---------------------------------------------------------------------------
 
-\subsection[Overlap Add]{Overlap Add -- core}
+\subsection[Overlap Add]{Overlap Add --- core}
 \label{sec:overlap_add}
 
 \begin{figure}[htb]
@@ -2589,7 +2582,7 @@ and complex multiplication.
 
 % ---------------------------------------------------------------------------
 
-\subsection[Vector Signal Generator Interface]{Vector Signal Generator Interface -- outbuf}
+\subsection[Vector Signal Generator Interface]{Vector Signal Generator Interface --- outbuf}
 \label{sec:smbv_interface}
 
 The \device{outbuf} module consists of two independent sample buffers
