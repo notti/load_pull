@@ -10,4 +10,4 @@ main_print.pdf: FORCE_MAKE
 release: main_full.pdf main_print.pdf
 clean:
 	latexmk -CA
-	rm -rf figures/*
+	rm -rf figures/* *.bbl
