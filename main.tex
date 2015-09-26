@@ -1,4 +1,4 @@
-\documentclass[12pt,a4paper,parskip=full,abstract=true,BCOR=12mm,twoside,open=right]{scrreprt}
+\documentclass[12pt,a4paper,parskip=full,abstract=true,BCOR=12mm]{scrreprt}
 \KOMAoption{bibliography}{totoc}
 \KOMAoption{listof}{totoc}
 
@@ -40,11 +40,18 @@
 
 %units
 
-\usepackage[binary-units,retain-explicit-plus,group-digits=false]{siunitx}
+\usepackage[
+    binary-units,
+    retain-explicit-plus,
+    group-digits=integer,
+    group-separator={,},
+    output-complex-root=j,
+    retain-unity-mantissa=false,
+    per-mode=symbol,
+    ]{siunitx}
 \DeclareSIUnit \belm {Bm}
 \DeclareSIUnit \belfs {BFS}
 \DeclareSIUnit \samples {S}
-\sisetup{per-mode = symbol}
 
 %plots
 
@@ -57,6 +64,7 @@
 \usepgfplotslibrary{statistics}
 \usepgfplotslibrary{colorbrewer}
 \pgfplotsset{unit code/.code 2 args={\si{#1#2}}}
+\pgfplotsset{unit markings=slash space}
 
 \usepgfplotslibrary{external}
 \tikzsetexternalprefix{figures/}
@@ -152,7 +160,7 @@ pdfpagelabels,
 ]{hyperref}
 
 % lots of acronyms
-\usepackage[acronym]{glossaries}
+\usepackage[acronym,nogroupskip]{glossaries}
 
 \newacronym{ac}{AC}{alternative current}
 \newacronym{adc}{ADC}{analog-to-digital converter}
@@ -184,7 +192,7 @@ pdfpagelabels,
 \newacronym{lvds}{LVDS}{low voltage differential signalling}
 \newacronym{mw}{MW}{microwave}
 \newacronym{os}{OS}{operating system}
-\newacronym[shortplural=OSERDES]{oserdes}{OSERDES}{output parallel-to-serial logic resource}
+\newacronym[shortplural=OSERDES]{oserdes}{OSERDES}{output serializer/deserializer}
 \newacronym{pa}{PA}{power amplifier}
 \newacronym{pc}{PC}{personal computer}
 \newacronym{plb}{PLB}{processor local bus}
@@ -197,18 +205,18 @@ pdfpagelabels,
 \newacronym{sparam}{S-parameter}{scattering parameter}
 \newacronym{tcp}{TCP}{transport control protocol}
 \newacronym{ui}{UI}{user interface}
-\newacronym{vhdl}{VHDL}{VHSIC Hardware Description Language}
+\newacronym{vhdl}{VHDL}{very high speed integrated circuit hardware description language}
 \newacronym{vna}{VNA}{vector network analyzer}
 \newacronym{xps}{XPS}{Xilinx Platform Studio}
 
 \newcommand{\newMsymbol}[4]{\newglossaryentry{#1}{name={\ensuremath{#2}},description={#3},sort={#4}}}
 
 \newMsymbol{L}{L}{overlap add block size}{L}
-\newMsymbol{S}{S}{scattering parameters}{S}
+\newMsymbol{S}{S}{scattering matrix}{S}
 \newMsymbol{a}{a}{incident wave}{a}
 \newMsymbol{b}{b}{reflected wave}{b}
 \newMsymbol{Z}{Z}{complex impedance}{Z}
-\newMsymbol{Z0}{Z_0}{complex characteristic impedance}{Z0}
+\newMsymbol{Z0}{Z_0}{complex characteristic impedance of system}{Z0}
 \newMsymbol{ZL}{Z_L}{complex load impedance}{ZL}
 \newMsymbol{Gamma}{\Gamma}{complex reflection coefficient}{G}
 \newMsymbol{GammaL}{\Gamma_L}{complex load reflection coefficient}{GL}
@@ -216,15 +224,13 @@ pdfpagelabels,
 \newMsymbol{f}{f}{frequency}{f}
 \newMsymbol{fs}{f_s}{sample frequency}{fs}
 \newMsymbol{f0}{f_0}{fundamental frequency, center frequency}{f0}
-\newMsymbol{n}{n}{number of samples, periodicity of signal}{n}
-\newMsymbol{nfft}{n_{fft}}{fast Fourier transform size}{nfft}
+\newMsymbol{N}{N}{number of samples, periodicity of signal}{n}
+\newMsymbol{nfft}{n_{\textnormal{fft}}}{fast Fourier transform size}{nfft}
 \newMsymbol{DFT}{\mathcal{DFT}}{discrete Fourier transform}{dft}
 \newMsymbol{FFT}{\mathcal{FFT}}{fast Fourier transform}{fft}
 \newMsymbol{xn}{x[n]}{sampled signal of length $n$ or at sample position $n$}{xn}
-\newMsymbol{angle}{m \angle \phi}{complex value with magnitude $m$ and angle $\phi$}{angle}
 
 \newcommand{\XN}{\glsdisp{xn}{[n]}}
-\newcommand{\Angle}{\glsdisp{angle}{\angle}}
 
 \makeglossaries
 
@@ -254,9 +260,9 @@ pdfpagelabels,
     \rule{\linewidth}{0.4pt}
 
     \vspace*{5cm}
-    {\Huge \textbf{Diploma thesis}}\\
+    {\Huge \textsc{Diploma Thesis}}\\
     \vspace*{1cm}
-    {\Large FPGA-based Load-Pull Measurement System}
+    {\large \textbf{FPGA-based Load-Pull Measurement System}}
 
     \vspace*{2cm}
     {\large Gernot ~\textsc{Vormayr} \\ 0425210 \\ } ~\\
@@ -375,6 +381,7 @@ pdfpagelabels,
 \cleardoublepage
 \listoffigures
 \printacronyms
+\renewcommand*{\acronymfont}[1]{#1}
 \printglossary[title={List of Symbols}]
 
 
@@ -386,16 +393,16 @@ At \gls{rf} and \gls{mw} frequencies, the circuit theory with lumped elements, w
 voltage and current do not vary over the physical dimension of the elements, is of limited
 value. The wavelength at these frequencies is of the order of the circuit
 element dimensions. This means that transmission line theory has to be used instead \cite{pozar_mw_engineering_2011}.
-This theory applies circuit theory to infinitesimal small pieces of the lumped elements
+This theory applies circuit theory to infinitesimally small pieces of the lumped elements
 and introduces the concept of forward and backward traveling power waves.
 
 For this reason, instead of impedance- and admittance matrices, \glspl{sparam}
 are commonly used in \gls{rf} and \gls{mw} circuit engineering to describe
 N-ports (see \cref{fig:sparam,eq:sparam} for a 2-port). $\gls{a}[_k]$ denotes the incident and
-$\gls{b}[_k]$ the reflected power wave. Complex valued $\gls{S}[_{kk}]$ represents the
+$\gls{b}[_k]$ the reflected power wave. The complex valued $\gls{S}[_{kk}]$ represents the
 part of $\gls{a}[_k]$ that gets reflected at port $k$, where as $\gls{S}[_{kl}]$ is the part of $\gls{a}[_l]$ that
-is transmitted to $\gls{b}[_k]$. A set of \glspl{sparam} is only valid for a specific frequency, a
-characteristic impedance \gls{Z0}, and a well defined reference plane (port 1 and port 2 in \cref{fig:sparam}).
+is transmitted to $\gls{b}[_k]$. A set of \glspl{sparam} is only valid for a specific frequency, the
+characteristic impedance \gls{Z0} of the system, and a well defined reference plane (port 1 and port 2 in \cref{fig:sparam}).
 
 \begin{figure}[htb]
     \centering
@@ -429,7 +436,7 @@ characteristic impedance \gls{Z0}, and a well defined reference plane (port 1 an
         \draw[dashed] (box-2-2) -- ++(0,-1cm);
         \draw[dashed] (box-2-3) -- ++(0,-1cm);
     \end{tikzpicture}
-    \caption{\Glspl{sparam} of a 2-port}
+    \caption{\Glsentryshortpl{sparam} of a 2-port}
     \label{fig:sparam}
 \end{figure}
 
@@ -556,10 +563,10 @@ these requirements.
                 \filldraw[draw=blue,fill=blue,fill opacity=0.2] (cartesian cs:0,0) let \p1 = (cartesian cs:0.75,0) in circle ({\x1});
             \end{smithchart}
         \end{tikzpicture}
-        \caption{Passive \gls{lp} system}
+        \caption{Passive \glsentryshort{lp} system}
         \label{fig:range_passive}
     \end{subfigure}
-    \caption{Generic representation of achievable tuning range/points passive \gls{lp}}
+    \caption{Generic representation of achievable tuning range/points passive \glsentryshort{lp}}
 \end{figure}
 
 Passive \gls{lp} systems are based on the block diagram in \cref{fig:load_coeff}. Depending on
@@ -606,7 +613,7 @@ have to be used. There are two categories: closed- and open loop.
         \draw [latex-] ($(plane) + (0.25,-1.5)$) node[anchor=west] {$\gls{b}[_2]$}-- ++(-0.5,0);
         \draw [latex-] ($(plane) + (0,-2)$) -- ++(-0.5,0) node[anchor=east] {$\gls{GammaL}$};
     \end{tikzpicture}
-    \caption{Active closed loop \gls{lp} block diagram}
+    \caption{Active closed loop \glsentryshort{lp} block diagram}
     \label{fig:active_closed_loop}
 \end{figure}
 
@@ -646,7 +653,7 @@ is to introduce a bandpass filter into the loop.
         \draw [latex-] ($(plane) + (0.25,-1.5)$) node[anchor=west] {$\gls{b}[_2]$}-- ++(-0.5,0);
         \draw [latex-] ($(plane) + (0,-2)$) -- ++(-0.5,0) node[anchor=east] {$\gls{GammaL}$};
     \end{tikzpicture}
-    \caption{Active open loop \gls{lp} block diagram}
+    \caption{Active open loop \glsentryshort{lp} block diagram}
     \label{fig:active_open_loop}
 \end{figure}
 
@@ -735,7 +742,7 @@ used in modern applications during measurements.
         \draw [latex-] ($(plane) + (0.25,-2)$) node[anchor=west] {$\gls{b}[_{2}]$}-- ++(-0.5,0);
         \draw [latex-] ($(plane) + (0,-2.5)$) -- ++(-0.5,0) node[anchor=east] {$\glsdisp{GammaL}{\Gamma_{L,set}}$};
     \end{tikzpicture}
-    \caption{Generic block diagram \gls{elp}}
+    \caption{Generic block diagram \glsentryshort{elp}}
     \label{fig:elp}
 \end{figure}
 
@@ -970,7 +977,7 @@ error correction calculations, which are explained in the rest of this section.
             \draw ([xshift=-0.5cm]oszivna.north) -- ++(0,1) node [anchor=south] {\acrshort{pc}};
         }
     \end{tikzpicture}
-    \caption{One port \gls{vna} part}
+    \caption{One port \glsentryshort{vna} part}
     \label{fig:vna_part}
 \end{figure}
 
@@ -993,13 +1000,13 @@ power needed can be lowered by using the \gls{fft}. With both methods
 spectral leakage will occur, which caused by the windowing since only a limited number of samples is used \cite{harris_use_1978}.
 Another problem is that the frequency resolution $\Delta{}\gls{f}$ is limited by the sampling
 frequency and the number of recorded samples (see \cref{eq:fres}). Higher resolutions
-can be achieved with a higher sample rate \gls{fs} and/or more samples \gls{n}. Both are oscilloscope and setup
+can be achieved with a higher sample rate \gls{fs} and/or more samples \gls{N}. Both are oscilloscope and setup
 dependent parameters and potentially increase the time needed for transferring the data to the
 \gls{pc}. A preferably way to improve the results is applying a window function to the
 measured samples.
 
 \begin{equation}
-    \label{eq:fres} \Delta{}\gls{f} = \frac{\gls{fs}}{\gls{n}}
+    \label{eq:fres} \Delta{}\gls{f} = \frac{\gls{fs}}{\gls{N}}
 \end{equation}
 
 The window function used in this work (see \cref{sec:matlab}) is the flat top window.
@@ -1011,17 +1018,17 @@ was used (see \cref{sec:matlab} and \cite{matlab_flattop}).
 
 \begin{align}
     \label{eq:k} k & = \left\lfloor \frac{\gls{f}}{\Delta{}\gls{f}} \right\rfloor\\
-    \label{eq:win} w & = \lstinline|flattopwin(|\gls{n}\lstinline|, 'periodic')| \\
+    \label{eq:win} w & = \lstinline|flattopwin(|\gls{N}\lstinline|, 'periodic')| \\
     \label{eq:A} A\XN & = \gls{DFT}(\gls{a}\XN\,w) \\
     \label{eq:B} B\XN & = \gls{DFT}(\gls{b}\XN\,w) \\
     \label{eq:gamma_lf} \glsdisp{GammaL}{\Gamma_{L,f}} & = \frac{A\glsdisp{xn}{[k]}}{B\glsdisp{xn}{[k]}}
 \end{align}
 
 Using \cref{eq:fres,eq:k,eq:win,eq:A,eq:B,eq:gamma_lf} the reflection coefficient $\gls{GammaL}$ at
-frequency \gls{f}, with the measured \gls{n} samples $\gls{a}\XN$ of wave $\gls{a}[_2]$ and $\gls{b}\XN$ of wave $\gls{b}[_2]$, can be calculated.
+frequency \gls{f}, with the measured \gls{N} samples $\gls{a}\XN$ of wave $\gls{a}[_2]$ and $\gls{b}\XN$ of wave $\gls{b}[_2]$, can be calculated.
 First, the frequency resolution $\Delta{}\gls{f}$ is needed, to be able
 to calculate the index $k$ of the frequency bin, which contains the frequency \gls{f}. Next, the window function $w$ with
-length \gls{n} is obtained with the Matlab function \lstinline$flattopwin$ as mentioned earlier. The spectrum of the window function has to be convoluted with the
+length \gls{N} is obtained with the Matlab function \lstinline$flattopwin$ as mentioned earlier. The spectrum of the window function has to be convoluted with the
 spectrum of the samples. This is done with element-wise multiplication in \Cref{eq:A,eq:B} before applying
 the \gls{dft}. After the transformation $A\XN$ and $B\XN$ contain the signals in the frequency domain. Because of the linearity of the \gls{dft}
 \cite{pearson_discrete}, the value at index $k$ can be directly used in \Cref{eq:gl_phase} leading to \cref{eq:gamma_lf}.
@@ -1072,7 +1079,7 @@ use this model to remove the systematic errors from the subsequent measurements
         \draw ($(box-2-4)!.5!(box-2-5) - (0,0.7cm)$) node[anchor=north] {\gls{dut}};
         \draw ($(box-2-2)!.5!(box-2-3) - (0,0.7cm)$) node[anchor=north] {Error box};
     \end{tikzpicture}
-    \caption{Error box for the one port \gls{vna}}
+    \caption{Error box for the one port \glsentryshort{vna}}
     \label{fig:errorbox}
 \end{figure}
 
@@ -1369,7 +1376,7 @@ filter is used as alias filter \device{bp1}.
             \draw [thick,-latex,dashed] ($\x*(2,0) + 0.3*(2,0)$) -- ($\x*(2,0) + 0.3*(2,0) + (0,0.8)$);
         }
     \end{tikzpicture}
-    \caption{Down conversion frequency spectra ($\gls{fs} = \SI{100}{\mega\hertz}$)}
+    \caption[Down conversion frequency spectra]{Down conversion frequency spectra ($\gls{fs} = \SI{100}{\mega\hertz}$)}
     \label{fig:downconversion}
 \end{figure}
 
@@ -1397,7 +1404,7 @@ replacement for this \gls{elp} system.
 
 Digital to analog conversion and up conversion is handled by the lower analog
 processing chain in \cref{fig:analog}. In this work a signal vector generator
-SMBV100A from Rhode \& Schwarz with digital \gls{iq} input support (R\&S SMBV-K18
+SMBV100A from Rohde \& Schwarz with digital \gls{iq} input support (R\&S SMBV-K18
 \cite{smbv_100a}) was used for these tasks. Like the \gls{adc} a different
 signal vector generator can be used as a drop in replacement, if it uses
 the same digital interface (see \cref{sec:digital}).
@@ -1567,7 +1574,7 @@ in the bit stream.
         \end{scope}
     \end{tikzpicture}
     }
-    \caption{Synchronization signal generator for \gls{adc}}
+    \caption{Synchronization signal generator for \glsentryshort{adc}}
     \label{fig:adc_adapter}
 \end{figure}
 
@@ -1636,7 +1643,7 @@ subsequences of length \gls{L} (see \cref{fig:overlap_add}).
     \centering
     \begin{tikzpicture}
         \begin{scope}[shift={(0,13em)}]
-            \draw [decorate,decoration={brace},yshift=2pt] (0,4.1em) -- (5,4.1em) node[midway,yshift=8pt] {$\gls{n}$};
+            \draw [decorate,decoration={brace},yshift=2pt] (0,4.1em) -- (5,4.1em) node[midway,yshift=8pt] {$\gls{N}$};
             \draw [decorate,decoration={brace},yshift=2pt] (0,2.8em) -- (3,2.8em) node[midway,yshift=8pt] {$\gls{nfft}$};
             \draw [decorate,decoration={brace},yshift=2pt] (0,1.5em) -- (2,1.5em) node[midway,yshift=8pt] {$\gls{L}$};
             \draw (0,0.75em) node[anchor=east] {$x\XN$};
@@ -1693,7 +1700,7 @@ subsequences of length \gls{L} (see \cref{fig:overlap_add}).
               (4,13em) -- (5,10.5em) -- (5,7.5em)
               (6,13em) -- (7,10.5em) -- (7,4.5em);
     \end{tikzpicture}
-    \caption{Overlap add algorithm (linear convolution, with circular in red)}
+    \caption[Overlap add algorithm]{Overlap add algorithm (linear convolution, with circular in red)}
     \label{fig:overlap_add}
 \end{figure}
 Therefore $x\XN$ can
@@ -1735,7 +1742,7 @@ with this reflection coefficient and output to the analog part as signal $\gls{a
 
 The digital interface needed to forward the processed samples to the analog part
 was implemented according to the digital \gls{iq} interface supported by the used
-SMBV100A signal generator from Rhode \& Schwarz. According to \cite{fsq_b17}, this interface is
+SMBV100A signal generator from Rohde \& Schwarz. According to \cite{fsq_b17}, this interface is
 implemented according to the channel link serializer described in \cite{ds90cr485}. This
 serializer uses eight \gls{lvds} data lines and one \gls{lvds} clock line. Each of the lines
 is clocked at \SI{700}{\mega\hertz} for a sample rate of \SI{100}{\mega\hertz}. An adapter
@@ -1765,7 +1772,7 @@ the fix can be seen in \cref{fig:iq_adapter_circ}.
                 \draw (0.9,0.323) node[anchor=south east] {SATA};
             \end{scope}
         \end{tikzpicture}
-        \caption{\gls{adc} adapter board with diconnected clock atop LTC2274 demo board}
+        \caption{\glsentryshort{adc} adapter board with diconnected clock atop LTC2274 demo board}
         \label{fig:adc_adapter_circ}
     \end{subfigure}%
     ~
@@ -1774,7 +1781,7 @@ the fix can be seen in \cref{fig:iq_adapter_circ}.
         \begin{tikzpicture}
             \node[inner sep=0pt] (image) at (0,0) {\includegraphics[width=\textwidth]{digital_iq.jpg}};
         \end{tikzpicture}
-        \caption{Digital \gls{iq} adapter circuit board with S\_CLK fix}
+        \caption{Digital \glsentryshort{iq} adapter circuit board with S\_CLK fix}
         \label{fig:iq_adapter_circ}
     \end{subfigure}
     \caption{Photos of implemented adapter boards}
@@ -1791,7 +1798,7 @@ be seen in \cref{chap:fpga}.
 \label{chap:fpga}
 
 The digital part, as described in \cref{sec:digital}, was realized in \gls{vhdl}.
-It was specifically tailored to a Xilinx Virtex5 FXT on a ML507 evaluation board.
+It was specifically tailored to a Xilinx Virtex-5 FXT on a ML507 evaluation board.
 The \gls{fpga} model XC5VFX70T on this evaluation board provides the necessary
 high speed transceivers, sufficient block \glspl{ram}, and dedicated digital
 signal processing hardware \cite{virtex5ds}. Furthermore the ML507 board contains
@@ -1860,7 +1867,7 @@ and as a communication bridge to the \gls{pc}. The complete source codes can be 
 
         \end{tikzpicture}
         }
-        \caption{\gls{fpga} modules and interconnections}
+        \caption{\glsentryshort{fpga} modules and interconnections}
         \label{fig:fpga_modules}
     \end{subfigure}%
     ~
@@ -1925,7 +1932,7 @@ and as a communication bridge to the \gls{pc}. The complete source codes can be 
         \caption{Digital signal processing chain}
         \label{fig:digital_chain}
     \end{subfigure}
-    \caption{\gls{fpga} design overview and digital signal processing chain with color coded modules}
+    \caption[\glsentryshort{fpga} design overview and digital signal processing chain]{\glsentryshort{fpga} design overview and digital signal processing chain with color coded modules}
     \label{fig:fpga_overview}
 \end{figure}
 
@@ -1965,7 +1972,7 @@ be found in \cref{sec:sources}.
 
 % ---------------------------------------------------------------------------
 
-\section[Digital Signal Processing Chain]{Digital Signal Processing Chain - main}
+\section[Digital Signal Processing Chain]{Digital Signal Processing Chain -- main}
 \label{sec:digital_processing}
 
 The \device{main} module contains the digital signal processing chain. As can be seen
@@ -2074,7 +2081,7 @@ in \cref{sec:auto}.
         \caption{Digital signal processing chain}
         \label{fig:digital_chain1}
     \end{subfigure}
-    \caption{\device{main} module overview and digital signal processing chain with color coded modules}
+    \caption[\device{main} module overview and digital signal processing chain]{\device{main} module overview and digital signal processing chain with color coded modules}
     \label{fig:main_overview}
 \end{figure}
 
@@ -2087,7 +2094,7 @@ used where applicable.
 
 The sample buffer size was chosen according to the available block
 \gls{ram} in the \gls{fpga}. A maximum number of 148 \SI{36}{\kilo\bit} block
-\glspl{ram} is available in the Virtex 5 (part XC5VFX70T) on the ML507 board\cite{virtex5ds}. Those block \glspl{ram}
+\glspl{ram} is available in the Virtex-5 (part XC5VFX70T) on the ML507 board\cite{virtex5ds}. Those block \glspl{ram}
 can also be used as two independent \SI{18}{\kilo\bit} block \glspl{ram}. As
 mentioned in \cref{sec:digital}, this design needs to support a sample width
 of \SI{16}{\bit}. Input averaging was chosen to support a maximum of 8 samples,
@@ -2101,7 +2108,7 @@ and the \gls{fft} implementation. Using this memory layout only a 2-to-1 multipl
 for the output is needed. Since the highest address line can
 be used as selection between both block \glspl{ram}, no address decoder is needed. This ensures fast operation of the
 overall memory. In one bit mode only \SI{32}{\kilo\bit} (\SI{16}{\kilo\bit})
-are available. This leads to a theoretical buffer depth of 49152 samples. However as
+are available. This leads to a theoretical buffer depth of \num{49152} samples. However as
 will be explained in \cref{sec:overlap_add} (see also \cref{sec:digital}), if circular convolution
 with a block size of \gls{L} and an \gls{fft} size of $\gls{nfft}$ is used for the \gls{fir} filter,
 the full buffer depth is not usable. This is caused by the implementation of the overlap add
@@ -2119,7 +2126,7 @@ in \cref{sec:processor_interface} for controlling the whole signal processing ch
 
 % ---------------------------------------------------------------------------
 
-\subsection[Data Acquisition]{Data Acquisition - inbuf}
+\subsection[Data Acquisition]{Data Acquisition -- inbuf}
 \label{sec:acquisition}
 
 The \device{inbuf} module is responsible for serial to parallel conversion
@@ -2269,7 +2276,7 @@ The \device{trigger} module generates the start signal for the \device{average\_
 and the \device{wallclk} module. During the first run and after a reset, the trigger can either be triggered
 externally or internally. The external trigger is sampled from the pin AN33 of the
 \gls{fpga}, which is connected to HDR1\_64 on the evaluation board. After the first
-successful trigger, consecutive triggers are only generated at multiples of the configured signal period \gls{n}.
+successful trigger, consecutive triggers are only generated at multiples of the configured signal period \gls{N}.
 
 Subsequent to a trigger event, the \device{wallclk} module takes a snapshot of the
 jiffy counter which marks the time the first sample of the current acquisition
@@ -2290,7 +2297,7 @@ at addresses \num{>= 49152} result in undefined behaviour.
 
 % ---------------------------------------------------------------------------
 
-\subsection[Overlap Add]{Overlap Add - core}
+\subsection[Overlap Add]{Overlap Add -- core}
 \label{sec:overlap_add}
 
 \begin{figure}[htb]
@@ -2573,7 +2580,7 @@ beginning (see \cref{sec:digital}). Since this process needs $\gls{L} - \gls{nff
 after the end of the signal, the sample buffer can't be used to the full extent.
 
 The overall module is freely configurable and accepts \gls{fft} sizes 8, 16,
-32, 64, 128, 256, 512, 1024, 2048 and 4096. The signal size \gls{n} has to be between
+32, 64, 128, 256, 512, 1024, 2048 and 4096. The signal size \gls{N} has to be between
 8 and 65535 and the block size \gls{L} between 1 and 4096. There are no plausibility
 checks in the hardware, which means that wrong settings will lead to undefined
 behaviour. The \device{core} module can be stopped by issuing a reset signal.
@@ -2582,7 +2589,7 @@ and complex multiplication.
 
 % ---------------------------------------------------------------------------
 
-\subsection[SMBV Interface]{SMBV Interface - outbuf}
+\subsection[Vector Signal Generator Interface]{Vector Signal Generator Interface -- outbuf}
 \label{sec:smbv_interface}
 
 The \device{outbuf} module consists of two independent sample buffers
@@ -2642,8 +2649,8 @@ buffers consist of true dual port block \glspl{ram}. In combination with the
 unsupported writes to the \device{active} sample buffer, this ensures that
 no timing conditions are violated, due to the different clocks.
 
-This module uses a configurable signal period \gls{n}. This period can only be changed
-by resetting the module or by asserting the resync signal. Sample data of length \gls{n} is
+This module uses a configurable signal period \gls{N}. This period can only be changed
+by resetting the module or by asserting the resync signal. Sample data of length \gls{N} is
 continuously read from the \device{active} buffer. Swapping the \device{active}
 and the \device{inactive} buffer can be initiated by asserting the toggle\_buf
 signal for one cycle. To prevent signal distortion, the actual swapping occurs
@@ -2664,14 +2671,14 @@ for the \device{core} module (see \cref{sec:overlap_add}). After this scaling
 and convergent rounding, the multiplier is also capable of saturating the
 output. This would prevent a wrap around and therefore limit signal distortion.
 
-According to \cite{fsq_b17} the Rhode \& Schwarz digital \gls{iq} interface
+According to \cite{fsq_b17} the Rohde \& Schwarz digital \gls{iq} interface
 uses the encoding scheme and digital interface of a DS90CR485 channel link
 serializer. This serializer encodes data from a \SI{24}{\bit} input on both
 clock edges resulting in a total of \SI{48}{\bit} per clock cycle \cite{ds90cr485}.
 As specified by \cite{fsq_b17} \SI{20}{\bit} I data, \SI{20}{\bit} Q data, enable,
 valid, marker bits, and trigger bits need to be encoded in these \SI{48}{\bit}. Enable
 and valid are connected to high in this implementation. The marker and trigger
-bits are not supported by the Rhode \& Schwarz SMBV100a vector signal generator
+bits are not supported by the Rohde \& Schwarz SMBV100a vector signal generator
 in digital \gls{iq} input mode. Therefore these were permanently disabled in this
 work. The \gls{fpga} internal \SI{16}{\bit} \gls{iq} implementation was mapped
 onto the \SI{20}{\bit} link by left shifting the data by \SI{4}{\bit}.
@@ -2688,11 +2695,11 @@ in the \gls{fpga} fabric. Therefore the serialization was implemented utilizing
 necessary clock rate to \SI{350}{\mega\hertz} for the \gls{oserdes}. Furthermore the
 \SI{4}{\bit} mode decreases the needed clock for the parallel data to
 \SI{175}{\mega\hertz}. By connecting a test implementation of the transmitter,
-it was verified, that the Rhode \& Schwarz digital \gls{iq} interface uses the
+it was verified, that the Rohde \& Schwarz digital \gls{iq} interface uses the
 DS90CR485 channel link serializer with switched off \gls{dc} Balance mode.
 
 The \device{outbuf} module is runtime configurable. After changing the signal
-length \gls{n} the \device{outbuf} module has to be reset or a \device{resync} operation
+length \gls{N} the \device{outbuf} module has to be reset or a \device{resync} operation
 needs to be initiated. Overflows from the multiplicator are reported with a status
 signal which has to be manually reset. This prevents interrupt storms if the signal is
 used as an interrupt. The memory interface of the \device{outbuf}
@@ -2701,7 +2708,7 @@ latency of 2 cycles. Accessing samples at addresses \num{>= 49152} result in und
 
 % ---------------------------------------------------------------------------
 
-\subsection{Auto module}
+\subsection{Auto Module}
 \label{sec:auto}
 
 For the complete signal computation, the previously described blocks
@@ -2946,7 +2953,7 @@ found in \cref{sec:daemon}.
             \draw (desc |- digital.north) -- (\currentcoordinate |- software.north) node[midway,left,xshift=-2pt] {Software};
         \end{scope}
     \end{tikzpicture}
-    \caption{Soft- and hardware architecture including communication paths. \gls{fpga} on the left and \gls{pc} on the right.}
+    \caption[Soft- and hardware architecture including communication paths]{Soft- and hardware architecture including communication paths. \glsentryshort{fpga} on the left and \glsentryshort{pc} on the right.}
     \label{fig:architecture}
 \end{figure}
 
@@ -3033,7 +3040,7 @@ complete source code can be found in \cref{sec:sources}.
 
 % ---------------------------------------------------------------------------
 
-\subsection{Memory access}
+\subsection{Memory Access}
 \label{sec:memory_access}
 
 The sample buffers \device{inbuf} and \device{outbuf} as well as the transfer
@@ -3190,7 +3197,7 @@ to the wrong address.
 
 % ---------------------------------------------------------------------------
 
-\subsection{Register access}
+\subsection{Register Access}
 \label{sec:register_access}
 
 Access to the registers is provided via files in \device{sysfs}\cite{sysfs}. To ease
@@ -3450,7 +3457,7 @@ be found in \cref{sec:registers}. An example usage can be seen in \cref{src:mdri
 \begin{lstlisting}[float=htb,caption={Example usage of the Matlab driver for the hardware},label=src:mdriver,basicstyle=\hack\scriptsize,texcl=true]
 ml507 = ML507.ML507(); %\upshape instantiate the class
 
-ml507.depth = 20000; %\upshape set signal period $\gls{n} = 20000$
+ml507.depth = 20000; %\upshape set signal period $\gls{N} = 20000$
 ml507.transmitter.mul = 32767; %\upshape set $\glsdisp{GammaL}{\Gamma_{L,set}} = 32767$
 ml507.transmitter.shift = 5; %\upshape set output multiplier shift to 5
 ml507.core.n = 4096; %\upshape set $\gls{nfft} = 4096$
@@ -3517,7 +3524,7 @@ end
 The calibration of the error box was realized by measuring three different targets
 at multiple frequencies. In order to enable measurements with the possible
 frequency resolution of the oscilloscope, the calibration measurements were
-linearly interpolated. A Rhode \& Schwarz Z132 (female) calibration kit was used
+linearly interpolated. A Rohde \& Schwarz Z132 (female) calibration kit was used
 for this calibration. To be able to calculate the impedance values of the
 calibration kit the Matlab function \lstinline+calcZ132+ was developed. This function
 calculates the short, match, and open impedance for a given frequency according to
@@ -3639,7 +3646,7 @@ The iterative target algorithm used in this work makes the following steps:
         \draw ($(compute-s-0)!.5!(set-s-0)$) -- ++(3,-1.5) node[draw,fill=Set2-4-3] {Set new $\glsdisp{GammaL}{\Gamma_{L,set}}$};
         \draw ($(set-s-0)!.5!(pause-s-0)$) -- ++(1,-0.5) node[draw,fill=Set2-4-4] {Pause};
     \end{tikzpicture}
-    \caption{Visualization of the different phases of the \gls{fpga} implementation and target algorithm over time (not to scale)}
+    \caption[Visualization of the different phases of the \glsentryshort{fpga} implementation and target algorithm over time]{Visualization of the different phases of the \glsentryshort{fpga} implementation and target algorithm over time (not to scale)}
     \label{fig:phases}
 \end{figure}
 
@@ -3701,9 +3708,9 @@ can be seen in \cref{sec:filter}.
 
 An example script named \lstinline+filterCalibration+ is provided in
 \cref{sec:sources} which acquires a filter calibration for the points
-$1$, $-1$, $0.5\Angle\SI{135}{\degree}$ and $0.5\Angle\SI{-45}{\degree}$.
+$1$, $-1$, $0.5\angle\SI{135}{\degree}$ and $0.5\angle\SI{-45}{\degree}$.
 Additionally it calculates filters for the mean of the measurements $1$ and $-1$,
-and $0.5\Angle\SI{135}{\degree}$ and $0.5\Angle\SI{-45}{\degree}$. After these
+and $0.5\angle\SI{135}{\degree}$ and $0.5\angle\SI{-45}{\degree}$. After these
 calculations the script performs verification measurements for the different
 filter calibrations. The results of these measurements can be found in \cref{sec:filter}.
 
@@ -3877,7 +3884,7 @@ the vector signal generator was turned off. Stepping through the frequency range
 was achieved by stepping the local oscillator \device{lo4} (see \cref{fig:test_setup}).
 This allowed for easier test automation since only the vector signal generator had to
 be controlled. The vector signal generator was set to an output power of \SI{0}{\deci\belm}
-which results in about \SI{-10}{\deci\belm} at the load reference plane (see \cref{fig:test_setup}). A ZV-Z132 (female) calibration kit from Rhode \& Schwarz was used for the calibration
+which results in about \SI{-10}{\deci\belm} at the load reference plane (see \cref{fig:test_setup}). A ZV-Z132 (female) calibration kit from Rohde \& Schwarz was used for the calibration
 setup in place of the \gls{dut}. Since the calibration is only valid for a single frequency, the full
 calibration measurements were acquired for 21 $\Delta{}\gls{f}$-aligned points within a
 \SI{25}{\mega\hertz} range at a center frequency of \SI{900}{\mega\hertz}. This
@@ -3956,7 +3963,7 @@ faster calibration. The measurement result of three exemplary points can be seen
         \end{tabular}
         \caption{Angle}
     \end{subtable}
-    \caption{Measured reflection coefficient with standard error and difference to Agilent \gls{vna}}
+    \caption{Measured reflection coefficient with standard error and difference to Agilent \glsentryshort{vna}}
     \label{tab:vna}
 \end{table}
 
@@ -3993,7 +4000,7 @@ signals for the test setup. This allowed verifying the synthesized $\gls{GammaL}
 calibrating the \gls{fir} filter \device{fir1} more accurately, than using the built
 in one port \gls{vna}.
 
-All the reflection generation verification measurements used 20000 samples as signal period \gls{n},
+All the reflection generation verification measurements used 20000 samples as signal period \gls{N},
 an overlap add block size \gls{L} of 2000, and an \gls{fft} width $\gls{nfft}$ of 4096 (see
 \cref{fig:overlap_add}). The filter \device{fir1} was preloaded with the
 impulse response of a low pass filter with a cut off frequency of \SI{25}{\mega\hertz} to
@@ -4110,7 +4117,7 @@ not capable of short delays and exhibits very high inaccuracy \cite{matlab_pause
                 \end{scope}
             \end{scope}
         \end{tikzpicture}
-        \caption{$\glsdisp{GammaL}{\Gamma_{L,target}} = 0.5 \Angle \SI{-45}{\degree}$}
+        \caption{$\glsdisp{GammaL}{\Gamma_{L,target}} = 0.5 \angle \SI{-45}{\degree}$}
         \label{fig:find_target_bad}
     \end{subfigure}
     \caption{Exemplary trajectories of the target algorithm}
@@ -4167,10 +4174,10 @@ to achieve a constant \gls{GammaL} over the whole bandwidth. Afterwards the mult
 were interpolated at the frequency points of the \gls{fft} of the \gls{fir} filter (see \cref{sec:matlab}).
 
 Filter calibration was carried out at the following $\gls{GammaL}$
-values: $1$, $-1$, $0.5\Angle\SI{135}{\degree}$ and $0.5\Angle\SI{-45}{\degree}$. Additional
+values: $1$, $-1$, $0.5\angle\SI{135}{\degree}$ and $0.5\angle\SI{-45}{\degree}$. Additional
 verification measurements were carried out with the mean of the acquired measurements
-at $1$ and $-1$, as well as the mean of the measurements at $0.5\Angle\SI{135}{\degree}$
-and $0.5\Angle\SI{-45}{\degree}$.
+at $1$ and $-1$, as well as the mean of the measurements at $0.5\angle\SI{135}{\degree}$
+and $0.5\angle\SI{-45}{\degree}$.
 
 For the following verification measurements, the respective calibration measurement
 was integrated to the filter \device{fir1} by applying the acquired multipliers
@@ -4200,9 +4207,9 @@ seen in \cref{fig:filter}.
             \addplot[blue] table[x index=0,y index=1] {\Horig};
             \addlegendentry{Low pass}
             \addplot[green] table[x index=0,y index=1] {\Hone};
-            \addlegendentry{$0.5 \Angle \SI{-45}{\degree}$}
+            \addlegendentry{$0.5 \angle \SI{-45}{\degree}$}
             \addplot[red] table[x index=0,y index=1] {\Htwo};
-            \addlegendentry{$0.5 \Angle \SI{135}{\degree}$}
+            \addlegendentry{$0.5 \angle \SI{135}{\degree}$}
         \end{axis}
     \end{tikzpicture}
     \caption{Uncalibrated and calibrated filter transfer functions}
@@ -4258,7 +4265,7 @@ precision of the filter implementation of \device{fir1} (see \cref{sec:overlap_a
                 \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(-0.3536,0.3536)};
             \end{smithchart}
         \end{tikzpicture}
-        \caption{$0.5 \Angle \SI{135}{\degree}$}
+        \caption{$0.5 \angle \SI{135}{\degree}$}
     \end{subfigure}\\
     \begin{subfigure}[b]{.45\linewidth}
         \centering
@@ -4286,7 +4293,7 @@ precision of the filter implementation of \device{fir1} (see \cref{sec:overlap_a
                 \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(0.3536,-0.3536)};
             \end{smithchart}
         \end{tikzpicture}
-        \caption{$0.5 \Angle \SI{-45}{\degree}$}
+        \caption{$0.5 \angle \SI{-45}{\degree}$}
     \end{subfigure}\\
     \begin{subfigure}[b]{.45\linewidth}
         \centering
@@ -4314,7 +4321,7 @@ precision of the filter implementation of \device{fir1} (see \cref{sec:overlap_a
                 \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(0.3536,-0.3536) (-0.3536,0.3536)};
             \end{smithchart}
         \end{tikzpicture}
-        \caption{$mean(0.5 \Angle \SI{135}{\degree}, 0.5 \Angle \SI{-45}{\degree})$}
+        \caption{$mean(0.5 \angle \SI{135}{\degree}, 0.5 \angle \SI{-45}{\degree})$}
     \end{subfigure}
     \caption{11 by 11 grid of reflection measurements over maximum range of $\glsdisp{GammaL}{\Gamma_{L,set}}$ values with calibrated filter at distinct calibration points}
     \label{fig:calibrated_filter}
@@ -4331,7 +4338,7 @@ to observe the extent of the phase drift. For this measurement the test setup
 displayed in \cref{fig:test_setup} and again the Agilent \gls{vna} (see \cref{sec:instruments})
 was used as \gls{dut}. The \gls{vna} was also connected to the
 \SI{10}{\mega\hertz} reference, in order to generate phase coherent signals. The same
-settings for the \gls{fpga} implementation have been used ($\gls{n} = 20000$, $\gls{L} = 2000$, $\gls{nfft} = 4096$).
+settings for the \gls{fpga} implementation have been used ($\gls{N} = 20000$, $\gls{L} = 2000$, $\gls{nfft} = 4096$).
 According to \cref{sec:digital} \device{fir1} needs to be a low pass filter to
 filter out the aliases and was preloaded with the impulse response of a \SI{25}{\mega\hertz} low pass filter.
 For the duration of the measurements, the \gls{fpga} implementation was switched to automatic mode to
@@ -4852,14 +4859,14 @@ the processor is in the folder {\ttfamily output/build/linux-3.18.6/arch/powerpc
     Low pass filter \device{lp2}      & Mini-Circuits SLP-90+\\
     \gls{adc} \device{adc1}           & Linear Technology 1151A-D Eval Board (LTC2274) \\
     \gls{fpga}                        & Xilinx ML507 Eval Board (XC5VFX70T) \\
-    Vector signal generator           & Rhode \& Schwarz SMBV100a \\
-    \gls{lo} \device{lo1}             & Rhode \& Schwarz SMIQ 06B \\
-    \gls{lo} \device{lo2}             & Rhode \& Schwarz SMGU \\
+    Vector signal generator           & Rohde \& Schwarz SMBV100a \\
+    \gls{lo} \device{lo1}             & Rohde \& Schwarz SMIQ 06B \\
+    \gls{lo} \device{lo2}             & Rohde \& Schwarz SMGU \\
     Oscilloscope                      & Agilent Technologies MSO7104A \\
     2. Oscilloscope                   & Agilent Technologies MSO7104A \\
     Trigger                           & Hewlett Packard 33120A \\
     Stub tuner                        & Maury Microwave 1819B \\
-    Calibration Kit                   & Rhode \& Schwarz ZV-Z132 (female) \\
+    Calibration Kit                   & Rohde \& Schwarz ZV-Z132 (female) \\
     \gls{vna} (\gls{dut})             & Agilent Technologies E8364A\\
     \hspace{2em} calibrated with      & Agilent Technologies N4433A\\
 \end{longtable}
