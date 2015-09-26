@@ -45,6 +45,7 @@
     retain-explicit-plus,
     group-digits=integer,
     group-separator={,},
+    group-minimum-digits=4,
     output-complex-root=j,
     retain-unity-mantissa=false,
     per-mode=symbol,
@@ -1814,14 +1815,14 @@ It was specifically tailored to a Xilinx \mbox{Virtex-5} FXT on a ML507 evaluati
 The \gls{fpga} model XC5VFX70T on this evaluation board provides the necessary
 high speed transceivers, sufficient block \glspl{ram}, and dedicated digital
 signal processing hardware \cite{virtex5ds}. Furthermore the ML507 board contains
-the \gls{sata} connector needed for the \gls{adc} and high speed differential
-pin headers which can be used for the digital \gls{iq} interface. Additionally, the board contains an
+an \gls{sata} connector needed for the \gls{adc} and pin headers with high speed differential signal routing to the \gls{fpga}
+which can be used for the digital \gls{iq} interface. Additionally, the board contains an
 Ethernet port enabling high speed data exchange with a \gls{pc}. Although, according to
 \cite{ml507}, the \gls{sata} headers are only rated up to \SI{1.5}{\giga\bit\per\second},
 it was confirmed during tests that the necessary \SI{2}{\giga\bit\per\second}, as required
 by the \gls{adc} \cite{ltc2274}, are also technically feasible. This \gls{fpga} also contains a
 hardwired PowerPC \gls{cpu}, which was used for controlling the digital components
-and as a communication bridge to the \gls{pc}. The complete source codes can be found in \cref{sec:sources}.
+and as a communication bridge to the \gls{pc}.
 
 \tikzset{inbuf/.style={color=Set1-4-1}}
 \tikzset{core/.style={color=Set1-4-2}}
@@ -1949,12 +1950,14 @@ and as a communication bridge to the \gls{pc}. The complete source codes can be 
 \end{figure}
 
 The design overview, as can be seen in \cref{fig:fpga_modules}, describes
-the high level modules of the design and connections between them. The overall
+the high level modules of the design and connections between them. Names used
+in this and the following design overview are the actual module names used in the
+source code. The overall
 design was split into two parts. The digital signal processing chain
 in \cref{fig:digital_chain} (see \cref{sec:digital}) implemented in the
 \device{main} module. The \device{main} module is described in
 \cref{sec:digital_processing}. The second part is the \device{processor} module
-which contains a complete system on chip. This module was used to be able to
+which contains a complete embedded processor system. This module was used to
 implement the necessary protocols for communicating with a \gls{pc} in software.
 It is described in \cref{sec:processor}.
 
@@ -1968,7 +1971,7 @@ synchronization which is sufficient for this design because the
 \device{processor} module is not fast enough to change the bus value within the
 synchronization period. Block \glspl{ram} in the used \gls{fpga} are true dual port
 memories. Therefore no synchronization is necessary for read access. If one port
-writes to the memory the other port must not access the same location at the same
+is used for writes to the memory the other port must not be used to access the same location at the same
 time\cite{virtex5}. Care was taken to avoid this situation by disallowing
 memory access from the other port during writes.
 
@@ -2099,23 +2102,24 @@ in \cref{sec:auto}.
 
 Necessary bit width truncations throughout the digital signal processing chain use
 convergent rounding. This rounding mode was used to prevent \gls{dc} offsets. It rounds
-to even integers in case of a tie. For example rounding 4.5 with this method
-results in 4. The same would be true for 3.5. Thus rounding does not introduce an offset towards infinity or zero, as would
+to even integers in case of a tie. For example rounding \num{4.5} with this method
+results in \num{4}. The same would be true for \num{3.5}. Thus rounding does not introduce an offset towards infinity or zero, as would
 be the case for round half up. Additionally, overflows are signalled and saturation is
 used where applicable.
 
 The sample buffer size was chosen according to the available block
-\gls{ram} in the \gls{fpga}. A maximum number of 148 \SI{36}{\kilo\bit} block
-\glspl{ram} is available in the \mbox{Virtex-5} (part XC5VFX70T) on the ML507 board\cite{virtex5ds}. Those block \glspl{ram}
+\gls{ram} in the \gls{fpga}. A maximum number of \num{148} block \glspl{ram} capable of
+storing up to \SI{36}{\kilo\bit} is available in the \mbox{Virtex-5} on the ML507 board\cite{virtex5ds}. Those block \glspl{ram}
 can also be used as two independent \SI{18}{\kilo\bit} block \glspl{ram}. As
-mentioned in \cref{sec:digital}, this design needs to support a sample width
-of \SI{16}{\bit}. Input averaging was chosen to support a maximum of 8 samples,
+mentioned in \cref{sec:digital}, the digital signal processing chain needs to support a sample width
+of \SI{16}{\bit}. Input averaging was chosen to support a maximum of \num{8} averages,
 resulting in an overall needed bit with of \SI{19}{\bit} for the input buffer. Since
-the output buffer uses double buffering and needs to be able to store \gls{iq} signals,
+the output buffer uses double buffering and needs to store \gls{iq} signals,
 two buffers with a bit width of \SI{32}{\bit} are needed. In order to achieve a high memory utilization,
 constrained by the possible block \gls{ram} bit widths, a single data bit of a buffer was
 realised with a \SI{36}{\kilo\bit} and a \SI{18}{\kilo\bit} block \gls{ram}. This leads
-to a total number of 124.5 block \glspl{ram}, leaving enough for the embedded processor
+to a total number of \num{124.5} block \glspl{ram} where \num{0.5} denotes a
+\SI{18}{\kilo\bit} block \gls{ram}. This leaves enough for the embedded processor
 and the \gls{fft} implementation. Using this memory layout only a 2-to-1 multiplexer
 for the output is needed. Since the highest address line can
 be used as selection between both block \glspl{ram}, no address decoder is needed. This ensures fast operation of the
@@ -2126,7 +2130,7 @@ with a block size of \gls{L} and an \gls{fft} size of $\gls{nfft}$ is used for t
 the full buffer depth is not usable. This is caused by the implementation of the overlap add
 algorithm which needs additional buffer space of $\gls{L} - \gls{nfft}$ samples after the signal.
 
-The memory busses of the \device{inbuf} module and the \device{outbuf} module are
+The memory buses of the \device{inbuf} module and the \device{outbuf} module are
 connected to the \device{core} module. The same bus connections are also exposed
 via a memory interface of the \device{core} module. To prevent access violations
 the exposed memory interface can't access the internal modules while one of
@@ -2142,11 +2146,11 @@ in \cref{sec:processor_interface} for controlling the whole signal processing ch
 \label{sec:acquisition}
 
 The \device{inbuf} module is responsible for serial to parallel conversion
-of the \gls{adc} data, descrambling, triggering, averaging and storing
+of the \gls{adc} data, descrambling, triggering, averaging, and storing
 the acquired samples. As can be seen in \cref{fig:inbuf}, this module consists
 of the main modules \device{receiver}, which handles receiving the data stream from
 \gls{adc}, and \device{average\_mem}, which handles storing the samples in a buffer
-and averaging. The additional modules \device{trigger}, \device{prepare} and
+and averaging. The additional modules \device{trigger}, \device{prepare}, and
 \device{wallclk} are responsible for controlling the data acquisition and keeping
 the time, which is needed for the \gls{iq} demodulation that will be explained in \cref{sec:overlap_add}.
 
@@ -2213,9 +2217,10 @@ settings used in this work were chosen according to the data sheet
 of the \gls{adc} \cite{ltc2274}. The receiver was configured to handle the
 specifications as described in the \cref{sec:digital}. These are 8b/10b line coding,
 a data width of \SI{16}{\bit} and a target line rate of \SI{2}{\giga\bit\per\second}.
-Synchronization was configured for a set ISMODE of the \gls{adc}. In this mode the
-transmitter of the \gls{adc} sends idle ordered sets consisting of
-K28.5 commas followed by either D5.6 or D16.2 code words\cite{ltc2274}. A comma is a special
+Synchronization was configured for an enabled idle synchronization mode (ISMODE) of the \gls{adc}. In this mode the
+transmitter of the \gls{adc} sends idle ordered sets instead of commas during synchronization\cite{ltc2274}.
+An idle ordered set is a special sequence used for synchronization consisting of a K28.5 comma
+followed by either D5.6 or D16.2 code word. A comma is a special
 code sequence of the 8b/10b line coding, which does not represent valid data\cite{gtx}.
 To be able to synchronize the GTX receiver according to these specifications, the comma
 alignment was set to align to even byte boundaries and to detect the K28.5 comma. After
@@ -2237,7 +2242,9 @@ connected to the \gls{adc} is the preferred mode of usage.
 
 The module \device{align} controls the clock signal, which is transmitted using
 the GTX. This module contains a state machine that blanks the clock signal
-for \SI{41}{\milli\second} after a loss of sync of the receiver. A loss of sync is
+for \SI{41}{\milli\second} after a loss of sync of the receiver. In combination with the
+synchronization circuit described in \cref{sec:digital} this clock blanking
+enables synchronization mode for the \gls{adc}. A loss of sync is
 detected if either a comma value or a value that is not part of the 8b/10b line coding
 is detected. After the blanking period the clock signal is reactivated and
 the GTX is put into alignment mode, which searches for the above mentioned comma
@@ -2259,13 +2266,13 @@ consists of the above mentioned \SI[product-units=brackets]{19 x 49152}{\bit} me
 by reading the appropriate sample from the buffer and adding it to the current value.
 For the first run the read sample is replaced with the value zero. Using this method
 the sampled values are accumulated over a configurable number of zero, two,
-four or eight rounds. Averaging is achieved during memory access from outside the module
-by shifting the accessed values by zero, one, two or three bit. This is equal to dividing
+four, or eight rounds. Averaging is achieved during memory access from outside the module
+by shifting the accessed values by zero, one, two, or three bit. This is equal to dividing
 the samples by the number of rounds used for averaging. This method needs to read
 the sample from the last round from the buffer while writing the current sample
-to the buffer. Therefore both ports of the memory are needed by the implementation.
-Hence the synchronization technique using different ports for the different clock
-domains as described above is not feasible. Therefore the memory interface allowing
+to the buffer. Therefore, both ports of the memory are needed by the implementation which
+implies that the synchronization technique using different ports for the different clock
+domains as described above is not feasible. Hence, the memory interface allowing
 access to the sample buffer from outside the \device{inbuf} module needs to share
 the ports with the averaging mechanism. Since those two parts don't share the same
 clock, clock multiplexing with dedicated \gls{fpga} hardware was implemented.
@@ -2292,7 +2299,8 @@ successful trigger, consecutive triggers are only generated at multiples of the 
 
 Subsequent to a trigger event, the \device{wallclk} module takes a snapshot of the
 jiffy counter which marks the time the first sample of the current acquisition
-was acquired. The \SI{30}{\mega\hertz} signal for the \gls{iq} demodulation
+was acquired. A jiffy is \SI{10}{\nano\second} in this \gls{fpga} design which is the time needed for
+one sample for a sample period of \SI{100}{\mega\hertz}. The \SI{30}{\mega\hertz} signal for the \gls{iq} demodulation
 is not generated in real time. Therefore the snapshot of the jiffy counter is necessary
 for the \device{core} module to generate the \SI{30}{\mega\hertz} signal with the
 correct phase (see \cref{sec:digital,sec:overlap_add}).
@@ -2311,6 +2319,15 @@ at addresses \num{>= 49152} result in undefined behaviour.
 
 \subsection[Overlap Add]{Overlap Add --- core}
 \label{sec:overlap_add}
+
+An overview of the \device{core} module can be seen in \cref{fig:core}.
+It consists of the buffer \device{H}, which is needed to store the transfer
+function, and the module \device{overlap\_add}, which contains the signal
+processing. The \device{overlap\_add}
+module itself contains the module \device{wave}, which is responsible for \gls{iq}
+demodulation, the \device{fft} module, which can calculate the \gls{fft} and
+inverse-\gls{fft}, a complex adder, a complex multiplier, and additional block
+\gls{ram}, needed as temporary buffer space (\device{scratch}).
 
 \begin{figure}[htb]
     \centering
@@ -2353,21 +2370,12 @@ at addresses \num{>= 49152} result in undefined behaviour.
     \label{fig:core}
 \end{figure}
 
-An overview of the \device{core} module can be seen in \cref{fig:core}.
-It consists of the buffer \device{H}, which is needed to store the transfer
-function, and the module \device{overlap\_add}, which contains the signal
-processing. The \device{overlap\_add}
-module itself contains the module \device{wave}, which is responsible for \gls{iq}
-demodulation, the \device{fft} module, which can calculate the \gls{fft} and
-inverse-\gls{fft}, a complex adder, a complex multiplier, and additional block
-\gls{ram}, needed as temporary buffer space (\device{scratch}).
-
 The \gls{iq} demodulation module \device{wave} consists of a hard coded look up
 table, that generates a \SI{30}{\mega\hertz} sine and cosine waveform for
 a sampling rate of \SI{100}{\mega\hertz}. Furthermore it contains multipliers,
 which multiply the incoming samples with the sine and cosine waveforms, for
 converting the signal into I and Q samples. Instead of performing this demodulation
-in real time, it is performed during filter processing. To insure the correct phase
+in real time, it is performed during filter processing. To ensure the correct phase
 of the \SI{30}{\mega\hertz} waveform it is evaluated at the point in time calculated
 from the jiffy counter and the position of the currently processed sample. The jiffy
 counter is contained in the \device{wallclk} module as explained in
@@ -2382,23 +2390,24 @@ remaining stages needed for this configuration are implemented in distributed \g
 results in a higher \gls{lut} usage of the \device{fft}\cite{xilinx_fft,virtex5}. Distributed
 \gls{ram} was preferred over block \gls{ram} because \gls{lut} usage was not a limiting factor
 in this design. The \device{fft} implementation was set to allow a modification of the
-\gls{fft} length at runtime, with a maximum length of 4096. A further runtime configuration
+\gls{fft} length at runtime, with a maximum length of \num{4096}. A further runtime configuration
 setting is, that this core can be switched between \gls{fft} and inverse \gls{fft}. This
 allowed using only one \device{fft} module, therefore reducing the resource usage further. Every
-computational part of the \gls{fft}, called a butterfly, consists of an addition. This
+computational part of the \gls{fft}, called a butterfly, consists of an addition and a multiplication
+that preserves the magnitude of the complex valued input of the butterfly. The addition
 increases the needed bit width after every butterfly by one bit to be able to represent every
-possible value. Additionally every butterfly contains a multiplicator that rotates the input
-in the complex domain. This rotation can result in an overall bit with growth of one bit for the
-whole \gls{fft}. Combining both factors leads to \cref{eq:bit_growth} given in \cite{xilinx_fft}.
+possible value. The multiplication can result in an overall bit with growth of one bit for the
+whole \gls{fft} if the magnitude represented by the complex valued input is greater than one.
+Combining both factors leads to \cref{eq:bit_growth} given in \cite{xilinx_fft}.
 \begin{equation}
     \label{eq:bit_growth}
     bits_{out} = bits_{in} + \underbrace{\log_2\left(\gls{nfft}\right)}_{\text{addition per butterfly}} + \underbrace{1}_{\text{complex rotation}}
 \end{equation}
-According to \cref{eq:bit_growth}, keeping every bit for an \gls{fft} length $\gls{nfft}$ of 4096
+According to \cref{eq:bit_growth}, keeping every bit for an \gls{fft} length $\gls{nfft}$ of \num{4096}
 and input width $bits_{in}$ of \SI{16}{\bit} would result in a maximum output width $bits_{out}$
 of \SI{29}{\bit}. Using such high bit widths is not possible because of resource constraints.
 Therefore, scaling was used and is implemented with a divider after every group, where one group
-consists of two butterflies. Every divider can divide the samples by one, two, four or eight.
+consists of two butterflies. Every divider can divide the samples by one, two, four, or eight.
 Since the possibility of overflows depends on the input data the right scaling schedule can't
 be determined beforehand. According to \cite{xilinx_fft} the best scaling schedule for the
 \gls{fft} and inverse \gls{fft} is found by starting with a divider schedule of one and incrementing
@@ -2406,7 +2415,7 @@ the divider schedule until the computation stops overflowing. Input data for the
 needs to be in natural order and output data is in bit reversed order \cite{xilinx_fft}.
 
 The complex multiplier was implemented with a runtime changeable scaling schedule. This
-schedule can be set to shift the result by 14 to 17 bits. Therefore the transfer function
+schedule can be set to shift the result by \num{14} to \num{17} bits. Therefore, the transfer function
 should always be scaled to the maximum possible values. The best overall scaling schedule
 can be found by first configuring the scaling schedule of the \gls{fft}, then the
 complex multiplier and after that the inverse \gls{fft}.
@@ -2565,7 +2574,7 @@ complex multiplier and after that the inverse \gls{fft}.
     \label{fig:overlap_add_machine}
 \end{figure}
 
-The overlap add algorithm as explained in \cref{sec:digital}, was implemented with
+The overlap add algorithm, as explained in \cref{sec:digital}, was implemented with
 two separate state machines. This allows speeding up the process since some parts can be calculated in parallel.
 The first state machine controls the \gls{fft} and the complex multiplication part of the
 algorithm. It is called \device{fftncmul}. Inverse \gls{fft} and complex
@@ -2591,9 +2600,10 @@ If the circular mode is enabled, then the block after the signal is added to the
 beginning (see \cref{sec:digital}). Since this process needs $\gls{L} - \gls{nfft}$ samples
 after the end of the signal, the sample buffer can't be used to the full extent.
 
-The overall module is freely configurable and accepts \gls{fft} sizes 8, 16,
-32, 64, 128, 256, 512, 1024, 2048 and 4096. The signal size \gls{N} has to be between
-8 and 65535 and the block size \gls{L} between 1 and 4096. There are no plausibility
+The overall module is freely configurable and accepts \gls{fft} sizes \num{8}, \num{16},
+\num{32}, \num{64}, \num{128}, \num{256}, \num{512}, \num{1024}, \num{2048}, and \num{4096}.
+The signal size \gls{N} has to be between \num{8} and \num{65535} and the block size
+\gls{L} between \num{1} and \num{4096}. There are no plausibility
 checks in the hardware, which means that wrong settings will lead to undefined
 behaviour. The \device{core} module can be stopped by issuing a reset signal.
 Numerical overflows are separately reported for \gls{fft}, inverse \gls{fft}
@@ -2607,8 +2617,8 @@ and complex multiplication.
 The \device{outbuf} module consists of two independent sample buffers
 \device{mem\_0} and \device{mem\_1}, a complex multiplier and the digital
 \gls{iq} interface \device{transmitter}. The two sample buffers are both
-\SI{32}{\bit} wide, to be able to store the \SI{16}{\bit} wide I and Q
-signals. Both can store up to 49152 samples. A general overview can be
+\SI{32}{\bit} wide, to store the \SI{16}{\bit} wide I and Q
+signals. Both can store up to \num{49152} samples. A general overview can be
 seen in \cref{fig:outbuf}.
 
 \begin{figure}[htb]
@@ -2661,8 +2671,8 @@ buffers consist of true dual port block \glspl{ram}. In combination with the
 unsupported writes to the \device{active} sample buffer, this ensures that
 no timing conditions are violated, due to the different clocks.
 
-This module uses a configurable signal period \gls{N}. This period can only be changed
-by resetting the module or by asserting the resync signal. Sample data of length \gls{N} is
+The \device{outbuf} module uses a configurable signal period \gls{N}. This period can only be changed
+by resetting the module or by asserting the \device{resync} signal. Sample data of length \gls{N} is
 continuously read from the \device{active} buffer. Swapping the \device{active}
 and the \device{inactive} buffer can be initiated by asserting the toggle\_buf
 signal for one cycle. To prevent signal distortion, the actual swapping occurs
@@ -2678,7 +2688,7 @@ with $\glsdisp{GammaL}{\Gamma_{L,set}}$ (see \cref{sec:digital}). As mentioned e
 multiplier features a bit shifter at the output. This bit shifter shifts the
 output by a configurable range of \SIrange{2}{17}{\bit}. With that operation
 it is possible to reach full scale output also for small input
-signals. This is necessary if, e.g., a high scaling factor is needed
+signals. This is necessary if, for example, a high scaling factor is needed
 for the \device{core} module (see \cref{sec:overlap_add}). After this scaling
 and convergent rounding, the multiplier is also capable of saturating the
 output. This would prevent a wrap around and therefore limit signal distortion.
@@ -2706,8 +2716,8 @@ in the \gls{fpga} fabric. Therefore the serialization was implemented utilizing
 \glspl{oserdes} in \SI{4}{\bit} \gls{ddr} mode. The \gls{ddr} mode reduces the
 necessary clock rate to \SI{350}{\mega\hertz} for the \gls{oserdes}. Furthermore the
 \SI{4}{\bit} mode decreases the needed clock for the parallel data to
-\SI{175}{\mega\hertz}. By connecting a test implementation of the transmitter,
-it was verified, that the Rohde \& Schwarz digital \gls{iq} interface uses the
+\SI{175}{\mega\hertz}. By connecting a test implementation of the transmitter
+it was verified that the Rohde \& Schwarz digital \gls{iq} interface uses the
 DS90CR485 channel link serializer with switched off \gls{dc} Balance mode.
 
 The \device{outbuf} module is runtime configurable. After changing the signal
@@ -2727,7 +2737,7 @@ For the complete signal computation, the previously described blocks
 \device{inbuf} (see \cref{sec:acquisition}), \device{core} (see
 \cref{sec:overlap_add}) and \device{outbuf} (see \cref{sec:smbv_interface})
 need to be triggered in this order. To minimize the delay and \gls{cpu}
-usage, the \device{auto} module contains a state machine that can achieve
+usage, the \device{auto} module contains a state machine that performs
 this task. It supports single shot and continuous operation.
 
 During a single run, the \device{auto} module first triggers the \device{inbuf}
@@ -2747,8 +2757,8 @@ enabling the automatic mode.
 \label{sec:processor}
 
 The embedded processor design was realized using the \gls{xps}. The
-design consists of every additional module needed to be
-able to run Linux and communicate via Ethernet. As can be seen in
+design consists of every additional module needed
+to run Linux and communicate via Ethernet. As can be seen in
 \cref{fig:cpu_design}, this includes a \gls{dram} controller, an
 Ethernet controller, a RS232 interface, a System ACE controller,
 a \gls{gpio} module, and an additional memory controller with a connected
@@ -2820,11 +2830,11 @@ indicating purposes.
 \label{sec:processor_interface}
 
 The processor interface, allowing the processor to control the digital
-signal processing chain, consists of three modules. A \gls{xps} module which
+signal processing chain, consists of three modules. An \gls{xps} module which
 interfaces with the \gls{plb}, called \device{proc2fpga}, a module
 implementing the registers, called \device{proc\_register}, and a module
 implementing a small memory controller, called \device{proc\_memory}. Separating
-the \gls{plb} interface into a \gls{xps} module allowed keeping the whole
+the \gls{plb} interface into an \gls{xps} module allowed keeping the whole
 \device{processor} module fixed during development. See \cref{sec:kernel_module}
 for a description of the software needed to control the processor interface.
 
@@ -2833,13 +2843,13 @@ It uses the burst variant of the \gls{plb} slave \cite{slave_burst}. This module
 exposes four user memories with \SI{16}{\bit} addressing and \SI{32}{\bit} data
 bus, six \SI{32}{\bit} registers, and 16 interrupt lines to the \gls{fpga} fabric.
 The interrupt lines are triggered on the positive edge. In order to enable wide
-memory access the burst variant is needed to be able to use memory mapping in
+memory access the burst variant is needed to use memory mapping in
 Linux. In this mode, Linux handles the
 size of the memory access, which results in reading or writing in whole
-cache lines. The \gls{plb} is \SI{128}{\bit} wide. Therefore, the non burst variant
+cache lines. The \gls{plb} is \SI{128}{\bit} wide, therefore, the non burst variant
 can't handle these operations, since the module interface is only \SI{32}{\bit}
 wide. The burst variant handles this situation by queuing four consecutive
-\SI{32}{\bit} operations. Without this, a Bus Error would be generated.
+\SI{32}{\bit} operations. Without this, a bus error would be generated.
 
 An overview of the register contents can be seen in \cref{sec:registers}. These
 registers and the interrupt generation are implemented in the \device{proc\_register}
