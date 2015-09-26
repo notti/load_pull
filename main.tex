@@ -2872,7 +2872,7 @@ and the needed infrastructure can be seen in \cref{chap:software}.
 As described in \cref{chap:fpga}, the \gls{fpga} contains a general
 purpose processor. To enable controlling the digital signal processing chain
 described in \cref{sec:digital,sec:digital_processing} with a \gls{pc},
-software was developed for this processor. This software is needed e.g. to control the
+software was developed for this processor. This software is needed, for instance, to control the
 filter transfer function which is needed for correcting the frequency response (see
 \cref{sec:overlap_add}) or setting the targeted hardware reflection coefficient $\glsdisp{GammaL}{\Gamma_{L,set}}$ (see
 \cref{sec:smbv_interface}). To allow high speed transfers of the filter
@@ -2988,7 +2988,7 @@ achieve a specific $\glsdisp{GammaL}{\Gamma_{L,target}}$ was developed. This alg
 is necessary, because reflections caused by the measurement setup and
 non-linear \glspl{dut} influence the resulting effective \gls{GammaL} which is controlled by the
 $\glsdisp{GammaL}{\Gamma_{L,set}}$ setting provided by the digital signal
-processing chain. Next the calibration routine for the digital filter was
+processing chain. Using this algorithm the calibration routine for the digital filter was
 implemented. This filter enables the frequency response compensated broadband
 reflection synthesis (see \cref{sec:digital}). A description
 of the implemented Matlab scripts can be found in \cref{sec:matlab}.
@@ -3056,7 +3056,8 @@ needs to perform device initialization, has to allocate memory for the
 device data, reserve ownership of device associated memories, allocate
 devices and files, setup the interrupt function, and initialize the
 interrupt registers. For freeing the resources, everything has to be
-released in the \lstinline+remove+ function. Omitting this prevents reloading the driver.
+released in the \lstinline+remove+ function. Omitting this prevents unloading the driver cleanly which
+causes locked resources that can only be used again after a reboot.
 All the code examples in this chapter are taken from the developed kernel module source. The
 complete source code can be found in \cref{sec:sources}.
 
@@ -3064,14 +3065,6 @@ complete source code can be found in \cref{sec:sources}.
 
 \subsection{Memory Access}
 \label{sec:memory_access}
-
-The sample buffers \device{inbuf} and \device{outbuf} as well as the transfer
-function \device{H} of the filter (see \cref{sec:digital_processing}) are
-exposed to user space via character devices\cite{ldd}. A character device
-is a special file that can be opened, closed, read and written to. Instead of
-operating on a real file in the file system, these operations are handled by
-the attached kernel module. Read and write operations are possible in byte
-sized chunks, hence the name character device.
 
 \begin{lstlisting}[float=htbp,caption={Character device initialization},label=src:cdevinit,basicstyle=\hack\scriptsize]
 #define USER_MEM 4
@@ -3126,6 +3119,14 @@ static int emce_of_probe(struct platform_device *ofdev)
 }
 \end{lstlisting}
 
+The sample buffers \device{inbuf} and \device{outbuf} as well as the transfer
+function \device{H} of the filter (see \cref{sec:digital_processing}) are
+exposed to user space via character devices\cite{ldd}. A character device
+is a special file that can be opened, closed, read, and written to. Instead of
+operating on a real file in the file system, these operations are handled by
+the attached kernel module. Read and write operations are possible in byte
+sized chunks, hence the name character device.
+
 Character device initialization was implemented in the \lstinline+probe+
 function mentioned above. To set up a character device a
 \lstinline+struct file_operations+\cite{ldd} is needed. This \lstinline+struct+
@@ -3137,7 +3138,7 @@ the example in \cref{src:cdevinit} the \lstinline+close+ function is left
 out, since it is not needed. This function would normally be used for
 cleaning up allocations done in the \lstinline+open+ function. However,
 in this kernel module only physical memory, which is owned by this module,
-is accessed via the character devices. Therefore no allocations are necessary.
+is accessed via the character devices. Therefore, no allocations are necessary.
 
 Allocating the necessary character devices and initialization is taken care of
 by the functions in \crefrange{cdev_init}{cdev_init_end} in \cref{src:cdevinit}.
@@ -3148,7 +3149,7 @@ which are used to identify which device a file belongs to. In this example the
 major number is automatically allocated and assigned and the minor number
 corresponds to the internal memory number. The rest of the code
 causes the kernel to create the device nodes \device{/dev/emce0} to
-\device{/dev/emce3}. Without this routines these nodes would need to be created
+\device{/dev/emce3}. Without these routines these nodes would need to be created
 manually using \lstinline[language=sh]+mknod+.
 
 \begin{lstlisting}[float=htb,caption={Character device access functions},label=src:cdev,basicstyle=\hack\scriptsize]
@@ -3181,7 +3182,7 @@ static int mem_open(struct inode *inode, struct file *file) { <*\label{mem_open}
 }
 \end{lstlisting}
 
-If user space calls the functions open on one of those device nodes, the
+If user space calls the function \lstinline+open+ on one of those device nodes, the
 kernel deduces from the major number that this driver is the owner and calls
 \lstinline+mem_open+ (see \cref{mem_open} in \cref{src:cdev}). As mentioned earlier,
 almost no setup needs to be done in this function. This function only checks if
@@ -3208,11 +3209,13 @@ is already in memory, the only things that need to be done are:
     \item Return the number of bytes actually read.
 \end{enumerate}
 
-Additionally to the traditional access methods the function \lstinline+mmap+
+In addition to the traditional access methods the function \lstinline+mmap+
 was implemented. This function allows user space to directly map the memory
 represented by the character device. With this technique a user space program
 can access the memory directly via a pointer, which avoids the copy operation
-mentioned above. This method is different to mapping \device{mmap}
+mentioned above. In this case memory protection is handled by the memory
+management unit instead of the above mentioned \lstinline+copy_*_user+ macros.
+This method is different to mapping \device{/dev/mem}
 directly by providing the correct offset and bounds of the access buffer.
 Therefore, this method doesn't bear the risks of system crashed by writing
 to the wrong address.
@@ -3234,7 +3237,7 @@ to represent a single value there are no \lstinline+open+ and \lstinline+close+
 functions.
 
 If user space writes a value to one of these files, then the \lstinline+store+
-function is called. Additionally a pointer to a single page containing the written
+function is called. Additionally, a pointer to a single page containing the written
 contents and the number of written bytes is passed to the function. The
 \lstinline+show+ function is called if user space reads from a file in \device{sysfs}.
 A pointer to one pre-allocated page is provided to the function. The function
@@ -3243,7 +3246,7 @@ has to return the number of bytes written.
 The \device{sysfs} files have to be assigned to attribute groups which in turn represent
 subdirectories below the driver directory\cite{sysfs}. For easier handling
 generalized \lstinline+show+ and \lstinline+store+ functions were developed. The generalized
-\lstinline+store+ function (\lstinline+fpga_flag_store+) converts the textual representation
+\lstinline+store+ function named \lstinline+fpga_flag_store+ converts the textual representation
 of the passed number to an integer and performs out of bound checking. This number is then
 shifted to the right position in the register and the memory mapped register updated with
 a read modify write cycle. This read modify write cycle is protected by a spin lock to
@@ -3258,7 +3261,7 @@ converted to a textual representation and written to the buffer.
 Since the digital signal processing chain features a lot of configuration options,
 macros that allow instantiating a single configuration option with one line of code
 were developed. A single configuration option is called flag and it possesses a
-register address, a bit position within the register, a bit width and possibly a
+register address, a bit position within the register, a bit width, and possibly a
 maximum value. The following macros allow instantiating the above mentioned
 \device{sysfs} functions:
 \begin{description}
@@ -3346,7 +3349,7 @@ can be seen in \cref{src:pint}. In order to receive the notifications,
 the file passed as the first argument to the script is opened for reading in
 \cref{open_file}. In \crefrange{poll_a}{poll_b} the \lstinline+poll+ system call
 is configured with the above mentioned event codes on the opened file. In order for
-the notification to work, the file has to be read completely. This is done by
+the notification to work, the file has to be read completely which is dictated by the kernel \gls{api}. This is done by
 resetting the file position to 0 (\cref{file_reset}) followed by reading the
 complete contents (\cref{file_read}). Resetting the file position ensures that
 further invocations after the first event also work. Next the \lstinline+poll+
@@ -3354,7 +3357,7 @@ system call is invoked which blocks execution of the program until the
 interrupt occurs (\cref{file_poll}). After an interrupt occurrence a line is
 printed and the waiting procedure is repeated.
 
-\begin{lstlisting}[language=python,float=htb,caption={Wait for interrupt example in python},label=src:pint,basicstyle=\hack\scriptsize]
+\begin{lstlisting}[language=python,float=htb,caption={Wait for interrupt example in Python},label=src:pint,basicstyle=\hack\scriptsize]
 #!/usr/bin/python
 import select
 import sys
@@ -3369,7 +3372,7 @@ with open(sys.argv[1], "r") as f: <*\label{open_file}*>
         print sys.argv[1], "fired!"
 \end{lstlisting}
 
-During the blocked wait the program is not running and therefore not
+During the blocked wait the program is not running and, therefore, not
 consuming \gls{cpu} cycles. Multiple programs and threads can wait
 for events on the same file utilizing this mechanism.
 
@@ -3381,9 +3384,9 @@ for events on the same file utilizing this mechanism.
 
 A network daemon with an accompanying web interface was developed to allow
 controlling the digital signal processing chain via Ethernet. This daemon
-is written in python using the event-driven network library Twisted\cite{twisted}.
+is written in Python using the event-driven network library Twisted\cite{twisted}.
 This network library encapsulates the different network layers and protocols
-into python classes simplifying network development.
+into Python classes simplifying network development.
 
 Protocol classes in Twisted provide a \lstinline{Received} method. This method
 is called with the received data as argument after a complete line for a text based
@@ -3400,8 +3403,8 @@ processing setting specified by target can be set to a specific value or can be 
 can be seen in \cref{src:json}. The daemon replies
 with \lstinline+"update"+ set as \lstinline+"cmd"+, the specific target name and the
 new value. Additionally interrupts are reported with \lstinline+"update"+ set as the
-\lstinline+"cmd"+ value and the interrupt target name. The target names correspond
-directly to the \device{sysfs} files provided by the kernel module described in
+\lstinline+"cmd"+ value and the interrupt target name. The target names directly correspond
+to the \device{sysfs} files provided by the kernel module described in
 \cref{sec:kernel_module}. Therefore, the daemon just opens the file given by target
 and performs the required read or write operation. The \lstinline+"do"+ command is the same
 as \lstinline+"set"+ except that a value of 1 is assumed.
@@ -3444,14 +3447,14 @@ newline. The {\ttfamily read} command provides the specified number of raw bytes
 The raw data is composed of \SI{16}{\bit} signed integers with big endian byte ordering. This protocol implementation
 can be reached via the \gls{tcp} port {\ttfamily 8000}.
 
+\begin{lstlisting}[language={},float=htb,caption={Example line to set $\gls{L}=2000$ with the text based protocol},label=src:text,basicstyle=\hack\scriptsize]
+set core/L 2000
+\end{lstlisting}
+
 Additionally to this protocol a second asynchronous
 protocol was implemented that allows to be notified about interrupts. Any input to
 this protocol is ignored. Interrupts are reported via this protocol with the name of the interrupt
 followed by a newline. The asynchronous protocol listens on \gls{tcp} port {\ttfamily 8001}.
-
-\begin{lstlisting}[language={},float=htb,caption={Example line to set $\gls{L}=2000$ with the text based protocol},label=src:text,basicstyle=\hack\scriptsize]
-set core/L 2000
-\end{lstlisting}
 
 This daemon is started automatically during the \gls{os} boot sequence. The \gls{json}- and
 text based protocol both provide an additional shutdown command that allows shutting
@@ -3479,11 +3482,11 @@ be found in \cref{sec:registers}. An example usage can be seen in \cref{src:mdri
 \begin{lstlisting}[float=htb,caption={Example usage of the Matlab driver for the hardware},label=src:mdriver,basicstyle=\hack\scriptsize,texcl=true]
 ml507 = ML507.ML507(); %\upshape instantiate the class
 
-ml507.depth = 20000; %\upshape set signal period $\gls{N} = 20000$
-ml507.transmitter.mul = 32767; %\upshape set $\glsdisp{GammaL}{\Gamma_{L,set}} = 32767$
+ml507.depth = 20000; %\upshape set signal period $\gls{N} = \num{20000}$
+ml507.transmitter.mul = 32767; %\upshape set $\glsdisp{GammaL}{\Gamma_{L,set}} = \num{32767}$
 ml507.transmitter.shift = 5; %\upshape set output multiplier shift to 5
-ml507.core.n = 4096; %\upshape set $\gls{nfft} = 4096$
-ml507.core.L = 2000; %\upshape set $L = 2000$
+ml507.core.n = 4096; %\upshape set $\gls{nfft} = \num{4096}$
+ml507.core.L = 2000; %\upshape set $L = \num{2000}$
 ml507.core.scale_sch(1:6) = [2 0 0 0 0 0]; %\upshape schaling schedule for \gls{fft}
 ml507.core.scale_schi(1:6) = [2 1 0 0 0 0]; %\upshape schaling schedule for inverse \gls{fft}
 ml507.core.scale_cmul = 1; %\upshape complex multiplier scaling
@@ -3498,14 +3501,14 @@ Utilizing these classes the one port \gls{vna} as described in \cref{sec:vna}
 was implemented in a Matlab script. A description of this script can be found
 in \cref{sec:mvna}. Additional reflections caused by the measurement setup and the \gls{dut} cause
 the setup to exhibit a different \gls{GammaL} than was set by
-$\glsdisp{GammaL}{\Gamma_{L,set}}$. These imperfections could be compensated with an error
+$\glsdisp{GammaL}{\Gamma_{L,set}}$. These imperfections can be compensated with an error
 box as has been done for the one port \gls{vna} (see \cref{sec:vna}).
 Since highly non-linear \gls{dut} can experience load-dependent
 $\gls{S}[_{22}]$, this approach could prove futile. Therefore, an iterative target algorithm
 was developed to find the correct $\glsdisp{GammaL}{\Gamma_{L,set}}$ needed
 to achieve a specific $\glsdisp{GammaL}{\Gamma_{L,target}}$. This algorithm
 is described in \cref{sec:target}. Using this target algorithm the
-filter calibration script described in \cref{sec:filtercal} was developed.
+filter calibration script, described in \cref{sec:filtercal}, was developed.
 
 % ---------------------------------------------------------------------------
 
@@ -3691,18 +3694,18 @@ Preliminary tests showed that this iterative target algorithm is capable
 of reaching multiple specific $\glsdisp{GammaL}{\Gamma_{L,target}}$. Therefore,
 the algorithm is capable of compensating the reflections introduced by
 the measurement setup. These are caused by connectors and mismatches between
-the components. This algorithm also
-worked after additional reflections have been introduced in the
+the components. The iterative target algorithm also
+worked after additional reflections have been introduced intentionally in the
 measurement setup. A more detailed verification of this algorithm can be found
 in \cref{sec:iterative}.
 
-This algorithm was implement in the Matlab function \lstinline+findTarget+.
-The source code of this function can be found in \cref{sec:sources}. The needed
+The iterative target algorithm was implement in the Matlab function \lstinline+findTarget+.
+The needed
 arguments are a \lstinline+ML507+ object for controlling the signal processing
 chain, the target, a function handle to a function implementing the
-\gls{GammaL}-measurement, and the pause time. Additionally a start point
-can be specified. This function returns upon algorithm termination the actual
-\gls{GammaL} and the needed $\glsdisp{GammaL}{\Gamma_{L,set}}$. Additionally the complete
+\gls{GammaL}-measurement, and the pause time. Additionally, a start point
+can be specified. The \lstinline+findTarget+ function returns upon algorithm termination the actual
+\gls{GammaL} and the needed $\glsdisp{GammaL}{\Gamma_{L,set}}$. Additionally, the complete
 trajectory consisting of every reached \gls{GammaL}, including start and stop point,
 is returned.
 
@@ -3711,9 +3714,9 @@ is returned.
 \subsection{Filter Calibration}
 \label{sec:filtercal}
 
-The digital filter in the signal processing chain is needed to be able to
+The digital filter in the signal processing chain is needed to
 synthesize a constant \gls{GammaL} over a wide frequency range. This
-filter is needed to compensate the group delay caused by the measurement
+filter is required to compensate the group delay caused by the measurement
 setup and cabling needed for to be able to reach the \gls{dut}. Furthermore,
 it is able to compensate the frequency responses of the components used
 in the measurement setup.
@@ -3747,7 +3750,7 @@ The implemented \gls{elp} design was tested with the setup presented in
 which have been described in \cref{chap:measurement_system}. As mentioned in
 \cref{sec:analog}, instead of a circulator, the directional coupler
 \device{dir2} in combination with attenuator \device{att1} was used.
-Furthermore, since during verification only waves generated inside
+Furthermore, since during verification only waves synthesized inside
 the specified bandwidth of \SI{20}{\mega\hertz} were used, the low-pass filter \device{lp2}
 was used instead of a bandpass filter. A detailed list of used
 instruments can be seen in \cref{sec:instruments}.
@@ -4017,7 +4020,7 @@ of longer measurement times \cite{ad_mt004}.
 The reflection measurements were carried out using a test setup as displayed in \cref{fig:test_setup}.
 Here an Agilent \gls{vna} was connected instead of the \gls{dut} to verify the synthesized reflection
 coefficients. Furthermore, the Agilent \gls{vna} was synchronized to the setup using the same
-\SI{10}{\mega\hertz} reference in order to be able to generate the needed phase coherent
+\SI{10}{\mega\hertz} reference in order to be able to synthesize the needed phase coherent
 signals for the test setup. This allowed verifying the synthesized $\gls{GammaL}$, and
 calibrating the \gls{fir} filter \device{fir1} more accurately, than using the built
 in one port \gls{vna}.
@@ -4359,7 +4362,7 @@ cause of these phase drifts, a test measurement was acquired, to be able
 to observe the extent of the phase drift. For this measurement the test setup
 displayed in \cref{fig:test_setup} and again the Agilent \gls{vna} (see \cref{sec:instruments})
 was used as \gls{dut}. The \gls{vna} was also connected to the
-\SI{10}{\mega\hertz} reference, in order to generate phase coherent signals. The same
+\SI{10}{\mega\hertz} reference, in order to synthesize phase coherent signals. The same
 settings for the \gls{fpga} implementation have been used ($\gls{N} = 20000$, $\gls{L} = 2000$, $\gls{nfft} = 4096$).
 According to \cref{sec:digital} \device{fir1} needs to be a low pass filter to
 filter out the aliases and was preloaded with the impulse response of a \SI{25}{\mega\hertz} low pass filter.
@@ -4401,7 +4404,7 @@ vector signal generator was chosen as the reference source. Since the frequencie
 of the generators were \SI{830}{\mega\hertz}, \SI{100}{\mega\hertz} and \SI{900}{\mega\hertz},
 the additional function generator \device{trigger} (see \cref{fig:setup_phase_single}) was needed to
 generate the greatest common divisor of those frequencies, which is \SI{10}{\mega\hertz}.
-Unfortunately, it was not possible to generate a stable and spectrally clear trigger signal using this function generator, that
+Unfortunately, it was not possible to synthesize a stable and spectrally clear trigger signal using this function generator, that
 allowed reliably triggering for measuring the phase of the different signals. Therefore this signal was also recorded.
 To be able to measure all the signals, a second oscilloscope had to be used. Since triggering
 the second oscilloscope with the first one resulted in a worse performance, than feeding both
@@ -4500,7 +4503,7 @@ with the highest oscillator accuracy.
 
 Another part is caused by
 the low reference frequency of \SI{10}{\mega\hertz}. During a single period of the reference
-signal, a lot of periods need to be generated by the instruments, allowing for few
+signal, a lot of periods need to be synthesized by the instruments, allowing for few
 synchronisation points. This means, that a better result can be achieved by using a faster
 reference clock. This is also reflected in \cref{fig:phase_overall}, which shows
 that the generators with the higher frequencies (\device{lo1}, \device{lo4}, \gls{vna})
