@@ -4523,7 +4523,7 @@ the different parts of the measurement setup.
 
 Within this thesis an active \gls{fpga} based load-pull measurement setup capable of synthesizing
 an almost constant reflection coefficient over a wide bandwidth was realized. This
-is required for example to be able to characterize \glspl{pa} used in modern
+is required, for instance, to characterize \glspl{pa} used in modern
 communication systems. Furthermore, the realized setup allows using modulated signals which
 enables testing \glspl{pa} with modulated signals as they are found in high speed
 communication applications \cite{ghannouchi_load-pull_2013}. Additionally, the presented active load-pull measurement
@@ -4537,9 +4537,9 @@ instead of a direct conversion approach which also allows using the
 frequency band around \SI{0}{\hertz} and minimizes \gls{iq} imbalance.
 Performing the reflection generation digitally allowed the use of a
 digital filter with fully configurable frequency response which would
-have been impossible in the analog domain. This filter allows e.g. compensating
+have been impossible in the analog domain. This filter allows, for instance, compensating
 the frequency response or the group delay introduced by the cabling needed in the setup. As has been
-presented in \cref{sec:filter}, this filter allows synthesising almost constant
+presented in \cref{sec:filter}, this filter allows synthesizing almost constant
 \gls{GammaL} values over approximately a bandwidth of \SI{20}{\mega\hertz}. Additionally, this filter helps to mitigate
 oscillations at frequencies outside the band of interest.
 
@@ -4556,13 +4556,13 @@ allowing for faster setup times.
 The implementation of the digital hardware used within this thesis provides
 easy to use communication interfaces. For automated test bench setups a text based
 interface operating via \gls{tcp} was developed. Accompanying Matlab classes
-allow controlling the complete digital part from within Matlab. Additionally
+allow controlling the complete digital part from within Matlab. Additionally,
 a web based interface using a websocket based protocol was designed for
 manual control and status feedback.
 
 This work can be used as a base to build a harmonic load-pull setup capable
-of synthesising an almost constant reflection coefficient over a wide bandwidth. This
-could be achieved e.g. using triplexers for splitting and combining the signal into
+of synthesizing an almost constant reflection coefficient over a wide bandwidth. This
+could be achieved, for instance, using triplexers for splitting and combining the signal into
 the frequency components and three load-pull modules \cite{hashmi_accurate_2010}. Each consisting of down-mixing, an
 \gls{adc}, an \gls{fpga}, and a vector signal generator. Many of the components
 of the digital signal processing chain could be shared between those
@@ -4570,10 +4570,10 @@ modules. Nevertheless, extending the implementation to such a setup will need a
 larger \gls{fpga} containing more memory.
 
 For future work on the realized load pull setup several improvements or extensions
-can be thought of. E.g the duration which was needed to reach a specified \gls{GammaL}
+can be thought of. For instance, the duration which was needed to reach a specified \gls{GammaL}
 by the target algorithm can be accelerated. Furthermore, using for instance \gls{rf}
 signal sources that are capable of using reference signals with a higher frequency
-or direct \gls{rf} synchronization seams promising. This would for example
+or direct \gls{rf} synchronization seems promising. This would, for example,
 minimize the phase drift which has been observed during the verification measurements (see \cref{sec:drift}),
 minimize noise, or allow for more easily achieving a synchronous active broadband
 load-pull measurement system capable of directly handling modern high
