@@ -49,6 +49,7 @@
     output-complex-root=j,
     retain-unity-mantissa=false,
     per-mode=symbol,
+    range-phrase=--,
     ]{siunitx}
 \DeclareSIUnit \belm {Bm}
 \DeclareSIUnit \belfs {BFS}
@@ -74,6 +75,7 @@
     \usepackage{hyperxmp}
 }{
     \tikzexternalize[mode=list and make]
+    \usepackage{showframe}
 }
 \tikzexternalwritetomakefile{}
 \tikzexternalwritetomakefile{.DELETE_ON_ERROR:}
@@ -4587,7 +4589,7 @@ bandwidth communication standards.
 \label{sec:sources}
 
 The \gls{vhdl} sources and project files needed to generate the hardware can be found at
-\url{https://github.com/notti/load_pull-hw}. Buildroot configuration files needed to build
+\url{https://github.com/notti/load_pull-hw}. Buildroot configuration files for building
 the \gls{os} necessary for the integrated processor design can be found at
 \url{https://github.com/notti/load_pull-buildroot}. The kernel module necessary for controlling
 the developed hardware, web interface and protocol server, Matlab source codes, raw verification results
@@ -4604,10 +4606,10 @@ to control the complete digital signal processing chain. Additionally the path n
 the \device{sysfs} interface implemented by the kernel module are listed (see \cref{sec:kernel_module}).
 
 The Matlab source code repository (see \cref{sec:sources}) contains a package
-named \device{ML507} which in turn contains the class \lstinline[language=matlab]+ML507.ML507+. This
+named \lstinline[language=matlab]+ML507+ which in turn contains the class \lstinline[language=matlab]+ML507.ML507+. This
 class can be used to control the hardware implementation. If not otherwise noted,
 the Matlab property is the same as the path names listed in the following tables
-with a dot instead of a slash. For instance \gls{L} can be set to 2000 with the
+with a dot instead of a slash. For instance \gls{L} can be set to \num{2000} with the
 Matlab command \lstinline[language=matlab]+instance.core.L = 2000;+ where instance
 is an instance of \lstinline[language=matlab]+ML507.ML507+.
 
@@ -4685,7 +4687,7 @@ is an instance of \lstinline[language=matlab]+ML507.ML507+.
         \flag{trig\_int}    & \flag{trigger/int}    & w  & Manually trigger. \\
         \flag{trig\_arm}    & \flag{trigger/arm}    & rw & Arm trigger. \\
         \flag{trig\_type}   & \flag{trigger/type}   & rw & 0: Internal trigger. 1: External trigger. \\
-        \flag{depth}        & \flag{depth}          & rw & Number of samples to acquire (1 - 49152). \\
+        \flag{depth}        & \flag{depth}          & rw & Number of samples to acquire (\numrange{1}{49152}). \\
         \bottomrule
     \end{tabularx}
     \caption{Register 1 (0x04)}
@@ -4740,7 +4742,7 @@ is an instance of \lstinline[language=matlab]+ML507.ML507+.
         \flag{core\_ov\_fft}     & \flag{core/ov\_fft}     & r  & Indicates \gls{fft} overflow. \\
         \flag{core\_start}       & \flag{core/start}       & rw & Start filter execution. \\
         \flag{core\_iq}          & \flag{core/iq}          & rw & Enable \gls{iq} demodulation. \\
-        \flag{core\_n}           & \flag{core/n}           & rw & Transform size in $\log_2(\gls{nfft})$ (3-12). \\
+        \flag{core\_n}           & \flag{core/n}           & rw & Transform size in $\log_2(\gls{nfft})$ (\numrange{3}{12}). \\
         \flag{core\_scale\_cmul} & \flag{core/scale\_cmul} & rw & Scaling schedule for complex multiplication. \\
         \flag{core\_L}           & \flag{core/L}           & rw & \gls{L}. See \cref{sec:overlap_add}. \\
         \bottomrule
@@ -4786,7 +4788,7 @@ is an instance of \lstinline[language=matlab]+ML507.ML507+.
         \toprule
         \textbf{Signal name} & \textbf{Path name} & \textbf{r/w} & \textbf{Description} \\
         \midrule
-        \flag{tx\_shift}         & \flag{transmitter/shift}         & rw & Scaling schedule output multiplier (0-15). \\
+        \flag{tx\_shift}         & \flag{transmitter/shift}         & rw & Scaling schedule output multiplier (\numrange{0}{15}). \\
         \flag{tx\_ovfl}          & \flag{transmitter/ovfl}          & r  & Indicates output multiplier overflow. Write a 0 to reset overflow. \\
         \flag{tx\_sat}           & \flag{transmitter/sat}           & rw & Enable saturation for complex multiplier. \\
         \flag{tx\_rst}           & \flag{transmitter/rst}           & w  & Reset \device{outbuf}. \\
@@ -4843,8 +4845,8 @@ is an instance of \lstinline[language=matlab]+ML507.ML507+.
 \section{Hardware}
 \label{sec:build:hw}
 
-The needed project files in order to be able to build the hardware can be found
-in \cref{sec:sources}. In order to be able to compile the project files, the
+The project files needed to build the netlist and \gls{fpga} configuration files can be found
+in \cref{sec:sources}. For compiling the project files, the
 Xilinx ISE Design Suite version 14.7 including all updates is needed. Since
 this design has very strict timing conditions, the design needs to be built
 using the SmartXplorer iterating different cost tables.
@@ -4852,8 +4854,8 @@ using the SmartXplorer iterating different cost tables.
 \section{Software}
 \label{sec:build:sw}
 
-To build the complete software, the buildroot-add repository specified in
-\cref{sec:sources} and buildroot version 2015.02 \cite{buildroot} need to be downloaded. Furthermore
+To build the complete software, the buildroot-add repository as specified in
+\cref{sec:sources} and buildroot version 2015.02 \cite{buildroot} need to be downloaded. Furthermore,
 all the prerequisites listed at \cite{buildroot} need to be installed. After
 downloading buildroot-add and buildroot, both need to be extracted into a temporary directory. Next
 the following commands need to be executed from within the buildroot directory:
@@ -4871,8 +4873,8 @@ the processor is in the folder {\ttfamily output/build/linux-3.18.6/arch/powerpc
 \label{sec:instruments}
 
 \begin{longtable}{ll}
-    Directional Coupler \device{dir1} & Krytar Model 1850\\
-    Directional Coupler \device{dir2} & Krytar Model 1850\\
+    Directional coupler \device{dir1} & Krytar Model 1850\\
+    Directional coupler \device{dir2} & Krytar Model 1850\\
     Attenuator \device{att1}          & \SI{10}{\deci\bel} Mini-Circuits VAT-10W2+\\
     Frequency mixer \device{mix1}     & Hittite HMC208MS8E \\
     Low pass filter \device{lp2}      & Mini-Circuits SLP-90+\\
@@ -4885,7 +4887,7 @@ the processor is in the folder {\ttfamily output/build/linux-3.18.6/arch/powerpc
     2. Oscilloscope                   & Agilent Technologies MSO7104A \\
     Trigger                           & Hewlett Packard 33120A \\
     Stub tuner                        & Maury Microwave 1819B \\
-    Calibration Kit                   & Rohde \& Schwarz ZV-Z132 (female) \\
+    Calibration kit                   & Rohde \& Schwarz ZV-Z132 (female) \\
     \gls{vna} (\gls{dut})             & Agilent Technologies E8364A\\
     \hspace{2em} calibrated with      & Agilent Technologies N4433A\\
 \end{longtable}
