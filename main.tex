@@ -125,13 +125,13 @@
   \hfill \\
 }
 \lstset{language=matlab}
+\lstset{numbers=left,numberstyle=\tiny,stepnumber=5,numbersep=5pt,frame=single,captionpos=b,basicstyle=\ttfamily,xleftmargin=\fboxsep,xrightmargin=\fboxsep}
 
 %stuff
 
 \usepackage{url}
 \usepackage{tocloft} %table of contents modification
 \usepackage{subcaption} %subfigures
-\usepackage{placeins} % keep floats in check (=sections where they belong)
 \usepackage{booktabs} % nicer tables
 \usepackage{cite}
 \usepackage{register}
@@ -1772,10 +1772,10 @@ the fix can be seen in \cref{fig:iq_adapter_circ}.
 
 \begin{figure}[htb]
     \centering
-    \begin{subfigure}[c]{.49\linewidth}
+    \begin{subfigure}[c]{.48\linewidth}
         \centering
         \begin{tikzpicture}
-            \node[anchor=south west,inner sep=0pt] (image) at (0,0) {\includegraphics[width=\textwidth]{adc.jpg}};
+            \node[anchor=south west,inner sep=0pt] (image) at (0,0) {\includegraphics[width=\linewidth]{adc.jpg}};
             \begin{scope}[x={(image.south east)},y={(image.north west)},every node/.style={fill=white, fill opacity=0.8}]
                 \draw (0,0.55) node[anchor=south west] {analog in};
                 \draw (1,0) node[anchor=south east] {power supply};
@@ -1787,14 +1787,14 @@ the fix can be seen in \cref{fig:iq_adapter_circ}.
                 \draw (0.9,0.323) node[anchor=south east] {SATA};
             \end{scope}
         \end{tikzpicture}
-        \caption{\glsentryshort{adc} adapter board with diconnected clock atop LTC2274 demo board}
+        \caption{\glsentryshort{adc} adapter board with disconnected clock atop LTC2274 demo board}
         \label{fig:adc_adapter_circ}
     \end{subfigure}%
     ~
-    \begin{subfigure}[c]{.49\linewidth}
+    \begin{subfigure}[c]{.48\linewidth}
         \centering
         \begin{tikzpicture}
-            \node[inner sep=0pt] (image) at (0,0) {\includegraphics[width=\textwidth]{digital_iq.jpg}};
+            \node[inner sep=0pt] (image) at (0,0) {\includegraphics[width=\linewidth]{digital_iq.jpg}};
         \end{tikzpicture}
         \caption{Digital \glsentryshort{iq} adapter circuit board with S\_CLK fix}
         \label{fig:iq_adapter_circ}
@@ -2210,7 +2210,7 @@ the time, which is needed for the \gls{iq} demodulation that will be explained i
     \label{fig:inbuf}
 \end{figure}
 
-The serial to parallel conversion was implemented using the built in GTX
+The serial to parallel conversion of the received data was implemented using the built in GTX
 transceiver. Since the ML507 board features two \gls{sata} ports, two
 identical receivers were implemented. Since the GTX blocks need
 a lot of configuration settings, they were instantiated using the
@@ -2999,8 +2999,7 @@ of the implemented Matlab scripts can be found in \cref{sec:matlab}.
 
 \section{Kernel Module}
 \label{sec:kernel_module}
-\lstset{language=C,numbers=left,numberstyle=\tiny,stepnumber=5,numbersep=5pt,frame=single,
-captionpos=b,escapeinside={<*}{*>},mathescape=true,deletekeywords={register},basicstyle=\ttfamily}
+\lstset{language=C,escapeinside={<*}{*>},mathescape=true,deletekeywords={register}}
 
 \begin{lstlisting}[float=htb,caption={Basic elements of a platform driver module},label=src:pdriver,basicstyle=\hack\scriptsize]
 static int emce_of_probe(struct platform_device *ofdev) { <*\label{probe}*>
@@ -3957,16 +3956,16 @@ faster calibration. The measurement result of three exemplary points can be seen
         \begin{tabular}{
             S[table-format=3.3]
             l
-            S[table-format=3.4e1]
-            S[table-format=2.1e1]
-            S[table-format=1.1e1]}
+            S[table-format=3.4e-1]
+            S[table-format=2.1e-1]
+            S[table-format=1.1e-1]}
             \toprule
             \multicolumn{2}{c}{{\textbf{frequency}}} & {\textbf{mean}} & {\textbf{standard error}} & {\textbf{$\Delta$\gls{vna}}} \\
             {\si{\mega\hertz}} &  & {1} & {1} & {1} \\
             \midrule
             887.5   & (cal)                          & 581.0232e-3 & 37.6e-6 & 2.1e-3 \\
             887.505 & ($\frac{1}{2}\Delta{}\gls{f}$) & 581.0589e-3 & 38.2e-6 & 2.2e-3 \\
-            888.095 &(between cal)                   & 582.3070e-3 & 36.6e-6 & 2.1e-3 \\%\midrule
+            888.095 &(between cal)                   & 582.3070e-3 & 36.6e-6 & 2.1e-3 \\
             \bottomrule
         \end{tabular}
         \caption{Magnitude}
@@ -3976,8 +3975,8 @@ faster calibration. The measurement result of three exemplary points can be seen
         \begin{tabular}{
             S[table-format=3.3]
             l
-            S[table-format=+3.4]
-            S[table-format=1.1e1]
+            S[table-format=-3.4]
+            S[table-format=1.1e-1]
             S[table-format=1.1]}
             \toprule
             \multicolumn{2}{c}{{\textbf{frequency}}} & {\textbf{mean}} & {\textbf{standard error}} & {\textbf{$\Delta$\gls{vna}}} \\
