@@ -1813,7 +1813,7 @@ be seen in \cref{chap:fpga}.
 \label{chap:fpga}
 
 The digital part, as described in \cref{sec:digital}, was realized in \gls{vhdl}.
-It was specifically tailored to a Xilinx \mbox{Virtex-5} FXT on a ML507 evaluation board.
+It was specifically tailored to a Xilinx \mbox{Virtex-5} FXT on an ML507 evaluation board.
 The \gls{fpga} model XC5VFX70T on this evaluation board provides the necessary
 high speed transceivers, sufficient block \glspl{ram}, and dedicated digital
 signal processing hardware \cite{virtex5ds}. Furthermore the ML507 board contains
@@ -3204,7 +3204,7 @@ is already in memory, the only things that need to be done are:
 \begin{enumerate}
     \item Boundary check (\crefrange{mem_read_checka}{mem_read_checkb}).
     \item Copy the data to user space (\cref{mem_read_copy}). This must be
-        done with the \lstinline+copy_*_user+ macros. Kernel memory and
+        done with the kernel provided \lstinline+copy_*_user+ macros. Kernel memory and
         user memory must never be mixed, since this can cause security
         problems\cite{ldd}.
     \item Advance the file position (\cref{mem_read_advance}).
