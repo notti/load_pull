@@ -491,11 +491,11 @@ output matching networks, that improve the performance. This comes at the cost o
 behaviour of the transistor in use \cite{ghannouchi_load-pull_2013}.
 
 Because of these non-linearities more complex models and verification systems are
-needed. One way to measure the characteristics of a non-linear system is the so called
+needed. One way to measure the characteristics of a non-linear device is the so called
 \gls{lp} technique (see \cref{fig:load_coeff}). This measurement system presents a
 controllable load impedance (output tuner) to the \gls{dut}. The fixed input tuner is
 needed to match the input of the \gls{dut} to the source. \Gls{lp} can be used for obtaining the
-\gls{dut} characteristics, and for verifying an implementation. \Gls{lp} also
+\gls{dut} characteristics and/or for verifying an implementation. \Gls{lp} also
 allows to test the \gls{dut} under realistic operational conditions.
 
 \begin{figure}[htb]
@@ -589,8 +589,10 @@ the power wave $\gls{b}[_2]$ is fed to a variable attenuator, a phase shifter an
 amplifier. These elements modify the phase and the magnitude of $\gls{b}[_2]$,
 which is again fed back to the \gls{dut} with the circulator. Because of limited
 isolation provided by real world circulators the loop will oscillate if the loop gain
-exceeds the isolation \cite{ghannouchi_load-pull_2013}. Another way to improve the stability of the system
-is to introduce a bandpass filter into the loop.
+exceeds the isolation \cite{ghannouchi_load-pull_2013}. The isolation can be improved
+with an additional isolator after the amplifier. Another way to improve the stability of the loop
+is to introduce a bandpass filter into the loop which prevents oscillations at frequencies
+outside the band of interest.
 
 \begin{figure}[htb]
     \centering
@@ -631,7 +633,7 @@ phase shifter. Additionally the amplifier has to be protected from possibly dama
 with an isolator. A disadvantage of the open loop system is that the synthesized waves $\gls{a}[_2]$ are
 not derived from $\gls{b}[_2]$. This implies that the reflection coefficient $\gls{GammaL}$ not only
 depends on the phase shifter and attenuator settings, but also on the \gls{dut} itself.
-Therefore, an iterative approach is needed to achieve a specific $\gls{GammaL}$ \cite{muller_comparison_1994}.
+Therefore, an iterative approach is needed to achieve desired $\gls{GammaL}$ \cite{muller_comparison_1994}.
 
 \begin{figure}[htb]
     \centering
@@ -674,9 +676,12 @@ filter for phase correction is presented. With this filter reflections with mini
 \gls{GammaL} variation at the load reference plane over a bandwidth of
 \SI{20}{\mega\hertz} can be synthesized. This wideband system works by modifying
 the incoming wave $\gls{b}[_2]$ according to the desired \gls{GammaL}, applying
-a negative phase correction by filtering the signal, and sending the modified wave
-back to the device. Because of the negative phase correction this is only possible
-for a later repetition of the signal. Therefore, only cyclic signals can be used.
+an overall negative phase correction at the load reference plane by filtering the signal,
+and sending the modified wave back to the device. The negative phase correction is
+only possible for a later repetition of the signal. Therefore, cyclic signals have to
+be used which allow completely compensating the group delay by matching the
+phase of the reflected wave $\gls{a}[_2]$ to the phase of the incoming wave
+$\gls{b}[_2]$ at a later signal cycle at the load reference plane.
 
 % ===========================================================================
 
