@@ -1961,9 +1961,9 @@ and as a communication bridge to the \gls{pc}.
 
 The design overview, as can be seen in \cref{fig:fpga_modules}, describes
 the high level modules of the design and connections between them. Names used
-in this and the following design overview are the actual module names used in the
+in this design overview and the following overviews in this chapter are the actual module names used in the
 source code. The overall
-design was split into two parts. The digital signal processing chain
+design was split into two parts. The first part is the digital signal processing chain
 in \cref{fig:digital_chain} (see \cref{sec:digital}) implemented in the
 \device{main} module. The \device{main} module is described in
 \cref{sec:digital_processing}. The second part is the \device{processor} module
@@ -2127,8 +2127,8 @@ resulting in an overall needed bit with of \SI{19}{\bit} for the input buffer. S
 the output buffer uses double buffering and needs to store \gls{iq} signals,
 two buffers with a bit width of \SI{32}{\bit} are needed. In order to achieve a high memory utilization,
 constrained by the possible block \gls{ram} bit widths, a single data bit of a buffer was
-realised with a \SI{36}{\kilo\bit} and a \SI{18}{\kilo\bit} block \gls{ram}. This leads
-to a total number of \num{124.5} block \glspl{ram} where \num{0.5} denotes a
+realised with a \SI{36}{\kilo\bit} and an \SI{18}{\kilo\bit} block \gls{ram}. This leads
+to a total number of \num{124.5} block \glspl{ram} where \num{0.5} denotes an
 \SI{18}{\kilo\bit} block \gls{ram}. This leaves enough for the embedded processor
 and the \gls{fft} implementation. Using this memory layout only a 2-to-1 multiplexer
 for the output is needed. Since the highest address line can
@@ -2245,7 +2245,7 @@ transmitter, the 8b/10b line coding was disabled for the transmitter and a fixed
 to the parallel input.
 
 It is not possible to provide an externally generated clock directly to the
-\gls{sata} connected GTX transceivers, because of design limitations of the ML507 evaluation
+\gls{sata} connected GTX transceivers because of design limitations of the ML507 evaluation
 board. Since using a clock, which is routed through the global clock
 network of the \gls{fpga} introduces jitter \cite{gtx}, an externally provided sampling clock
 connected to the \gls{adc} is the preferred mode of usage.
@@ -2402,11 +2402,11 @@ results in a higher \gls{lut} usage of the \device{fft}\cite{xilinx_fft,virtex5}
 in this design. The \device{fft} implementation was set to allow a modification of the
 \gls{fft} length at runtime, with a maximum length of \num{4096}. A further runtime configuration
 setting is, that this core can be switched between \gls{fft} and inverse \gls{fft}. This
-allowed using only one \device{fft} module, therefore reducing the resource usage further. Every
+allowed using only one \device{fft} module. Therefore reducing the resource usage further. Every
 computational part of the \gls{fft}, called a butterfly, consists of an addition and a multiplication
 that preserves the magnitude of the complex valued input of the butterfly. The addition
 increases the needed bit width after every butterfly by one bit to represent every
-possible value. The multiplication can result in an overall bit with growth of one bit for the
+possible value. The multiplication can result in an overall bit width growth of one bit for the
 whole \gls{fft} if the magnitude represented by the complex valued input is greater than one.
 Combining both factors leads to \cref{eq:bit_growth} given in \cite{xilinx_fft}.
 \begin{equation}
@@ -2616,7 +2616,7 @@ The signal size \gls{N} has to be between \num{8} and \num{65535} and the block 
 \gls{L} between \num{1} and \num{4096}. There are no plausibility
 checks in the hardware, which means that wrong settings will lead to undefined
 behaviour. The \device{core} module can be stopped by issuing a reset signal.
-Numerical overflows are separately reported for \gls{fft}, inverse \gls{fft}
+Numerical overflows are separately reported for \gls{fft}, inverse \gls{fft},
 and complex multiplication.
 
 % ---------------------------------------------------------------------------
@@ -2684,7 +2684,7 @@ no timing conditions are violated, due to the different clocks.
 The \device{outbuf} module uses a configurable signal period \gls{N}. This period can only be changed
 by resetting the module or by asserting the \device{resync} signal. Sample data of length \gls{N} is
 continuously read from the \device{active} buffer. Swapping the \device{active}
-and the \device{inactive} buffer can be initiated by asserting the toggle\_buf
+and the \device{inactive} buffer can be initiated by asserting the \device{toggle\_buf}
 signal for one cycle. To prevent signal distortion, the actual swapping occurs
 only before reading sample zero from the buffer. Accesses to the sample buffers
 during this operation result in undefined behaviour and can corrupt the buffer
@@ -2701,7 +2701,7 @@ it is possible to reach full scale output also for small input
 signals. This is necessary if, for example, a high scaling factor is needed
 for the \device{core} module (see \cref{sec:overlap_add}). After this scaling
 and convergent rounding, the multiplier is also capable of saturating the
-output. This would prevent a wrap around and therefore limit signal distortion.
+output in case of overflows. This would prevent a wrap around and therefore limit signal distortion.
 
 According to \cite{fsq_b17} the Rohde \& Schwarz digital \gls{iq} interface
 uses the encoding scheme and digital interface of a DS90CR485 channel link
@@ -2711,7 +2711,7 @@ As specified by \cite{fsq_b17} \SI{20}{\bit} I data, \SI{20}{\bit} Q data, enabl
 valid, marker bits, and trigger bits need to be encoded in these \SI{48}{\bit}. Enable
 and valid are connected to high in this implementation. The marker and trigger
 bits are not supported by the Rohde \& Schwarz SMBV100A vector signal generator
-in digital \gls{iq} input mode. Therefore these were permanently disabled in this
+in digital \gls{iq} input mode. Therefore, these were permanently disabled in this
 work. The \gls{fpga} internal \SI{16}{\bit} \gls{iq} implementation was mapped
 onto the \SI{20}{\bit} link by left shifting the data by \SI{4}{\bit}.
 
@@ -2724,7 +2724,7 @@ paragraph, need to be partitioned onto eight \gls{lvds} links clocked at
 \SI{700}{\mega\hertz}. It is not possible to achieve such high frequencies
 in the \gls{fpga} fabric. Therefore the serialization was implemented utilizing
 \glspl{oserdes} in \SI{4}{\bit} \gls{ddr} mode. The \gls{ddr} mode reduces the
-necessary clock rate to \SI{350}{\mega\hertz} for the \gls{oserdes}. Furthermore the
+necessary clock rate to \SI{350}{\mega\hertz} for the \gls{oserdes}. Furthermore, the
 \SI{4}{\bit} mode decreases the needed clock for the parallel data to
 \SI{175}{\mega\hertz}. By connecting a test implementation of the transmitter
 it was verified that the Rohde \& Schwarz digital \gls{iq} interface uses the
@@ -2736,7 +2736,7 @@ needs to be initiated. Overflows from the multiplicator are reported with a stat
 signal which has to be manually reset. This prevents interrupt storms if the signal is
 used as an interrupt. The memory interface of the \device{outbuf}
 module has a \SI{16}{\bit} wide data bus, a \SI{16}{\bit} wide address bus, and a read access
-latency of 2 cycles. Accessing samples at addresses \num{>= 49152} result in undefined behaviour.
+latency of 2 cycles. Accessing samples at addresses \num{>= 49152} results in undefined behaviour.
 
 % ---------------------------------------------------------------------------
 
@@ -2752,8 +2752,8 @@ this task. It supports single shot and continuous operation.
 
 During a single run, the \device{auto} module first triggers the \device{inbuf}
 module. After data acquisition is finished, the filter operation is carried out
-by starting the \device{core} module. If an overflow occurs during these
-computations, the automatic mode is stopped. After a successful filter
+by starting the \device{core} module. If an overflow occurs during \device{core} module
+operation, the automatic mode is stopped. After a successful filter
 operation the \device{outbuf} buffer is toggled. If the \device{auto} module
 is switched to continuous mode, then the whole process repeats.
 
@@ -2820,12 +2820,12 @@ and is only \SI{256}{\mebi\byte} large\cite{ml507}, the processor would try to a
 a non existing address after a reset. The \gls{cpu} starts
 executing code before the complete setup is finished initializing. To prevent such undefined
 behaviour after programming the \gls{fpga}, a memory has to be placed at
-this address. This memory needs to be filled with a boot loop. A boot
-loop is a simple program consisting of an endless loop. Since Linux
+this address. This memory needs to be filled with a boot loop which
+is a simple program consisting of an endless loop. Since Linux
 also uses this address range, this small memory can't be implemented
 as a \gls{rom}.
 
-To enable a communication with a computer the RS232 module and the Ethernet
+To enable communication with a computer the RS232 module and the Ethernet
 module are needed. The RS232 module is not necessary for production use,
 but needed for debugging purposes. The System ACE module is required to
 provide access to the \gls{cf} card on the ML507 board. With this module,
