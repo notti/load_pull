@@ -313,13 +313,13 @@ pdfpagelabels,
     a configurable frequency response, which is needed to correct e.g. the group
     delay introduced by cabling. Furthermore, an iterative target algorithm based on measurements
     using an also realized 1-port vector network analyzer was
-    developed to be able to achieve specific reflection coefficients even with
+    developed to achieve specific reflection coefficients even with
     highly non-linear devices under test which can exhibit load dependent behaviour.
 
     The digital reflection generation was implemented in hardware on an FPGA.
     In combination with an efficient pipelined design this allows for fast
     update rates. Additionally software running on a processor contained within
-    the FPGA was developed to be able to control the digital hardware via
+    the FPGA was developed to control the digital hardware via
     Ethernet which is e.g. needed for automated test bench setups.
 
     Finally the implementation was verified by comparing the realized reflection
@@ -625,7 +625,7 @@ phase shifter. Additionally the amplifier has to be protected from possibly dama
 with an isolator. A disadvantage of the open loop system is that the synthesized waves $\gls{a}[_2]$ are
 not derived from $\gls{b}[_2]$. This implies that the reflection coefficient $\gls{GammaL}$ not only
 depends on the phase shifter and attenuator settings, but also on the \gls{dut} itself.
-Therefore, an iterative approach is needed to be able to achieve a specific $\gls{GammaL}$ \cite{muller_comparison_1994}.
+Therefore, an iterative approach is needed to achieve a specific $\gls{GammaL}$ \cite{muller_comparison_1994}.
 
 \begin{figure}[htb]
     \centering
@@ -905,8 +905,8 @@ independent \gls{GammaL} over the required bandwidth of \SI{20}{\mega\hertz} for
 cyclic signals. The setup consists of three distinct parts:
 
 \begin{enumerate}
-    \item A one port \gls{vna}, to be able to measure the current $\gls{GammaL}$. This part is
-needed, to be able to reach a specific $\glsdisp{GammaL}{\Gamma_{L,target}}$ iteratively and is
+    \item A one port \gls{vna}, to measure the current $\gls{GammaL}$. This part is
+needed, to reach a specific $\glsdisp{GammaL}{\Gamma_{L,target}}$ iteratively and is
 described in detail in \cref{sec:vna}. The iterative algorithm can be found
 in \cref{sec:matlab}.
     \item The analog part, which contains the mixers for the frequency shifting operation, necessary
@@ -1030,7 +1030,7 @@ was used (see \cref{sec:matlab} and \cite{matlab_flattop}).
 
 Using \cref{eq:fres,eq:k,eq:win,eq:A,eq:B,eq:gamma_lf} the reflection coefficient $\gls{GammaL}$ at
 frequency \gls{f} (frequency bin $k$), with the measured \gls{N} samples $\gls{a}[']\XN$ of wave $\gls{a}['_2]$ and $\gls{b}[']\XN$ of wave $\gls{b}['_2]$, can be calculated.
-First, the frequency resolution $\Delta{}\gls{f}$ is needed, to be able
+First, the frequency resolution $\Delta{}\gls{f}$ is needed,
 to calculate the index $k$ of the frequency bin, which contains the frequency \gls{f}. Next, the window function $w$ with
 length \gls{N} is obtained with the Matlab function \lstinline$flattopwin$ as mentioned earlier. This window function is
 element-wise multiplied with the input signal in \Cref{eq:A,eq:B} before applying
@@ -1525,7 +1525,7 @@ To minimize the hardware development time, a Linear Technology DC1151A-D evaluat
 in this work. This board consists of a \gls{sma} connector for the analog input, two \gls{sma}
 connectors for data+ and data-- of the \gls{lvds} connection, an \gls{sma} connector for clock input
 and two pins to enable the synchronization mode. For easier wiring an adapter circuit
-board was designed to be able to use a \gls{sata} cable for clock and data. Furthermore, a synchronization
+board was designed to use a \gls{sata} cable for clock and data. Furthermore, a synchronization
 circuit which implements the above mentioned synchronization method was developed.
 
 \begin{figure}[htb]
@@ -1607,7 +1607,7 @@ enables the synchronization mode of the \gls{adc}. The implemented adapter circu
 
 Samples provided via this connection by the \gls{adc} are stored in the sample buffer
 \device{buffer1}. As mentioned earlier this \gls{lp} system needs a cyclic signal for
-reflection synthesis. Therefore, the buffer needs to be able to store one or multiple
+reflection synthesis. Therefore, the buffer needs to store one or multiple
 periods of the signal. The signal periodicity additionally allows averaging the signal which helps
 improving the \gls{snr} of the \gls{adc} \cite{ad_mt004}. This averaging was implemented by increasing
 the sample size of this buffer to \SI{19}{\bit}. Furthermore, samples can be accumulated
@@ -1981,7 +1981,7 @@ To ease software development a full \gls{os} was used as software for the
 \gls{cpu}. Linux was chosen as the \gls{os} for the \device{processor} module, since
 it is freely available and can be configured specifically for this target. As will
 be discussed in \cref{sec:processor} the \device{processor} design includes the modules
-needed to be able to use Linux. An overview of the complete Linux implementation
+needed to use Linux. An overview of the complete Linux implementation
 can be seen in \cref{chap:software}.
 
 All hardware source codes and project files, which are needed to generate the hardware, can
@@ -2224,7 +2224,7 @@ transmitter of the \gls{adc} sends idle ordered sets instead of commas during sy
 An idle ordered set is a special sequence used for synchronization consisting of a K28.5 comma
 followed by either D5.6 or D16.2 code word. A comma is a special
 code sequence of the 8b/10b line coding, which does not represent valid data\cite{gtx}.
-To be able to synchronize the GTX receiver according to these specifications, the comma
+To synchronize the GTX receiver according to these specifications, the comma
 alignment was set to align to even byte boundaries and to detect the K28.5 comma. After
 serial to parallel conversion, the endianness is converted to the internal representation.
 The recovered clock from the received data stream is used as the internal sampling clock.
@@ -2232,7 +2232,7 @@ This setup allows the use of an externally provided sampling clock, by connectin
 the \gls{adc} instead of the clock provided by the \gls{adc} adapter circuit board
 mentioned in \cref{sec:digital}. The receiver and
 the transmitter share the internal clock generation of the GTX. Therefore the transmitter
-had to be configured for the same line rate. To be able to transmit a clock signal with the
+had to be configured for the same line rate. To transmit a clock signal with the
 transmitter, the 8b/10b line coding was disabled for the transmitter and a fixed clock pattern was applied
 to the parallel input.
 
@@ -2397,7 +2397,7 @@ setting is, that this core can be switched between \gls{fft} and inverse \gls{ff
 allowed using only one \device{fft} module, therefore reducing the resource usage further. Every
 computational part of the \gls{fft}, called a butterfly, consists of an addition and a multiplication
 that preserves the magnitude of the complex valued input of the butterfly. The addition
-increases the needed bit width after every butterfly by one bit to be able to represent every
+increases the needed bit width after every butterfly by one bit to represent every
 possible value. The multiplication can result in an overall bit with growth of one bit for the
 whole \gls{fft} if the magnitude represented by the complex valued input is greater than one.
 Combining both factors leads to \cref{eq:bit_growth} given in \cite{xilinx_fft}.
@@ -3519,7 +3519,7 @@ filter calibration script, described in \cref{sec:filtercal}, was developed.
 The one port \gls{vna} as described in \cref{sec:vna} determines the reflection
 coefficient \gls{GammaL} by measuring the magnitude and the phase of the incident
 and reflected power waves. This measurement has to be corrected for systematic
-errors with the error box described in \cref{sec:vna}. To be able to use
+errors with the error box described in \cref{sec:vna}. To use
 this error box additional calibration measurements have to be carried out
 beforehand.
 
@@ -3551,7 +3551,7 @@ The calibration of the error box was realized by measuring three different targe
 at multiple frequencies. In order to enable measurements with the possible
 frequency resolution of the oscilloscope, the calibration measurements were
 linearly interpolated. A Rohde \& Schwarz Z132 (female) calibration kit was used
-for this calibration. To be able to calculate the impedance values of the
+for this calibration. To calculate the impedance values of the
 calibration kit the Matlab function \lstinline+calcZ132+ was developed. This function
 calculates the short, match, and open impedance for a given frequency according to
 the data sheet \cite{zv-z132}. The Matlab function called \lstinline+calcErrorBoxM+ was
@@ -3718,7 +3718,7 @@ is returned.
 The digital filter in the signal processing chain is needed to
 synthesize a constant \gls{GammaL} over a wide frequency range. This
 filter is required to compensate the group delay caused by the measurement
-setup and cabling needed for to be able to reach the \gls{dut}. Furthermore,
+setup and cabling needed for to reach the \gls{dut}. Furthermore,
 it is able to compensate the frequency responses of the components used
 in the measurement setup.
 
@@ -3932,7 +3932,7 @@ calibrated with an Agilent Technologies N4433A calibration kit (see \cref{sec:in
 settings used were \SI{-10}{\deci\belm} test port power, \SI{35}{\kilo\hertz} \gls{if} bandwidth, and
 \num{1601} measurement points.
 
-Every point was measured 100 times to be able to quantify the non systematic errors. With those
+Every point was measured 100 times to quantify the non systematic errors. With those
 $N$ observations of every point, the measured samples $x$, and the mean of the measured samples
 $\mean{x}$, the corrected sample standard deviation $s$ was calculated according to \cref{eq:std}.
 With the sample standard deviation $s$ the standard error $S\!E$ was calculated according to \cref{eq:stderr}.
@@ -4021,7 +4021,7 @@ of longer measurement times \cite{ad_mt004}.
 The reflection measurements were carried out using a test setup as displayed in \cref{fig:test_setup}.
 Here an Agilent \gls{vna} was connected instead of the \gls{dut} to verify the synthesized reflection
 coefficients. Furthermore, the Agilent \gls{vna} was synchronized to the setup using the same
-\SI{10}{\mega\hertz} reference in order to be able to synthesize the needed phase coherent
+\SI{10}{\mega\hertz} reference in order to synthesize the needed phase coherent
 signals for the test setup. This allowed verifying the synthesized $\gls{GammaL}$, and
 calibrating the \gls{fir} filter \device{fir1} more accurately, than using the built
 in one port \gls{vna}.
@@ -4050,7 +4050,7 @@ with a given $\glsdisp{GammaL}{\Gamma_{L,start}}$ in order to synthesize a given
 $\glsdisp{GammaL}{\Gamma_{L,target}}$. It works by setting the current \gls{GammaL}
 into relation with the given $\glsdisp{GammaL}{\Gamma_{L,target}}$ and scaling
 $\glsdisp{GammaL}{\Gamma_{L,set}}$ accordingly (see \cref{sec:matlab}). This
-iterative target algorithm is needed to be able reach a specific \gls{GammaL} even
+iterative target algorithm is needed to reach a specific \gls{GammaL} even
 with highly non-linear \gls{dut}. These \gls{dut} can exhibit load dependent
 $\gls{S}[_{22}]$ which renders error box based approaches unsuitable.
 
@@ -4079,7 +4079,7 @@ not capable of short delays and exhibits very high inaccuracy \cite{matlab_pause
 
             \def\pic#1#2{
                 \begin{smithchart}[width=.9\linewidth,clip=false#1]
-                    \addplot[blue,is smithchart cs] file {testdata/filter/1.0,0/trajectory10.data};
+                    \addplot[blue,is smithchart cs,line join=bevel] file {testdata/filter/1.0,0/trajectory10.data};
                     \addplot[purple,is smithchart cs,only marks,mark=x#2] file {testdata/filter/1.0,0/trajectory10.data};
                     \draw (cartesian cs:1,0) node[coordinate] (a) {}
                           (cartesian cs:-0.4,0.4) node[coordinate] (b) {};
@@ -4121,7 +4121,7 @@ not capable of short delays and exhibits very high inaccuracy \cite{matlab_pause
 
             \def\pic#1#2{
                 \begin{smithchart}[width=0.9\linewidth,clip=false#1]
-                    \addplot[blue,is smithchart cs] file {testdata/filter/0.5,-45/trajectory6.data};
+                    \addplot[blue,is smithchart cs,line join=bevel] file {testdata/filter/0.5,-45/trajectory6.data};
                     \addplot[purple,is smithchart cs,only marks,mark=x#2] file {testdata/filter/0.5,-45/trajectory6.data};
                     \draw (cartesian cs:0.35325,-0.35397) node[coordinate] (a) {}
                           (cartesian cs:-0.4,0.4) node[coordinate] (b) {};
@@ -4192,7 +4192,7 @@ accelerated by adjusting the termination condition and the settling time.
 For verification, the filter \device{fir1} in \cref{fig:test_setup} was calibrated
 by measuring the needed $\glsdisp{GammaL}{\Gamma_{L,set}}$ to achieve a specific $\gls{GammaL}$ over a
 baseband range from \SI{-13}{\mega\hertz} to \SI{13}{\mega\hertz} at a \gls{rf} of
-\SI{900}{\mega\hertz}. The filter calibration is necessary to be able to correct
+\SI{900}{\mega\hertz}. The filter calibration is necessary to correct
 the frequency response of the reflection generation setup (see \cref{chap:measurement_system}). The needed
 $\glsdisp{GammaL}{\Gamma_{L,set}}$ were acquired in \SI{1}{\mega\hertz} steps. Those
 values were normalized to represent the needed multiplier in order
@@ -4230,11 +4230,11 @@ seen in \cref{fig:filter}.
                 width=0.95\linewidth,
                 height=7cm,
             ]
-            \addplot[blue] table[x index=0,y index=1] {\Horig};
+            \addplot[blue,line join=bevel] table[x index=0,y index=1] {\Horig};
             \addlegendentry{Low pass}
-            \addplot[green] table[x index=0,y index=1] {\Hone};
+            \addplot[green,line join=bevel] table[x index=0,y index=1] {\Hone};
             \addlegendentry{$0.5 \angle \SI{-45}{\degree}$}
-            \addplot[red] table[x index=0,y index=1] {\Htwo};
+            \addplot[red,line join=bevel] table[x index=0,y index=1] {\Htwo};
             \addlegendentry{$0.5 \angle \SI{135}{\degree}$}
         \end{axis}
     \end{tikzpicture}
@@ -4246,7 +4246,7 @@ The verification measurements were acquired with the Agilent \gls{vna} at freque
 ranging from \SI{895}{\mega\hertz} to \SI{905}{\mega\hertz} in \SI{1}{\mega\hertz} steps
 with a settling time of \SI{0.5}{\second} for every frequency point. This settling time
 was needed to ensure the digital signal processing chain has settled on the changed input.
-To be able to verify the performance across the whole range, measurements were acquired over the possible
+To verify the performance across the whole range, measurements were acquired over the possible
 $\glsdisp{GammaL}{\Gamma_{L,set}}$ range by stepping through an 11 by 11 grid. These measurements were
 acquired with the different filter calibrations mentioned above to compensate for the
 frequency response of the reflection generation setup.
@@ -4271,7 +4271,7 @@ precision of the filter implementation of \device{fir1} (see \cref{sec:overlap_a
             \begin{smithchart}[width=.9\linewidth,clip=false]
                 \foreach \i in {1,...,11}{
                     \foreach \j in {1,...,11}{
-                        \addplot[blue,is smithchart cs] file {testdata/filter/1.0,180/\i,\j.data};
+                        \addplot[blue,is smithchart cs,line join=bevel] file {testdata/filter/1.0,180/\i,\j.data};
                     }
                 }
                 \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(-1,0)};
@@ -4285,7 +4285,7 @@ precision of the filter implementation of \device{fir1} (see \cref{sec:overlap_a
             \begin{smithchart}[width=.9\linewidth,clip=false]
                 \foreach \i in {1,...,11}{
                     \foreach \j in {1,...,11}{
-                        \addplot[blue,is smithchart cs] file {testdata/filter/0.5,135/\i,\j.data};
+                        \addplot[blue,is smithchart cs,line join=bevel] file {testdata/filter/0.5,135/\i,\j.data};
                     }
                 }
                 \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(-0.3536,0.3536)};
@@ -4299,7 +4299,7 @@ precision of the filter implementation of \device{fir1} (see \cref{sec:overlap_a
             \begin{smithchart}[width=.9\linewidth,clip=false]
                 \foreach \i in {1,...,11}{
                     \foreach \j in {1,...,11}{
-                        \addplot[blue,is smithchart cs] file {testdata/filter/1.0,0/\i,\j.data};
+                        \addplot[blue,is smithchart cs,line join=bevel] file {testdata/filter/1.0,0/\i,\j.data};
                     }
                 }
                 \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(+1,0)};
@@ -4313,7 +4313,7 @@ precision of the filter implementation of \device{fir1} (see \cref{sec:overlap_a
             \begin{smithchart}[width=.9\linewidth,clip=false]
                 \foreach \i in {1,...,11}{
                     \foreach \j in {1,...,11}{
-                        \addplot[blue,is smithchart cs] file {testdata/filter/0.5,-45/\i,\j.data};
+                        \addplot[blue,is smithchart cs,line join=bevel] file {testdata/filter/0.5,-45/\i,\j.data};
                     }
                 }
                 \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(0.3536,-0.3536)};
@@ -4327,7 +4327,7 @@ precision of the filter implementation of \device{fir1} (see \cref{sec:overlap_a
             \begin{smithchart}[width=.9\linewidth,clip=false]
                 \foreach \i in {1,...,11}{
                     \foreach \j in {1,...,11}{
-                        \addplot[blue,is smithchart cs] file {testdata/filter/mean1/\i,\j.data};
+                        \addplot[blue,is smithchart cs,line join=bevel] file {testdata/filter/mean1/\i,\j.data};
                     }
                 }
                 \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(-1,0) (+1,0)};
@@ -4341,7 +4341,7 @@ precision of the filter implementation of \device{fir1} (see \cref{sec:overlap_a
             \begin{smithchart}[width=.9\linewidth,clip=false]
                 \foreach \i in {1,...,11}{
                     \foreach \j in {1,...,11}{
-                        \addplot[blue,is smithchart cs] file {testdata/filter/mean2/\i,\j.data};
+                        \addplot[blue,is smithchart cs,line join=bevel] file {testdata/filter/mean2/\i,\j.data};
                     }
                 }
                 \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(0.3536,-0.3536) (-0.3536,0.3536)};
@@ -4407,7 +4407,7 @@ the additional function generator \device{trigger} (see \cref{fig:setup_phase_si
 generate the greatest common divisor of those frequencies, which is \SI{10}{\mega\hertz}.
 Unfortunately, it was not possible to synthesize a stable and spectrally clear trigger signal using the function generator \device{trigger} that
 allowed reliably triggering for measuring the phase of the different signals. Therefore, the signal of the function generator \device{trigger} was also recorded.
-To be able to measure all the signals, a second oscilloscope had to be used. Since triggering
+To measure all the signals, a second oscilloscope had to be used. Since triggering
 the second oscilloscope with the first one resulted in a worse performance than feeding both
 oscilloscopes with the same trigger, a chained setup was not used. Finally, after the measurement had taken place the
 different signals were corrected by the phase offset caused by the trigger signal, to achieve a phase
