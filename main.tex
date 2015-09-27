@@ -689,7 +689,7 @@ $\gls{b}[_2]$ at a later signal cycle at the load reference plane.
 \label{chap:measurement_system}
 
 The aim of this thesis was to setup a wideband active \gls{lp} measurement system, capable of providing a bandwidth of \SI{20}{\mega\hertz}.
-As mentioned in \cref{chap:introduction} these traditional classic systems can only synthesize
+As mentioned in \cref{chap:introduction} traditional classic \gls{lp} systems can only synthesize
 narrowband reflections. To overcome these limitations an \gls{elp} measurement system, which
 synthesizes the reflections in the digital domain, was chosen as the base for this work. This approach solves part of the stability problem
 and the problem of the \gls{if} calibration with a fully configurable digital \gls{fir} filter. Furthermore,
@@ -698,7 +698,7 @@ the cabling needed to reach the \gls{dut}. This allows synthesizing constant ref
 coefficients over a wide bandwidth, which in turn allows the use of modulated signals
 used in modern applications during measurements.
 
-\begin{figure}[htb]
+\begin{figure}[tb]
     \centering
     \begin{tikzpicture}
         \tikzpicturedependsonfile{rfsymbols.tex}
@@ -774,13 +774,15 @@ Phase variation with the frequency at the reference plane caused by the
 cabling needed to reach the \gls{dut} prevents the \gls{elp} measurement
 system from synthesizing realistic terminations. Additionally, the frequency
 responses of the components used to build the measurement setup cause variations
-in the magnitude of \gls{GammaL} with the frequency. Therefore, a negative
+in the magnitude and phase of \gls{GammaL} with the frequency. Therefore, a negative
 phase correction and a magnitude correction is needed. The design in \cite{hashim_active_2008} solves
 this problem with a configurable digital delay line which is able to compensate
-the phase for cyclic signals. However, the design in
+the phase for cyclic signals. This works by matching the
+phase of the reflected wave $\gls{a}[_2]$ to the phase of the incoming wave
+$\gls{b}[_2]$ at a later signal cycle at the load reference plane. However, the design in
 \cite{hashim_active_2008} uses direct conversion, which creates additional
 \gls{dc} components in the \gls{iq} signals. Since these have to be removed
-by filters, the band around \SI{0}{\hertz} is not usable for reflection
+by filters, the band around \SI{0}{\hertz} in the baseband is not usable for reflection
 synthesis. Furthermore, the delay line approach can only compensate
 phase differences and has a limited resolution.
 
@@ -906,7 +908,7 @@ phase differences and has a limited resolution.
     \label{fig:overall_hf}
 \end{figure}
 
-Instead of direct conversion a superheterodyne design with digital \gls{if} processing
+As can be seen in \cref{fig:overall_hf}, instead of direct conversion a superheterodyne design with digital \gls{if} processing
 was used. With this design the band around \SI{0}{\hertz} is usable and the
 measurement system can't exhibit \gls{iq} imbalances. Furthermore, the delay line was replaced by
 a fully configurable filter \device{fir1}. This filter is able to provide a
@@ -935,9 +937,9 @@ code, in \cref{chap:software}.
 \label{sec:vna}
 
 The one port \gls{vna} in \cref{fig:vna_part} consists of a directional coupler
-\device{dir1} and an oscilloscope. The directional coupler is needed to split up
+\device{dir1} and a sampling oscilloscope. The directional coupler is needed to split up
 the signal into the incident power wave $\gls{b}['_{2}]$ and the reflected power
-wave $\gls{a}['_{2}]$. With the help of oscilloscope both signals can be measured in the
+wave $\gls{a}['_{2}]$. With the help of the oscilloscope both signals can be measured in the
 time domain. Additionally a \gls{pc} connected to the oscilloscope is needed
 for extracting the wave parameters from the measured samples and the necessary
 error correction calculations, which are explained in the rest of this section.
@@ -1012,7 +1014,7 @@ by the use of the oscilloscope. Therefore, no special triggering or synchronizat
 Magnitude and phase of the measured waves can be calculated by using
 the \gls{dft}. If multiple frequency components are of interest, the computational
 power needed can be lowered by using the \gls{fft}. With both methods
-spectral leakage will occur, which caused by the windowing since only a limited number of samples is used \cite{harris_use_1978}.
+spectral leakage will occur, which is caused by the windowing since only a limited number of samples is used \cite{harris_use_1978}.
 Another problem is that the frequency resolution $\Delta{}\gls{f}$ is limited by the sampling
 frequency and the number of recorded samples:
 \begin{equation}
@@ -1044,9 +1046,28 @@ frequency \gls{f} (frequency bin $k$), with the measured \gls{N} samples $\gls{a
 First, the frequency resolution $\Delta{}\gls{f}$ is needed,
 to calculate the index $k$ of the frequency bin, which contains the frequency \gls{f}. Next, the window function $w$ with
 length \gls{N} is obtained with the Matlab function \lstinline$flattopwin$ as mentioned earlier. This window function is
-element-wise multiplied with the input signal in \Cref{eq:A,eq:B} before applying
+element-wise multiplied with the input signal in \cref{eq:A,eq:B} before applying
 the \gls{dft}. After the transformation $A'\XN$ and $B'\XN$ contain the signals in the frequency domain. Because of the linearity of the \gls{dft}
 \cite{pearson_discrete}, the value at index $k$ can be directly used in \cref{eq:gl_phase} leading to \cref{eq:gamma_lf}.
+
+The measurements acquired using this type of setup contain systematic errors. These are caused by mismatches and
+imperfections in the equipment, which are the limited directivity of the coupler and imperfect connectors and distort the measurements. Furthermore, the
+needed cabling causes the reference plane to be shifted to another place, than depicted in \cref{fig:vna_part}.
+Those errors can be corrected using vector error correction. By measuring the systematic
+errors with known calibration standards it is possible to calculate the error model and
+use this model to remove the systematic errors from the subsequent measurements
+\cite{agilent_an_1287-3}.
+
+\Cref{fig:errorbox} depicts the error model for the measurement system in \cref{fig:vna_part}. It
+consists of the \gls{dut} and an error box, containing all the systematic errors of the measurement
+system. This error model can cancel out three different errors:
+\begin{enumerate}
+    \item Source match $\gls{S}[_{22}]$, the mismatch between the measurement system and the \gls{dut}.
+    \item Directivity $\gls{S}[_{11}]$, which characterizes signal leakage and imperfections in the coupler.
+    \item Reflection tracking $\gls{S}[_{12}]$, which characterizes the difference in the frequency response
+        between the two oscilloscope ports, including loss in the couplers, transmission lines, and
+        other components.
+\end{enumerate}
 
 \begin{figure}[htb]
     \centering
@@ -1089,25 +1110,6 @@ the \gls{dft}. After the transformation $A'\XN$ and $B'\XN$ contain the signals 
     \caption{Error box for the one port \glsentryshort{vna}}
     \label{fig:errorbox}
 \end{figure}
-
-The measurements acquired using this type of setup contain systematic errors. These are caused by mismatches and
-imperfections in the equipment, which are the limited directivity of the coupler and imperfect connectors and distort the measurements. Furthermore, the
-needed cabling causes the reference plane to be shifted to another place, than depicted in \cref{fig:vna_part}.
-Those errors can be corrected using vector error correction. By measuring the systematic
-errors with known calibration standards it is possible to calculate the error model and
-use this model to remove the systematic errors from the subsequent measurements
-\cite{agilent_an_1287-3}.
-
-\Cref{fig:errorbox} depicts the error model for the measurement system in \cref{fig:vna_part}. It
-consists of the \gls{dut} and an error box, containing all the systematic errors of the measurement
-system. This error model can cancel out three different errors:
-\begin{enumerate}
-    \item Source match $\gls{S}[_{22}]$, the mismatch between the measurement system and the \gls{dut}.
-    \item Directivity $\gls{S}[_{11}]$, which characterizes signal leakage and imperfections in the coupler.
-    \item Reflection tracking $\gls{S}[_{12}]$, which characterizes the difference in the frequency response
-        between the two oscilloscope ports, including loss in the couplers, transmission lines, and
-        other components.
-\end{enumerate}
 
 From the error model in \cref{fig:errorbox} the following equations can be derived:
 \begin{align}
@@ -1303,7 +1305,7 @@ superheterodyne design, with baseband mixing implemented in the digital
 part (see \cref{sec:digital}), was chosen because it exhibits no amplitude
 imbalances between I and Q. This setup has the additional feature, that
 the \gls{dc}-component caused by the analog mixer \device{mix1} is outside the
-band of interest at \gls{if}. Therefore there is no gap around \SI{0}{\hertz}
+band of interest at \gls{if}. Therefore, there is no gap around \SI{0}{\hertz} in baseband
 and the whole bandwidth is usable. \SI{70}{\mega\hertz} was chosen as \gls{if},
 because it is a widely used \gls{if} in radar and microwave applications
 \cite{tozer_broadcast_2004,ahamed_design_1997,whitaker_rf_2002,penttinen_telecommunications_2015}
@@ -1423,7 +1425,7 @@ these requirements and a similar digital interface can be used as a drop in
 replacement for this \gls{elp} system.
 
 Digital to analog conversion and up conversion is handled by the lower analog
-processing chain in \cref{fig:analog}. In this work a signal vector generator
+processing chain in \cref{fig:analog}. In this work the signal vector generator
 SMBV100A from Rohde \& Schwarz with digital \gls{iq} input support (R\&S SMBV-K18
 \cite{smbv_100a}) was used for these tasks. Like for the \gls{adc} a different
 signal vector generator can be used as a drop in replacement, if it uses
@@ -1532,7 +1534,7 @@ can be used to detect word boundaries and byte ordering. This synchronization mo
 pins of the \gls{adc}. In order to minimize needed cabling a communication scheme was
 developed that initiates synchronization mode by briefly stopping the clock signal.
 
-To minimize the hardware development time, a Linear Technology DC1151A-D evaluation board was used
+To minimize the hardware development time, a Linear Technology DC1151A-D evaluation board including the \gls{adc} was used
 in this work. This board consists of a \gls{sma} connector for the analog input, two \gls{sma}
 connectors for data+ and data-- of the \gls{lvds} connection, an \gls{sma} connector for clock input
 and two pins to enable the synchronization mode. For easier wiring an adapter circuit
@@ -1616,6 +1618,25 @@ this time the pins \device{SYNC1} and \device{SYNC2} are connected via the optoc
 enables the synchronization mode of the \gls{adc}. The implemented adapter circuit board atop the
 \gls{adc} evaluation board can be seen in \cref{fig:adc_adapter_circ}.
 
+\begin{figure}[htb]
+    \centering
+    \begin{tikzpicture}
+        \node[anchor=south west,inner sep=0pt] (image) at (0,0) {\includegraphics[width=0.43\linewidth]{adc.jpg}};
+        \begin{scope}[x={(image.south east)},y={(image.north west)},every node/.style={fill=white, fill opacity=0.8}]
+            \draw (0,0.55) node[anchor=south west] {analog in};
+            \draw (1,0) node[anchor=south east] {power supply};
+            \draw (0.1,0.1) node[anchor=south west] {data+};
+            \draw (0.1,0.9) node[anchor=north west] {data-};
+            \draw (0.9,1) node[anchor=north east] (clk) {clock};
+            \draw [-latex] (clk) -- (0.5,0.85);
+            \draw (0.925,0.75) node[anchor=north east] {sync circuit};
+            \draw (0.9,0.323) node[anchor=south east] {SATA};
+        \end{scope}
+    \end{tikzpicture}
+    \caption{\glsentryshort{adc} adapter board with disconnected clock atop LTC2274 demo board}
+    \label{fig:adc_adapter_circ}
+\end{figure}
+
 Samples provided via this connection by the \gls{adc} are stored in the sample buffer
 \device{buffer1}. As mentioned earlier this \gls{lp} system needs a cyclic signal for
 reflection synthesis. Therefore, the buffer needs to store one or multiple
@@ -1661,10 +1682,6 @@ buffer \device{buffer2}. To further reduce the needed hardware resources the imp
 filter \device{fir1} uses the transfer function $H\XN$ instead of the impulse response $h\XN$
 (see \cref{eq:transfer}).
 
-Since implementing the \gls{fft} in hardware uses a lot of resources, overlap add
-was used to allow for larger signal periods than $\gls{nfft}$. As shown by \cite{schaums_2011}
-this algorithm splits the signal $x\XN$ into non-overlapping
-subsequences of length \gls{L} (see \cref{fig:overlap_add}).
 \begin{figure}[htb]
     \centering
     \begin{tikzpicture}
@@ -1729,8 +1746,12 @@ subsequences of length \gls{L} (see \cref{fig:overlap_add}).
     \caption[Overlap add algorithm]{Overlap add algorithm (linear convolution, with circular in red)}
     \label{fig:overlap_add}
 \end{figure}
-Therefore, $x\XN$ can
-be expressed by a sum of shifted finite-length sequences:
+
+Since implementing the \gls{fft} in hardware uses a lot of resources, overlap add
+was used to allow for larger signal periods than $\gls{nfft}$. As shown by \cite{schaums_2011}
+this algorithm splits the signal $x\XN$ into non-overlapping
+subsequences of length \gls{L} (see \cref{fig:overlap_add}).
+Therefore, $x\XN$ can be expressed by a sum of shifted finite-length sequences:
 \begin{equation}
     \label{eq:sum_seq} x\XN = \sum_{i=0}^{\infty} x_i\glsdisp{xn}{[n-i\gls{L}]} \qquad x_i\XN =\begin{cases}
         x\glsdisp{xn}{[k+i\gls{L}]} & k = 0, 1, \ldots, \gls{L}-1\\
@@ -1783,35 +1804,11 @@ the fix can be seen in \cref{fig:iq_adapter_circ}.
 
 \begin{figure}[htb]
     \centering
-    \begin{subfigure}[c]{.48\linewidth}
-        \centering
-        \begin{tikzpicture}
-            \node[anchor=south west,inner sep=0pt] (image) at (0,0) {\includegraphics[width=\linewidth]{adc.jpg}};
-            \begin{scope}[x={(image.south east)},y={(image.north west)},every node/.style={fill=white, fill opacity=0.8}]
-                \draw (0,0.55) node[anchor=south west] {analog in};
-                \draw (1,0) node[anchor=south east] {power supply};
-                \draw (0.1,0.1) node[anchor=south west] {data+};
-                \draw (0.1,0.9) node[anchor=north west] {data-};
-                \draw (0.9,1) node[anchor=north east] (clk) {clock};
-                \draw [-latex] (clk) -- (0.5,0.85);
-                \draw (0.925,0.75) node[anchor=north east] {sync circuit};
-                \draw (0.9,0.323) node[anchor=south east] {SATA};
-            \end{scope}
-        \end{tikzpicture}
-        \caption{\glsentryshort{adc} adapter board with disconnected clock atop LTC2274 demo board}
-        \label{fig:adc_adapter_circ}
-    \end{subfigure}%
-    ~
-    \begin{subfigure}[c]{.48\linewidth}
-        \centering
-        \begin{tikzpicture}
-            \node[inner sep=0pt] (image) at (0,0) {\includegraphics[width=\linewidth]{digital_iq.jpg}};
-        \end{tikzpicture}
-        \caption{Digital \glsentryshort{iq} adapter circuit board with S\_CLK fix}
-        \label{fig:iq_adapter_circ}
-    \end{subfigure}
-    \caption{Photos of implemented adapter boards}
-    \label{fig:adapters}
+    \begin{tikzpicture}
+        \node[inner sep=0pt] (image) at (0,0) {\includegraphics[width=0.48\linewidth]{digital_iq.jpg}};
+    \end{tikzpicture}
+    \caption{Digital \glsentryshort{iq} adapter circuit board with S\_CLK fix}
+    \label{fig:iq_adapter_circ}
 \end{figure}
 
 The complete digital signal processing chain described in this section was implemented
