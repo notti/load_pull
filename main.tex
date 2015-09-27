@@ -3753,7 +3753,7 @@ which have been described in \cref{chap:measurement_system}. As mentioned in
 Furthermore, since during verification only waves synthesized inside
 the specified bandwidth of \SI{20}{\mega\hertz} were used, the low-pass filter \device{lp2}
 was used instead of a bandpass filter. A detailed list of used
-instruments can be seen in \cref{sec:instruments}.
+equipment can be seen in \cref{sec:instruments}.
 
 \begin{figure}[htb]
     \centering
@@ -3885,7 +3885,7 @@ instruments can be seen in \cref{sec:instruments}.
 
 The overall setup consists of two independent systems. The one port \gls{vna} and
 the reflection generation consisting of the analog and the digital part. The
-one port \gls{vna} is needed to be able to measure the current $\gls{GammaL}$ (see
+one port \gls{vna} is needed to measure the current $\gls{GammaL}$ (see
 \cref{sec:vna}). Verification of this part can be found in \cref{sec:vna_verify}. As
 described in \cref{sec:analog}, the analog part is responsible for separating the
 incident wave $\gls{b}[_2]$, converting it to \gls{if}, and digitally sampling the signal.
@@ -3895,13 +3895,13 @@ in \cref{sec:digital} handles filtering the signal to enable broadband reflectio
 synthesis and applying the reflection coefficient $\glsdisp{GammaL}{\Gamma_{L,set}}$. Since analog and
 digital part can't be verified separately, verification of the combined reflection
 generation part can be found in \cref{sec:reflection}. During these measurements,
-a noticeable phase drift was observed, and therefore an additional measurement was
+a noticeable phase drift was observed, and, therefore, an additional measurement was
 acquired, as seen in \cref{sec:drift}, to verify the origin
-of this phase drift. A list of the used instruments can be seen in \cref{sec:instruments}.
+of this phase drift.
 
 % ---------------------------------------------------------------------------
 
-\section{One Port \glsentryshort{vna} verification}
+\section{One Port \glsentryshort{vna} Verification}
 \label{sec:vna_verify}
 
 For the calibration and verification of the one port \gls{vna}, the modulator of
@@ -3913,35 +3913,35 @@ which results in about \SI{-10}{\deci\belm} at the load reference plane (see \cr
 setup in place of the \gls{dut}. Since the calibration is only valid for a single frequency, the full
 calibration measurements were acquired for 21 $\Delta{}\gls{f}$-aligned points within a
 \SI{25}{\mega\hertz} range at a center frequency of \SI{900}{\mega\hertz}. This
-was achieved by connecting the appropriate port of the calibration kit, and acquiring
+was achieved by connecting the appropriate port of the calibration kit and acquiring
 $\glsdisp{GammaL}{\Gamma_{L,f}}$ values for every frequency point. After the measurement, the different $\glsdisp{GammaL}{\Gamma_{L,f}}$ were linearly
-interpolated at every $\Delta{}\gls{f}$ bin. Finally the \glspl{sparam} of
+interpolated at every $\Delta{}\gls{f}$ bin. Finally, the \glspl{sparam} of
 the error box (see \cref{sec:vna}) were pre-calculated for every bin utilizing the values
 from the data sheet of the calibration kit\cite{zv-z132}.
 
 For the verification of the calibration, a stub tuner from Maury Microwave was tuned to a specific position and
 then measured utilizing the one port \gls{vna} in this work. Measurements were acquired over
 the whole \SI{25}{\mega\hertz} bandwidth at the calibrated points. Additional measurements
-were acquired at an offset of $\frac{1}{2}\Delta{}\gls{f}$, to be able to test the performance
-of the chosen window function. The performance of the interpolation was tested by further
-measurements between the calibrated points. To be able to verify the $\gls{GammaL}$ which was measured using the
+were acquired at an offset of $\frac{1}{2}\Delta{}\gls{f}$, to test the performance
+of the chosen window function. The performance of the interpolation was further tested by
+measurements between the calibrated points. To verify the $\gls{GammaL}$, which was measured using the
 above described setup, those measurements were compared to a measurement acquired using a
 commercially available \gls{vna}. The \gls{vna} used for verification was an Agilent Technologies E8364A,
 calibrated with an Agilent Technologies N4433A calibration kit (see \cref{sec:instruments}). \gls{vna}
 settings used were \SI{-10}{\deci\belm} test port power, \SI{35}{\kilo\hertz} \gls{if} bandwidth, and
-1601 measurement points.
+\num{1601} measurement points.
 
 Every point was measured 100 times to be able to quantify the non systematic errors. With those
 $N$ observations of every point, the measured samples $x$, and the mean of the measured samples
-$\mean{x}$ the corrected sample standard deviation $s$ was calculated according to \cref{eq:std}.
-With the standard deviation $s$ the standard error $SE$ was calculated according to \cref{eq:stderr}.
+$\mean{x}$, the corrected sample standard deviation $s$ was calculated according to \cref{eq:std}.
+With the sample standard deviation $s$ the standard error $S\!E$ was calculated according to \cref{eq:stderr}.
 
 \begin{align}
     \label{eq:std} s &= \sqrt{\frac{1}{N-1} \sum^N_{i=1} (x_i - \mean{x})^2} \\
-    \label{eq:stderr} SE &= \frac{s}{\sqrt{N}}
+    \label{eq:stderr} S\!E &= \frac{s}{\sqrt{N}}
 \end{align}
 
-The standard error and the difference to the results from the Agilent \gls{vna} stay roughly the
+The standard error and the difference to the results from the Agilent \gls{vna} roughly stay the
 same over the complete \SI{25}{\mega\hertz} range. There is also no noticeable difference between
 the three different types of points. Thus, the linear interpolation and the chosen window function
 seem to be appropriate for this type of measurement. Since there are only passive parts involved
@@ -3959,7 +3959,7 @@ faster calibration. The measurement result of three exemplary points can be seen
             S[table-format=2.1e1]
             S[table-format=1.1e1]}
             \toprule
-            \multicolumn{2}{c}{{\textbf{frequency}}} & {mean} & {standard error} & {$\Delta$\gls{vna}} \\
+            \multicolumn{2}{c}{{\textbf{frequency}}} & {\textbf{mean}} & {\textbf{standard error}} & {\textbf{$\Delta$\gls{vna}}} \\
             {\si{\mega\hertz}} &  & {1} & {1} & {1} \\
             \midrule
             887.5   & (cal)                          & 581.0232e-3 & 37.6e-6 & 2.1e-3 \\
@@ -3978,7 +3978,7 @@ faster calibration. The measurement result of three exemplary points can be seen
             S[table-format=1.1e1]
             S[table-format=1.1]}
             \toprule
-            \multicolumn{2}{c}{{\textbf{frequency}}} & {mean} & {standard error} & {$\Delta$\gls{vna}} \\
+            \multicolumn{2}{c}{{\textbf{frequency}}} & {\textbf{mean}} & {\textbf{standard error}} & {\textbf{$\Delta$\gls{vna}}} \\
             {\si{\mega\hertz}} &  & {\si{\degree}} & {\si{\degree}} & {\si{\degree}} \\
             \midrule
             887.5   & (cal)                          & -157.5029 & 8.7e-3 & 2.2 \\
@@ -3993,7 +3993,7 @@ faster calibration. The measurement result of three exemplary points can be seen
 \end{table}
 
 The setup of the one port \gls{vna} consists of an oscilloscope and only passive components.
-Therefore the standard error depends notably on the performance of the oscilloscope. It is
+Therefore, the standard error notably depends on the performance of the oscilloscope. It is
 mainly caused by the \glspl{adc} contained in the oscilloscope and imperfections in the
 triggering and sampling. This also means that these results are only valid for the
 used oscilloscope in this work.
@@ -4006,9 +4006,9 @@ be increased with a better calibration kit or by additional calibration measurem
 
 Further care should be taken to always ensure a strong enough signal power at the
 oscilloscope \glspl{adc}. According to \cite{Oppenheim} the \gls{snr} caused by quantization
-noise of \gls{adc} depends on the bit width and the amplitude. Therefore small signals cause
-a high \gls{snr}. A small \gls{GammaL} value implies a small reflected wave and therefore a
-higher \gls{snr}. Therefore, the resolution decreases for small \gls{GammaL}. This could
+noise of \gls{adc} depends on the bit width and the amplitude. Therefore, small signals cause
+a low \gls{snr}. A small \gls{GammaL} value implies a small reflected wave and therefore a
+lower \gls{snr}. Therefore, the resolution decreases for small \gls{GammaL}. This can
 be compensated with averaging which would increase the effective bit width at the cost
 of longer measurement times \cite{ad_mt004}.
 
@@ -4025,8 +4025,8 @@ signals for the test setup. This allowed verifying the synthesized $\gls{GammaL}
 calibrating the \gls{fir} filter \device{fir1} more accurately, than using the built
 in one port \gls{vna}.
 
-All the reflection generation verification measurements used 20000 samples as signal period \gls{N},
-an overlap add block size \gls{L} of 2000, and an \gls{fft} width $\gls{nfft}$ of 4096 (see
+All the reflection generation verification measurements used \num{20000} samples as signal period \gls{N},
+an overlap add block size \gls{L} of \num{2000}, and an \gls{fft} width $\gls{nfft}$ of \num{4096} (see
 \cref{fig:overlap_add}). The filter \device{fir1} was preloaded with the
 impulse response of a low pass filter with a cut off frequency of \SI{25}{\mega\hertz} to
 filter out the aliases (see \cref{sec:digital}). For the duration of these measurements,
@@ -4035,9 +4035,9 @@ signal processing (see \cref{sec:auto}). Changes at the input of the digital par
 with a lag time of about \SI{1}{\milli\second} to the output using automatic mode and the
 above mentioned signal processing configuration.
 
-The reflection generation consists of two tasks. First the iterative target algorithm
-described in \cref{sec:matlab} is needed, to be able to synthesize specific $\gls{GammaL}$.
-The performance of this algorithm can be seen in \cref{sec:iterative}. This
+The reflection generation consists of two tasks. First, the iterative target algorithm
+described in \cref{sec:matlab} is needed, to synthesize specific $\gls{GammaL}$.
+The performance of this algorithm can be seen in \cref{sec:iterative}. Second, this
 algorithm was then used for calibrating and verifying the filter \device{fir1}. Measurement
 results for the verification measurements utilizing the previously calibrated filter can be seen in \cref{sec:filter}.
 
@@ -4057,7 +4057,7 @@ As mentioned above, the digital reflection generation introduces a large latency
 on the order of about \SI{1}{\milli\second}. Therefore a delay time of \SI{100}{\milli\second}
 was used for the iterative algorithm (see \cref{sec:matlab}). This allows the system to settle
 on a $\gls{GammaL}$ before continuing with the algorithm. If the wait time is too short,
-this algorithm can start to cause stability issues and the completion time of the algorithm
+the iterative target algorithm can start to cause stability issues and the completion time of the algorithm
 actually increases while a long wait time increases the completion time. The high delay
 time of \SI{100}{\milli\second} was chosen since the Matlab function \lstinline|pause| is
 not capable of short delays and exhibits very high inaccuracy \cite{matlab_pause}.
@@ -4154,10 +4154,10 @@ Two descriptive example trajectories can be seen in \cref{fig:find_target}. In
 whereas in \cref{fig:find_target_bad} the worst observed case can be seen. The
 trajectory in \cref{fig:find_target_bad} oscillates around the target before
 reaching it. The reason can either be found in a too stringent termination condition or
-in a bad resolution of the \gls{vna} or the digital part of this system in the
+in a bad resolution of the \gls{vna} used for measuring \gls{GammaL} or the digital part of this system in the
 target range.
 
-Depending on the starting point $\glsdisp{GammaL}{\Gamma_{L,start}}$ and the target $\gls{GammaL}$
+Depending on the starting point $\glsdisp{GammaL}{\Gamma_{L,start}}$ and the target $\glsdisp{GammaL}{\Gamma_{L,target}}$
 the performance of the algorithm varied. A histogram showing 108 different
 observations for different $\glsdisp{GammaL}{\Gamma_{L,start}}$ different $\glsdisp{GammaL}{\Gamma_{L,target}}$ and
 different frequencies can be seen in \cref{fig:iteration_hist}. The trajectory
@@ -4168,7 +4168,7 @@ in \cref{fig:find_target_bad} is the only one where 8 iterations have been obser
     \begin{tikzpicture}
         \begin{axis}[
                 ybar interval,
-                ylabel={percentage of invocations},
+                ylabel={probability},
                 xlabel={number of iterations},
                 x filter/.expression={x-1}, % remove the start point
                 ymin = 0
@@ -4182,7 +4182,7 @@ in \cref{fig:find_target_bad} is the only one where 8 iterations have been obser
 
 As can be seen in \cref{fig:find_target,fig:iteration_hist} the algorithm is capable
 of reaching a specified reflection coefficient $\glsdisp{GammaL}{\Gamma_{L,target}}$ within a reasonable
-amount of time. Keeping the limitations above in mind, the algorithm could be further
+amount of time. Keeping the limitations above in mind, the algorithm can further be
 accelerated by adjusting the termination condition and the settling time.
 
 \subsection{Filter Performance}
@@ -4201,11 +4201,11 @@ were interpolated at the frequency points of the \gls{fft} of the \gls{fir} filt
 Filter calibration was carried out at the following $\gls{GammaL}$
 values: $1$, $-1$, $0.5\angle\SI{135}{\degree}$ and $0.5\angle\SI{-45}{\degree}$. Additional
 verification measurements were carried out with the mean of the acquired measurements
-at $1$ and $-1$, as well as the mean of the measurements at $0.5\angle\SI{135}{\degree}$
+at $1$ and $-1$ as well as with the mean of the measurements at $0.5\angle\SI{135}{\degree}$
 and $0.5\angle\SI{-45}{\degree}$.
 
 For the following verification measurements, the respective calibration measurement
-was integrated to the filter \device{fir1} by applying the acquired multipliers
+was combined with the low-pass filter loaded into \device{fir1} by applying the acquired $\glsdisp{GammaL}{\Gamma_{L,set}}$
 to the transfer function of the filter. An example of the uncalibrated low pass
 transfer function and two different calibrated filter transfer functions can be
 seen in \cref{fig:filter}.
@@ -4252,7 +4252,7 @@ frequency response of the reflection generation setup.
 
 The results, which can be seen in \cref{fig:calibrated_filter}, contain every acquired
 trajectory in blue and the calibration point in red. Since only the filter \device{fir1}
-was calibrated, but neither the target algorithm, nor an error model was used for the
+was calibrated, but neither the target algorithm nor an error model was used for the
 $\glsdisp{GammaL}{\Gamma_{L,set}}$ values, the overall grid is slightly distorted. As can be seen in these
 smith charts, the trajectories spread out at points far away from the calibration points.
 As expected, the filter calibrations utilizing the mean values achieve better trajectories
@@ -4358,12 +4358,12 @@ precision of the filter implementation of \device{fir1} (see \cref{sec:overlap_a
 \label{sec:drift}
 
 During the measurements a phase drift could be noticed. In order to examine the
-cause of these phase drifts, a test measurement was acquired, to be able
+cause of these phase drifts, a test measurement was acquired
 to observe the extent of the phase drift. For this measurement the test setup
-displayed in \cref{fig:test_setup} and again the Agilent \gls{vna} (see \cref{sec:instruments})
+displayed in \cref{fig:test_setup} and, again, the Agilent \gls{vna} (see \cref{sec:instruments})
 was used as \gls{dut}. The \gls{vna} was also connected to the
 \SI{10}{\mega\hertz} reference, in order to synthesize phase coherent signals. The same
-settings for the \gls{fpga} implementation have been used ($\gls{N} = 20000$, $\gls{L} = 2000$, $\gls{nfft} = 4096$).
+settings for the \gls{fpga} implementation have been used ($\gls{N} = \num{20000}$, $\gls{L} = \num{2000}$, $\gls{nfft} = \num{4096}$).
 According to \cref{sec:digital} \device{fir1} needs to be a low pass filter to
 filter out the aliases and was preloaded with the impulse response of a \SI{25}{\mega\hertz} low pass filter.
 For the duration of the measurements, the \gls{fpga} implementation was switched to automatic mode to
@@ -4395,7 +4395,7 @@ it was left out of the plot.
     \label{fig:phase_single}
 \end{figure}
 
-These results indicate, that the phase drift is not caused by the filter implementation of
+These results indicate that the phase drift is not caused by the filter implementation of
 \device{fir1}, which could only cause constant offsets or linear drifts. Because of that, the test
 setup in \cref{fig:setup_phase_single} was extended to additionally measure the phase drift of all the
 used local oscillators in the setup. This setup consists of oscilloscopes to measure
@@ -4404,14 +4404,14 @@ vector signal generator was chosen as the reference source. Since the frequencie
 of the generators were \SI{830}{\mega\hertz}, \SI{100}{\mega\hertz} and \SI{900}{\mega\hertz},
 the additional function generator \device{trigger} (see \cref{fig:setup_phase_single}) was needed to
 generate the greatest common divisor of those frequencies, which is \SI{10}{\mega\hertz}.
-Unfortunately, it was not possible to synthesize a stable and spectrally clear trigger signal using this function generator, that
-allowed reliably triggering for measuring the phase of the different signals. Therefore this signal was also recorded.
+Unfortunately, it was not possible to synthesize a stable and spectrally clear trigger signal using the function generator \device{trigger} that
+allowed reliably triggering for measuring the phase of the different signals. Therefore, the signal of the function generator \device{trigger} was also recorded.
 To be able to measure all the signals, a second oscilloscope had to be used. Since triggering
-the second oscilloscope with the first one resulted in a worse performance, than feeding both
+the second oscilloscope with the first one resulted in a worse performance than feeding both
 oscilloscopes with the same trigger, a chained setup was not used. Finally, after the measurement had taken place the
 different signals were corrected by the phase offset caused by the trigger signal, to achieve a phase
 offset of the trigger signal equal to zero. Consequently, the results of both oscilloscopes would be the same if the oscilloscopes would
-have triggered perfectly. For a list of the used instruments see \cref{sec:instruments}. As before, a phase offset was acquired every \SI{10}{\second}
+have been triggered perfectly. As before, a phase offset was acquired every \SI{10}{\second}
 for \SI{1000}{\minute}.
 
 \begin{figure}[htb]
@@ -4462,13 +4462,6 @@ for \SI{1000}{\minute}.
     \label{fig:setup_phase_single}
 \end{figure}
 
-The measurement results, which can be seen in \cref{fig:phase_overall}, show a
-trend of the phase drift of every instrument. The phase drift in those instruments is dominantly
-caused by a part of the phase drift of the oscillators in the instruments. This
-can be seen in \cref{fig:phase_overall} by comparing the phase drift of the \gls{vna}
-with the phase drift of \device{lo1} or \device{lo4}. The \gls{vna} was the instrument
-with the highest oscillator accuracy.
-
 \begin{figure}[htb]
     \centering
     \begin{tikzpicture}
@@ -4501,14 +4494,15 @@ with the highest oscillator accuracy.
     \label{fig:phase_overall}
 \end{figure}
 
-Another part is caused by
+The measurement results, which can be seen in \cref{fig:phase_overall}, show a
+trend of the phase drift of every instrument. The phase drift is dominantly caused by
 the low reference frequency of \SI{10}{\mega\hertz}. During a single period of the reference
 signal, a lot of periods need to be synthesized by the instruments, allowing for few
-synchronisation points. This means, that a better result can be achieved by using a faster
+synchronisation points. This means that a better result can be achieved by using a faster
 reference clock. This is also reflected in \cref{fig:phase_overall}, which shows
 that the generators with the higher frequencies (\device{lo1}, \device{lo4}, \gls{vna})
 experience more phase drift than the slower ones (\device{lo2}). This
-is caused by the fact that higher frequencies have shorter signal periods and therefore
+is caused by the fact that higher frequencies have shorter signal periods and, therefore,
 small time intervals cover bigger parts of a signal period as would be the case with
 low frequencies.
 
