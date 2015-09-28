@@ -3888,7 +3888,7 @@ equipment can be seen in \cref{sec:instruments}.
             \draw ([xshift=-0.5cm]oszivna.north) -- ++(0,1) node [anchor=south] {\gls{pc}};
         }
 
-        \draw [decorate,decoration={brace,mirror,amplitude=5pt}] ([yshift=-6pt]leftsplit) -- (\currentcoordinate -| fpga.south east) node[midway,below,yshift=-6pt] {reflection generation};
+        \draw [decorate,decoration={brace,mirror,amplitude=5pt}] ([yshift=-6pt]leftsplit) -- (\currentcoordinate -| fpga.south east) node[midway,below,yshift=-6pt] {Reflection Synthesis};
     \end{tikzpicture}
     }
     \caption{Measurement system verification test setup}
@@ -3906,7 +3906,7 @@ feeding back the reflected wave $\gls{a}[_2]$ to the \gls{dut}. The digital part
 in \cref{sec:digital} handles filtering the signal to enable broadband reflection
 synthesis and applying the reflection coefficient $\glsdisp{GammaL}{\Gamma_{L,set}}$. Since analog and
 digital part can't be verified separately, verification of the combined reflection
-generation part can be found in \cref{sec:reflection}. During these measurements,
+synthesis part can be found in \cref{sec:reflection}. During these measurements,
 a noticeable phase drift was observed, and, therefore, an additional measurement was
 acquired, as seen in \cref{sec:drift}, to verify the origin
 of this phase drift.
@@ -4018,9 +4018,9 @@ be increased with a better calibration kit or by additional calibration measurem
 
 Further care should be taken to always ensure a strong enough signal power at the
 oscilloscope \glspl{adc}. According to \cite{Oppenheim} the \gls{snr} caused by quantization
-noise of \gls{adc} depends on the bit width and the amplitude. Therefore, small signals cause
-a low \gls{snr}. A small \gls{GammaL} value implies a small reflected wave and therefore a
-lower \gls{snr}. Therefore, the resolution decreases for small \gls{GammaL}. This can
+noise of \glspl{adc} depends on the bit width and the amplitude. Therefore, small signals cause
+a low \gls{snr}. Additionally, a small \gls{GammaL} value implies a small reflected wave and therefore a
+lower \gls{snr}. Therefore, the resolution decreases for small $\abs{\gls{GammaL}}$. This can
 be compensated with averaging which would increase the effective bit width at the cost
 of longer measurement times \cite{ad_mt004}.
 
@@ -4066,7 +4066,7 @@ with highly non-linear \gls{dut}. These \gls{dut} can exhibit load dependent
 $\gls{S}[_{22}]$ which renders error box based approaches unsuitable.
 
 As mentioned above, the digital reflection generation introduces a large latency
-on the order of about \SI{1}{\milli\second}. Therefore a delay time of \SI{100}{\milli\second}
+on the order of about \SI{1}{\milli\second}. Therefore, a delay time of \SI{100}{\milli\second}
 was used for the iterative algorithm (see \cref{sec:matlab}). This allows the system to settle
 on a $\gls{GammaL}$ before continuing with the algorithm. If the wait time is too short,
 the iterative target algorithm can start to cause stability issues and the completion time of the algorithm
@@ -4174,7 +4174,7 @@ Two descriptive example trajectories can be seen in \cref{fig:find_target}. In
 whereas in \cref{fig:find_target_bad} the worst observed case can be seen. The
 trajectory in \cref{fig:find_target_bad} oscillates around the target before
 reaching it. The reason can either be found in a too stringent termination condition or
-in a bad resolution of the \gls{vna} used for measuring \gls{GammaL} or the digital part of this system in the
+in a bad resolution of the \gls{vna} used for measuring \gls{GammaL} or the digital part of the reflection synthesis in the
 target range.
 
 Depending on the starting point $\glsdisp{GammaL}{\Gamma_{L,start}}$ and the target $\glsdisp{GammaL}{\Gamma_{L,target}}$
@@ -4225,8 +4225,9 @@ at $1$ and $-1$ as well as with the mean of the measurements at $0.5\angle\SI{13
 and $0.5\angle\SI{-45}{\degree}$.
 
 For the following verification measurements, the respective calibration measurement
-was combined with the low-pass filter loaded into \device{fir1} by applying the acquired $\glsdisp{GammaL}{\Gamma_{L,set}}$
-to the transfer function of the filter. An example of the uncalibrated low pass
+was combined with a \SI{12.5}{\mega\hertz} low-pass filter by applying the acquired $\glsdisp{GammaL}{\Gamma_{L,set}}$
+to the transfer function of the filter. This calibrated filter transfer function was then
+loaded in the filter implementation \device{fir1}. An example of the uncalibrated low pass
 transfer function and two different calibrated filter transfer functions can be
 seen in \cref{fig:filter}.
 
@@ -4419,11 +4420,11 @@ These results indicate that the phase drift is not caused by the filter implemen
 \device{fir1}, which could only cause constant offsets or linear drifts. Because of that, the test
 setup in \cref{fig:setup_phase_single} was extended to additionally measure the phase drift of all the
 used local oscillators in the setup. This setup consists of oscilloscopes to measure
-the different signals generated by the signal generators. To keep the setup as close to the previous measurements as possible, the
+the different signals synthesized by the signal generators. To keep the setup as close to the previous measurements as possible, the
 vector signal generator was chosen as the reference source. Since the frequencies
 of the generators were \SI{830}{\mega\hertz}, \SI{100}{\mega\hertz} and \SI{900}{\mega\hertz},
 the additional function generator \device{trigger} (see \cref{fig:setup_phase_single}) was needed to
-generate the greatest common divisor of those frequencies, which is \SI{10}{\mega\hertz}.
+synthesize the greatest common divisor of those frequencies, which is \SI{10}{\mega\hertz}.
 Unfortunately, it was not possible to synthesize a stable and spectrally clear trigger signal using the function generator \device{trigger} that
 allowed reliably triggering for measuring the phase of the different signals. Therefore, the signal of the function generator \device{trigger} was also recorded.
 To measure all the signals, a second oscilloscope had to be used. Since triggering
