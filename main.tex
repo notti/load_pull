@@ -318,8 +318,8 @@ pdfpagelabels,
     synthesized waveforms for a cyclic signal which was used to achieve a zero phase
     delay between the reflected wave and a later cycle of the received wave at the
     load reference plane. Furthermore, an iterative target algorithm based on measurements
-    using an also realized 1-port vector network analyzer to achieve specific reflection coefficients was
-    developed. This algorithm needs no calibration and allows verifying highly non-linear devices
+    using an also realized 1-port vector network analyzer was developed to achieve accurate reflection coefficients.
+    This algorithm needs no calibration and allows the verification of highly non-linear devices
     under test which can exhibit load dependent behaviour.
 
     The digital reflection generation was implemented in hardware on an FPGA.
@@ -329,7 +329,7 @@ pdfpagelabels,
     Ethernet which is needed for automated test bench setups.
 
     Finally, the implementation was verified by comparing the realized reflection
-    components to measurements carried out using a commercially available vector
+    coefficients to measurements carried out using a commercially available vector
     network analyzer connected to the load-pull setup as the device under
     test.
 \end{abstract}
@@ -337,47 +337,46 @@ pdfpagelabels,
 \begin{otherlanguage}{ngerman}
 \renewcommand{\abstractname}{Kurzfassung}
 \begin{abstract}
-    Load-pull ist ein nicht lineare Messtechnik, bei der Messungen durchgeführt
-    werden, indem verschiedene Impedanzen an ein zu prüfendes Objekt angelegt
-    werden. Aktive load-pull Systeme lösen diese Aufgabe mit zurückschicken einer
+    Load-Pull ist eine nicht lineare Messtechnik bei der einem Prüfobjekt
+    während einer Messung verschiedene Terminierungen angeboten
+    werden. Aktive Load-Pull Systeme lösen diese Aufgabe mit zurück transmittieren einer
     modifizierten Version des Ausgangssignals an das Prüfobjekt. Diese Art Messung
     wird benötigt um nicht lineare Bauteile, wie z.B. Transistoren, zu charakterisieren
     und kann auch verwendet werden um Bauteile unter realen Bedingungen zu testen.
-    Traditionelle load-pull Messsysteme können nur schmalbandige Signale verarbeiten.
+    Traditionelle Load-Pull Systeme sind von ihrer Natur aus eher Schmalbandsysteme.
 
-    Ziel dieser Diplomarbeit ist die Entwicklung eines aktiven
-    load-pull Messsystems, das breitbandige Reflexionen mit einem konstanten
-    Reflexionskoeffizienten, über eine Bandbreite von \SI{20}{\mega\hertz},
+    Im Zuge dieser Diplomarbeit wurde ein aktives
+    Load-Pull Messsystem aufgebaut und charakterisiert, das Reflexionen über
+    eine Bandbreite von \SI{20}{\mega\hertz} mit konstanten Reflexionskoeffizienten
     erzeugen kann. Dies wurde mittels digitaler Reflexionssynthese und Filterung im Basisband
-    erzielt. Die Filterung ermöglicht ausgleichen der Gruppenlaufzeit verursacht
-    von den Kabel im Messaufbau eines periodischen Signals. Dies wird erreicht, indem die Phase
-    des reflektierten Signals an die Phase des Ausgangssignals einer zukünftigen Signalperiode
-    angeglichen wird. Weiters wurde ein iterativer Algorithmus entworfen, der, basierend
+    erzielt. Die Filterung ermöglicht das Ausgleichen der Gruppenlaufzeit verursacht
+    durch Kabel im Messaufbau unter Nutzung eines zyklisch periodischen Eingangssignals durch
+    angleichen der Phase des synthetisierten reflektierten Signals an zukünftige Signalperioden.
+    Weiters wurde ein iterativer Algorithmus entworfen, der, basierend
     auf Messungen eines zusätzlich implementierten Netzwerkanalysators, den gewünschten
-    Reflexionskoeffizienten erreichen kann. Dies wird benötigt um Prüfobjekte
-    mit lastabhängigem Verhalten testen zu können.
+    Reflexionskoeffizienten erreichen kann. Dieser Algorithmus setzt keine Kalibration voraus
+    und wird benötigt um Prüfobjekte mit lastabhängigem Verhalten testen zu können.
 
     Die digitale Reflexionsynthese ist in einem FPGA implementiert.
     Diese effiziente, pipeline-basierende Implementierung erlaubt hohe
-    Aktualisierungsraten. Weiters wurde eine Kommunikationssoftware entwickelt, die
+    Aktualisierungsraten. Weiters wurde eine Kommunikationssoftware entwickelt die
     auf dem in dem FPGA integrierten Prozessor läuft. Damit wird die Fernsteuerung
-    der digitalen Hardware mittels Ethernet ermöglicht, was in automatisierten
+    der digitalen Hardware mittels Ethernet ermöglicht was in automatisierten
     Prüfaufbauten benötigt wird.
 
-    Abschließend wurde das Messsystem verifiziert, indem die erzeugten Reflexionskomponenten
-    mit Messungen eines kommerziell verfügbaren vektoriellen Netzwerkanalysator
-    verglichen wurden.
+    Abschließend wurde das Messsystem verifiziert indem die erzeugten Reflexionskoeffizienten
+    mit Messungen eines kommerziell erhältlichen Netzwerkanalysators verglichen wurden.
 \end{abstract}
 \end{otherlanguage}
 
 \renewcommand{\abstractname}{Acknowledgements}
 \begin{abstract}
     I would like to thank my parents for their support during my long journey
-    trough university. Especially I would like to thank Katharina for proofreading
+    through university. Especially I would like to thank Katharina for proofreading
     this thesis and for giving me the strength to withstand the sprint during
     the end of my study.
 
-    Additional thanks go to my supervisors which always responded quickly to
+    Additional thanks go to my supervisors who always responded quickly to
     my questions, provided me with lots of suggestions, and helped me
     understanding RF.
 
