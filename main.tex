@@ -304,31 +304,31 @@ pdfpagelabels,
 \begin{abstract}
     Load-pull is a non-linear measurement setup which operates by presenting
     a specific impedance to a device under test. One type of such setups is active
-    load-pull which achieves these tasks by retransmitting a modified received wave
-    back to the device under test. Generally, a load-pull system is
-    intended to characterize non-linear devices like power amplifiers and can
-    also be used to test devices under operating conditions. Traditional
-    load-pull measurement systems are narrow band in nature.
+    load-pull which retransmits a modified received wave back to the device under
+    test. Generally, a load-pull system is
+    intended to characterize non-linear devices like transistors and can
+    also be used to test devices under different operating conditions. Traditional
+    load-pull measurement systems are narrowband in nature.
 
     During the course of this thesis an active FPGA based load-pull measurement system
     capable of synthesizing reflections with a constant reflection coefficient
-    over a band width of \SI{20}{\mega\hertz} was developed and verified in measurements.
-    The goals were achieved by generating the reflection waveform in baseband. Additionally, instead
-    of synthesizing a specific reflection coefficient in the analog domain, the
-    digital domain was chosen. This allowed implementing a digital filter with
-    a configurable frequency response, which is needed to correct e.g. the group
-    delay introduced by cabling. Furthermore, an iterative target algorithm based on measurements
-    using an also realized 1-port vector network analyzer was
-    developed to achieve specific reflection coefficients even with
-    highly non-linear devices under test which can exhibit load dependent behaviour.
+    over a bandwidth of \SI{20}{\mega\hertz} was developed and verified in measurements.
+    The goals were achieved by synthesizing and filtering the reflection waveform
+    digitally in baseband. This filtering allowed to apply phase correction to the
+    synthesized waveforms for a cyclic signal which was used to achieve a zero phase
+    delay between the reflected wave and a later cycle of the received wave at the
+    load reference plane. Furthermore, an iterative target algorithm based on measurements
+    using an also realized 1-port vector network analyzer to achieve specific reflection coefficients was
+    developed. This algorithm needs no calibration and allows verifying highly non-linear devices
+    under test which can exhibit load dependent behaviour.
 
     The digital reflection generation was implemented in hardware on an FPGA.
     In combination with an efficient pipelined design this allows for fast
-    update rates. Additionally software running on a processor contained within
+    update rates. Additionally, software running on a processor contained within
     the FPGA was developed to control the digital hardware via
-    Ethernet which is e.g. needed for automated test bench setups.
+    Ethernet which is needed for automated test bench setups.
 
-    Finally the implementation was verified by comparing the realized reflection
+    Finally, the implementation was verified by comparing the realized reflection
     components to measurements carried out using a commercially available vector
     network analyzer connected to the load-pull setup as the device under
     test.
@@ -337,35 +337,34 @@ pdfpagelabels,
 \begin{otherlanguage}{ngerman}
 \renewcommand{\abstractname}{Kurzfassung}
 \begin{abstract}
-    Load-pull ist ein nicht lineares Messsystem bei dem Messungen durchgeführt
-    werden indem verschiedene spezifische Impedanzen an ein zu prüfendes Objekt
-    angelegt werden. Aktive load-pull Systeme lösen diese Aufgabe indem sie
-    eine modifizierte Version des Ausgangssignals des Prüfobjekts an dieses
-    zurück schicken. Diese Art Messung wird benötigt um nicht lineare Bauteile,
-    wie z.B. Verstärker, zu charakterisieren und kann auch verwendet werden
-    um ein Bauteil unter realen Bedingungen zu testen. Traditionelle load-pull
-    Messsysteme können nur schmalbandige Signale verarbeiten.
+    Load-pull ist ein nicht lineare Messtechnik, bei der Messungen durchgeführt
+    werden, indem verschiedene Impedanzen an ein zu prüfendes Objekt angelegt
+    werden. Aktive load-pull Systeme lösen diese Aufgabe mit zurückschicken einer
+    modifizierten Version des Ausgangssignals an das Prüfobjekt. Diese Art Messung
+    wird benötigt um nicht lineare Bauteile, wie z.B. Transistoren, zu charakterisieren
+    und kann auch verwendet werden um Bauteile unter realen Bedingungen zu testen.
+    Traditionelle load-pull Messsysteme können nur schmalbandige Signale verarbeiten.
 
     Ziel dieser Diplomarbeit ist die Entwicklung eines aktiven
     load-pull Messsystems, das breitbandige Reflexionen mit einem konstanten
     Reflexionskoeffizienten, über eine Bandbreite von \SI{20}{\mega\hertz},
-    erzeugen kann. Dies wurde mittels digitaler Reflexionserzeugung im Basisband
-    erzielt. Die digitale Implementierung erlaubt die Verwendung eines
-    Filters mit einem frei wählbaren Frequenzgang. Dieser Filter wird benötigt
-    um z.B. die Gruppenlaufzeit, welche von den Kabeln im Messaufbau verursacht wird,
-    auszugleichen. Zusätzlich wurde ein iterativer Algorithmus entworfen, der basierend
-    auf Messungen eines zusätzlich implementierten Netzwerkanalysators,
-    gewünschte Reflexionskoeffizienten erzeugen kann. Dies wird benötigt um Prüfobjekte
+    erzeugen kann. Dies wurde mittels digitaler Reflexionssynthese und Filterung im Basisband
+    erzielt. Die Filterung ermöglicht ausgleichen der Gruppenlaufzeit verursacht
+    von den Kabel im Messaufbau eines periodischen Signals. Dies wird erreicht, indem die Phase
+    des reflektierten Signals an die Phase des Ausgangssignals einer zukünftigen Signalperiode
+    angeglichen wird. Weiters wurde ein iterativer Algorithmus entworfen, der, basierend
+    auf Messungen eines zusätzlich implementierten Netzwerkanalysators, den gewünschten
+    Reflexionskoeffizienten erreichen kann. Dies wird benötigt um Prüfobjekte
     mit lastabhängigem Verhalten testen zu können.
 
-    Die digitale Reflexionserzeugung ist in Hardware in einem FPGA implementiert.
-    Diese effiziente pipeline-basierende Implementierung erlaubt hohe
+    Die digitale Reflexionsynthese ist in einem FPGA implementiert.
+    Diese effiziente, pipeline-basierende Implementierung erlaubt hohe
     Aktualisierungsraten. Weiters wurde eine Kommunikationssoftware entwickelt, die
     auf dem in dem FPGA integrierten Prozessor läuft. Damit wird die Fernsteuerung
-    der digitalen Hardware mittels Ethernet ermöglicht, was z.B. in automatisierten
-    Prüfstandsaufbauten benötigt wird.
+    der digitalen Hardware mittels Ethernet ermöglicht, was in automatisierten
+    Prüfaufbauten benötigt wird.
 
-    Abschließend wurde das Messsystem verifiziert indem die erzeugten Reflexionskomponenten
+    Abschließend wurde das Messsystem verifiziert, indem die erzeugten Reflexionskomponenten
     mit Messungen eines kommerziell verfügbaren vektoriellen Netzwerkanalysator
     verglichen wurden.
 \end{abstract}
@@ -680,7 +679,7 @@ an overall negative phase correction at the load reference plane by filtering th
 and sending the modified wave back to the device. The negative phase correction is
 only possible for a later repetition of the signal. Therefore, cyclic signals have to
 be used which allow completely compensating the group delay by matching the
-phase of the reflected wave $\gls{a}[_2]$ to the phase of the incoming wave
+phase of the reflected wave $\gls{a}[_2]$ to the phase of the incident wave
 $\gls{b}[_2]$ at a later signal cycle at the load reference plane.
 
 % ===========================================================================
