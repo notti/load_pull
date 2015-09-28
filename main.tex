@@ -2990,9 +2990,9 @@ found in \cref{sec:daemon}.
 \end{figure}
 
 The calibration and error correction routines needed for the one port
-\gls{vna} functionality were implemented as a Matlab script. These scripts
+\gls{vna} functionality were implemented as Matlab scripts. These scripts
 automate the measurements and are able to perform the calculations
-needed for correcting the systematic errors (see \cref{sec:vna}). Furthermore
+needed for correcting the systematic errors (see \cref{sec:vna}). Furthermore,
 a Matlab function for performing an iterative target algorithm in order to
 achieve a specific $\glsdisp{GammaL}{\Gamma_{L,target}}$ was developed. This algorithm
 is necessary, because reflections caused by the measurement setup and
@@ -3042,7 +3042,7 @@ MODULE_AUTHOR("Gernot Vormayr <notti@fet.at>");
 MODULE_DESCRIPTION("driver for custom fpga interface");
 \end{lstlisting}
 
-The kernel module implement specifically for the processor interface
+The kernel module implemented specifically for the processor interface
 in the \gls{fpga} takes care of initializing the hardware, provides
 direct access to the sample buffers, provides access to hardware knobs
 via registers, and enables utilizing the interrupts (see
@@ -3140,7 +3140,7 @@ Character device initialization was implemented in the \lstinline+probe+
 function mentioned above. To set up a character device a
 \lstinline+struct file_operations+\cite{ldd} is needed. This \lstinline+struct+
 has an entry for every possible file operation which needs to point to the
-implementation this operation. Not implemented functions need to be null pointers
+implementation of this operation. Not implemented functions need to be null pointers
 which is taken care of by leaving out the fields
 in the GNU style initialization seen in \cref{src:cdevinit} \cref{fops}. In
 the example in \cref{src:cdevinit} the \lstinline+close+ function is left
@@ -3259,11 +3259,11 @@ generalized \lstinline+show+ and \lstinline+store+ functions were developed. The
 of the passed number to an integer and performs out of bound checking. This number is then
 shifted to the right position in the register and the memory mapped register updated with
 a read modify write cycle. This read modify write cycle is protected by a spin lock to
-ensure that possibly concurrent write operation to the registers doesn't interfere. This
+ensure that possibly concurrent write operations to the registers don't interfere. This
 spin lock isn't actually needed by a uniprocessor system and gets optimized away during
 the compilation. Since this code could also be used on a different processor it is best
 practice to keep the spin lock. The generalized \lstinline+show+ function
-(\lstinline+fpga_flag_show+) reads the desired value from the register, shifts it to the
+\lstinline+fpga_flag_show+ reads the desired value from the register, shifts it to the
 correct position, and truncates the value to the correct length. This value is then
 converted to a textual representation and written to the buffer.
 
@@ -3299,7 +3299,7 @@ seen in \cref{sec:registers}.
 
 With the function \lstinline+request_irq+ a function can be registered that
 is supposed to handle the interrupt with a specific interrupt number\cite{ldd}. The
-interrupt number is set by the hardware implementation in the \gls{xps}.
+interrupt number is set by the hardware implementation in \gls{xps}.
 An example usage of the register function can be seen in \cref{src:int}
 \cref{request_irq}. In this example the function \lstinline+edev_isr+
 in \cref{edev_isr} is registered as the interrupt handler.
@@ -3351,7 +3351,7 @@ function. After successfully handling the interrupt the handler has to
 return \lstinline+IRQ_HANDLED+ to notify the kernel. Without this the
 kernel searches for other interrupt handlers for this interrupt number.
 
-The \lstinline+sysfs_notifty_dirent+ function wakes up user space processes
+The \lstinline+sysfs_notify_dirent+ function wakes up user space processes
 that wait with the \lstinline+poll+ system call for \lstinline+POLLPRI+ and
 \lstinline+POLLERR+ events \cite{posix}. An example program using this interface
 can be seen in \cref{src:pint}. In order to receive the notifications,
@@ -3685,7 +3685,7 @@ The iterative target algorithm used in this work makes the following steps:
 \end{figure}
 
 The pause is needed, because the digital signal processing chain experiences
-lag times up to \SI{1}{\milli\second}. Since this algorithm and the digital
+lag times up to \SI{1}{\milli\second}. Since the target algorithm and the digital
 signal processing chain run completely independent, the algorithm can
 experience stability issues if the pause of the algorithm is too short. A
 visualization of the different phases of the digital signal processing chain
@@ -3726,7 +3726,10 @@ is returned.
 The digital filter in the signal processing chain is needed to
 synthesize a constant \gls{GammaL} over a wide frequency range. This
 filter is required to compensate the group delay caused by the measurement
-setup and cabling needed for to reach the \gls{dut}. Furthermore,
+setup and cabling needed for reaching the \gls{dut}. This is achieved with
+a negative phase correction for cyclic signals which works by modifying
+the phase of the signal to achieve a zero phase delay between the reflected
+wave and the incident wave at a later signal cycle. Furthermore,
 it is able to compensate the frequency responses of the components used
 in the measurement setup.
 
