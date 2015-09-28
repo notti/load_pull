@@ -1992,7 +1992,7 @@ be discussed in \cref{sec:processor} the \device{processor} design includes the 
 needed to use Linux. An overview of the complete Linux implementation
 can be seen in \cref{chap:software}.
 
-All hardware source codes and project files, which are needed to generate the hardware, can
+A reference to all hardware source codes and project files, which are needed to generate the hardware, can
 be found in \cref{sec:sources}.
 
 % ---------------------------------------------------------------------------
@@ -2896,7 +2896,7 @@ provides the necessary drivers supporting the needed peripherals and
 network communication. Linux was chosen since it can be targeted
 specifically for this platform due to its open nature. The cross compilation tool
 chain needed for compiling the software
-components and the base system were built using buildroot\cite{buildroot}. The
+components and the base system were built using buildroot\cite{buildroot}. A reference to the
 configuration files needed for configuring buildroot can be found in
 \cref{sec:sources} and a guide for building the base software in \cref{sec:build:sw}.
 
@@ -3067,7 +3067,7 @@ devices and files, setup the interrupt function, and initialize the
 interrupt registers. For freeing the resources, everything has to be
 released in the \lstinline+remove+ function. Omitting this prevents unloading the driver cleanly which
 causes locked resources that can only be used again after a reboot.
-All the code examples in this chapter are taken from the developed kernel module source. The
+All the code examples in this chapter are taken from the developed kernel module source. A reference to the
 complete source code can be found in \cref{sec:sources}.
 
 % ---------------------------------------------------------------------------
@@ -3288,7 +3288,7 @@ maximum value. The following macros allow instantiating the above mentioned
         arguments \lstinline+show+ and \lstinline+store+ which allow the use of custom functions.
 \end{description}
 
-The source code implementing and using this macros can be found in
+A reference to the source code implementing and using this macros can be found in
 \cref{sec:sources} and an overview of the registers including the flags can be
 seen in \cref{sec:registers}.
 
@@ -3468,7 +3468,7 @@ followed by a newline. The asynchronous protocol listens on \gls{tcp} port {\ttf
 This daemon is started automatically during the \gls{os} boot sequence. The \gls{json}- and
 text based protocol both provide an additional shutdown command that allows shutting
 down the \gls{os}. The \gls{os} should always be shut down before switching off the \gls{fpga}
-to prevent file system corruption. The source code for the daemon can be found in \cref{sec:sources}.
+to prevent file system corruption. A reference to the source code for the daemon can be found in \cref{sec:sources}.
 
 % ---------------------------------------------------------------------------
 
@@ -3484,7 +3484,7 @@ as the path separator. The sample buffers can be accessed via the properties
 \lstinline+out_inactive+ for inactive \device{outbuf}, and \lstinline+out_active+
 for active \device{outbuf} (see \cref{sec:digital_processing}). Those dependent properties automatically convert
 the raw data to complex vectors and vice versa. The interrupts are exposed via
-Matlab events. All the classes are fully documented with Matlab comments and
+Matlab events. All the classes are fully documented with Matlab comments and a reference to the source codes
 can be found in \cref{sec:sources}. A description of all the properties can
 be found in \cref{sec:registers}. An example usage can be seen in \cref{src:mdriver}.
 
@@ -3570,7 +3570,7 @@ the \glspl{sparam} of the error box.
 
 The developed function \lstinline+calcGl+ is able to calculate a corrected \gls{GammaL}
 with these \glspl{sparam} and a reflection coefficient calculated with \lstinline+manyRho+
-from acquired samples. The described functions and the example script \lstinline+measureVNA+
+from acquired samples. A reference to the described functions and the example script \lstinline+measureVNA+
 can be found in \cref{sec:sources}. This example script is split into four parts. The
 first part initializes the used instruments, the second part carries out the
 calibration measurements, and the third part implements the interpolation
@@ -3743,7 +3743,7 @@ $\glsdisp{GammaL}{\Gamma_{L,set}}$ values were added to the filter by multiplyin
 them with the transfer function. An example of the resulting transfer function
 can be seen in \cref{sec:filter}.
 
-An example script named \lstinline+filterCalibration+ is provided in
+A reference to an example script named \lstinline+filterCalibration+ is provided in
 \cref{sec:sources} which acquires a filter calibration for the points
 $1$, $-1$, $0.5\angle\SI{135}{\degree}$ and $0.5\angle\SI{-45}{\degree}$.
 Additionally it calculates filters for the mean of the measurements $1$ and $-1$,
@@ -4611,7 +4611,7 @@ The \gls{vhdl} sources and project files needed to generate the hardware can be 
 \url{https://github.com/notti/load_pull-hw}. Buildroot configuration files for building
 the \gls{os} necessary for the integrated processor design can be found at
 \url{https://github.com/notti/load_pull-buildroot}. The kernel module necessary for controlling
-the developed hardware, web interface and protocol server, Matlab source codes, raw verification results
+the developed hardware, web interface and protocol server, Matlab source codes, and raw verification results
 can be found at \url{https://github.com/notti/load_pull-sw}. The complete \LuaLaTeX~source code
 and processed verification results necessary to build this document can be found at
 \url{https://github.com/notti/load_pull}.
@@ -4621,7 +4621,7 @@ and processed verification results necessary to build this document can be found
 \providecommand{\flag}[1]{{\scriptsize\hack #1}}
 
 The following list of registers includes every signal exposed by the \device{main} module which can be used
-to control the complete digital signal processing chain. Additionally the path names of
+to control the complete digital signal processing chain. Additionally, the path names of
 the \device{sysfs} interface implemented by the kernel module are listed (see \cref{sec:kernel_module}).
 
 The Matlab source code repository (see \cref{sec:sources}) contains a package
@@ -4864,7 +4864,7 @@ is an instance of \lstinline[language=matlab]+ML507.ML507+.
 \section{Hardware}
 \label{sec:build:hw}
 
-The project files needed to build the netlist and \gls{fpga} configuration files can be found
+A reference to the project files needed to build the netlist and \gls{fpga} configuration files can be found
 in \cref{sec:sources}. For compiling the project files, the
 Xilinx ISE Design Suite version 14.7 including all updates is needed. Since
 this design has very strict timing conditions, the design needs to be built
