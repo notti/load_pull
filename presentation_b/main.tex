@@ -363,11 +363,14 @@
                 \draw ($(dut.east)!.2!(circ.west)$) node[coordinate] (plane) {};
 
                 { [on background layer,every path/.style={dotted,decorate,decoration=random steps,segment length=2mm,thick}]
-                    %\draw ($(dut) + (0,4)$) -- ++(0,-8.5) node[coordinate] (leftsplit) {};
                     \draw ($(adc.east)!.5!(outbuf.west) + (0,4)$) -- ++(0,-8.5) node[coordinate] (rightsplit) {};
                 }
+                { [on background layer,every path/.style={decorate,decoration={zigzag,segment length=2mm,amplitude=0.3mm}}]
+                    \draw ($(dut.east)!.5!(circ.west)$) node[coordinate] (lcut) {} ++ (0,.3) -- ++(0,-0.6);
+                    \draw ($(dut.east)!.6!(circ.west)$) node[coordinate] (rcut) {} ++ (0,.3) -- ++(0,-0.6);
+                }
                 { [rounded corners=2pt,thick]
-                    \draw (dut) -- (circ.A);
+                    \draw (dut) -- (lcut) (rcut) -- (circ.A);
                     \draw [-latex,incident] (circ.B) -- ($(circ.B |- uppernode)!.5!(uppernode)$) node[coordinate] (upper) {} -- (downmix);
                     \draw [-latex,reflect] (amp) -- ($(circ.C |- amp)!.5!(lowernode)$) node[coordinate] (lower) {} -- (circ.C);
                 }
