@@ -286,21 +286,31 @@
     \note[item]{Active: Oscillations (possibly fatal) Isolation vs Loop Gain}
 \end{frame}
 
-\begin{frame}{Objectives of this Diploma Thesis}
-    \begin{block}{Active Load Pull system}
+\begin{frame}
+    \begin{block}{Only narrowband reflection synthesis}
         \begin{itemize}
-            \item Baseband
-            \item Digital reflection synthesis
-            \item Support bandwidths \SI{>= 20}{\mega\hertz}
-            \item FPGA based
+            \item Phase delay of cabling
+            \item Frequency response of components
         \end{itemize}
     \end{block}
-    \begin{block}{Digital Filter}
-        \begin{itemize}
-            \item Correct frequency response of setup
-            \item Synthesize uniformly distributed $\Gamma_L$
-        \end{itemize}
-    \end{block}
+    \begin{exampleblock}{Aim of thesis: Synthesize constant $\Gamma_L$ over bandwidths \SI{>= 20}{\mega\hertz}}
+        \centering
+        \begin{minipage}{.9\textwidth}
+            \begin{block}{Negative phase delay}
+                \begin{itemize}
+                    \item Periodic waveform
+                    \item Digital filter
+                \end{itemize}
+            \end{block}
+            \begin{block}{Implementation}
+                \begin{itemize}
+                    \item Baseband
+                    \item Digital reflection synthesis
+                    \item FPGA based
+                \end{itemize}
+            \end{block}
+        \end{minipage}
+    \end{exampleblock}
 \end{frame}
 
 
