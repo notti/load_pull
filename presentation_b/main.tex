@@ -952,21 +952,15 @@
                     \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(-0.3536,0.3536)};
                 \end{smithchart}
             \end{tikzpicture}
+            \begin{center}
+                11 by 11 grid $\Gamma_{L,set}$
+            \end{center}
         \column{0.5\linewidth}
-            \begin{tikzpicture}[every axis/.style={font=\tiny}]
-                \begin{smithchart}[width=\linewidth,clip=false,title={\normalsize $0.5 \angle \SI{-45}{\degree}$}]
-                    \foreach \i in {1,...,11}{
-                        \foreach \j in {1,...,11}{
-                            \addplot[blue,is smithchart cs,line join=bevel] file {testdata/filter/0.5,-45/\i,\j.data};
-                        }
-                    }
-                    \addplot[red,is smithchart cs,mark=*,only marks] coordinates {(0.3536,-0.3536)};
-                \end{smithchart}
-            \end{tikzpicture}
+        \begin{itemize}
+            \item \SI{11}{\mega\hertz} bandwidth trajectories
+            \item $\Gamma_L$ constant near calibration point
+        \end{itemize}
     \end{columns}
-    \begin{center}
-        11 by 11 grid $\Gamma_{L,set}$, \SI{11}{\mega\hertz} bandwidth
-    \end{center}
 \end{frame}
 
 \section*{Summary}
