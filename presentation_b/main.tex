@@ -965,19 +965,47 @@
 
 \section*{Summary}
 
-\begin{frame}{Summary}
-    \begin{block}{FPGA based load-pull System}
+\begin{frame}[t]{Summary}
+    \begin{exampleblock}{Active Load-Pull measurement system}
         \begin{itemize}
-            \item Capable of synthesizing arbitrary $\Gamma_L$ (even \num{> 1})
+            \item Constant $\Gamma_L$ over \SI{20}{\mega\hertz} bandwidth
         \end{itemize}
-    \end{block}
-    \begin{block}{Digital Filter}
-        \begin{itemize}
-            \item Compensates frequency response
-            \item Ensures constant $\Gamma_L$ over wide bandwidth
-            \item Accurate in calibrated area
-        \end{itemize}
-    \end{block}
+    \end{exampleblock}
+    \begin{columns}
+        \column{.47\textwidth}
+            \begin{block}{Components}
+                \begin{itemize}
+                    \item One port VNA
+                    \item Analog part
+                    \item Digital part
+                \end{itemize}
+            \end{block}
+        \column{.47\textwidth}
+            \begin{block}{Digital part (FPGA)}
+                \begin{itemize}
+                    \item Signal processing chain
+                    \item Embedded processor design
+                    \item Linux kernel module
+                    \item Controllable via Ethernet
+                \end{itemize}
+            \end{block}
+    \end{columns}
+
+    \begin{columns}
+        \column{.47\textwidth}
+            \begin{block}{Algorithms in Matlab}
+                \begin{itemize}
+                    \item Filter calibration
+                    \item Target algorithm
+                    \item Verification measurements
+                \end{itemize}
+            \end{block}
+        \column{.47\textwidth}
+    \end{columns}
+
+    \begin{textblock}{5.5}(6.8,6.65)
+        {\setlength{\fboxsep}{0pt}\setlength{\fboxrule}{0.2pt}\fbox{\includegraphics[width=\textwidth]{webinterface}}}
+    \end{textblock}
 \end{frame}
 
 % =============================================================================
